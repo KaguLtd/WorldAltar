@@ -227,11 +227,21 @@ impl EntityRepository {
     Ok(())
   }
 
-  pub fn search(&self, query: &str, year: Option<i32>) -> Result<Vec<SearchResult>, String> {
+  pub fn search(
+    &self,
+    query: &str,
+    year: Option<i32>,
+    entity_type: Option<EntityType>,
+  ) -> Result<Vec<SearchResult>, String> {
     if query.trim().is_empty() {
       return self
         .list(year)
-        .map(|records| records.into_iter().map(search_result_from_record).collect());
+        .map(|records| {
+          filter_type(records, entity_type)
+            .into_iter()
+            .map(search_result_from_record)
+            .collect()
+        });
     }
 
     let mut statement = self
@@ -253,10 +263,12 @@ impl EntityRepository {
     for row in rows {
       records.push(row.map_err(|err| err.to_string())?);
     }
-    Ok(filter_visible(records, year)
-      .into_iter()
-      .map(|record| search_result_from_record(record))
-      .collect())
+    Ok(
+      filter_type(filter_visible(records, year), entity_type)
+        .into_iter()
+        .map(search_result_from_record)
+        .collect(),
+    )
   }
 }
 
@@ -264,6 +276,7 @@ impl EntityRepository {
 #[serde(rename_all = "camelCase")]
 pub struct AutosaveRecoveryReport {
   pub recovered_count: usize,
+  pub conflicted_count: usize,
   pub discarded_count: usize,
 }
 
@@ -273,6 +286,7 @@ pub fn recover_autosave(database_path: &Path) -> Result<AutosaveRecoveryReport, 
 
   let repository = EntityRepository::open(database_path)?;
   let mut recovered_count = 0;
+  let mut conflicted_count = 0;
   let mut discarded_count = 0;
 
   for entry in fs::read_dir(&autosave_dir).map_err(|err| err.to_string())? {
@@ -285,8 +299,8 @@ pub fn recover_autosave(database_path: &Path) -> Result<AutosaveRecoveryReport, 
     let payload = match read_pending_payload(&path) {
       Some(payload) => payload,
       None => {
-        remove_file_if_exists(&path)?;
-        discarded_count += 1;
+        preserve_unreadable_pending(database_path, &path)?;
+        conflicted_count += 1;
         continue;
       }
     };
@@ -304,14 +318,15 @@ pub fn recover_autosave(database_path: &Path) -> Result<AutosaveRecoveryReport, 
         recovered_count += 1;
       }
       _ => {
-        remove_file_if_exists(&path)?;
-        discarded_count += 1;
+        move_pending_to_conflict(database_path, &path, &payload.id)?;
+        conflicted_count += 1;
       }
     }
   }
 
   Ok(AutosaveRecoveryReport {
     recovered_count,
+    conflicted_count,
     discarded_count,
   })
 }
@@ -523,6 +538,10 @@ fn pending_path(database_path: &Path, entity_id: &str) -> PathBuf {
   autosave_dir(database_path).join(format!("{entity_id}.pending"))
 }
 
+fn conflict_path(database_path: &Path, entity_id: &str) -> PathBuf {
+  autosave_dir(database_path).join(format!("{entity_id}.conflict.json"))
+}
+
 fn success_path(database_path: &Path, entity_id: &str) -> PathBuf {
   autosave_dir(database_path).join(format!("{entity_id}.last.json"))
 }
@@ -577,11 +596,24 @@ fn read_pending_payload(path: &Path) -> Option<AutosavePayload> {
   serde_json::from_str(&raw).ok()
 }
 
-fn remove_file_if_exists(path: &Path) -> Result<(), String> {
-  if path.exists() {
-    fs::remove_file(path).map_err(|err| err.to_string())?;
+fn move_pending_to_conflict(database_path: &Path, pending_path: &Path, entity_id: &str) -> Result<(), String> {
+  let conflict_path = conflict_path(database_path, entity_id);
+  if conflict_path.exists() {
+    fs::remove_file(&conflict_path).map_err(|err| err.to_string())?;
   }
-  Ok(())
+  fs::rename(pending_path, conflict_path).map_err(|err| err.to_string())
+}
+
+fn preserve_unreadable_pending(database_path: &Path, pending_path: &Path) -> Result<(), String> {
+  let file_stem = pending_path
+    .file_stem()
+    .and_then(|value| value.to_str())
+    .unwrap_or("unknown");
+  let conflict_path = autosave_dir(database_path).join(format!("{file_stem}.conflict.raw"));
+  if conflict_path.exists() {
+    fs::remove_file(&conflict_path).map_err(|err| err.to_string())?;
+  }
+  fs::rename(pending_path, conflict_path).map_err(|err| err.to_string())
 }
 
 fn row_to_entity(row: &rusqlite::Row<'_>) -> rusqlite::Result<EntityRecord> {
@@ -650,6 +682,16 @@ fn filter_visible(records: Vec<EntityRecord>, year: Option<i32>) -> Vec<EntityRe
   }
 }
 
+fn filter_type(records: Vec<EntityRecord>, entity_type: Option<EntityType>) -> Vec<EntityRecord> {
+  match entity_type {
+    None => records,
+    Some(entity_type) => records
+      .into_iter()
+      .filter(|record| record.entity_type() == entity_type)
+      .collect(),
+  }
+}
+
 fn search_result_from_record(record: EntityRecord) -> SearchResult {
   SearchResult {
     id: record.common().id.clone(),
@@ -661,7 +703,10 @@ fn search_result_from_record(record: EntityRecord) -> SearchResult {
 
 #[cfg(test)]
 mod tests {
-  use std::path::PathBuf;
+  use std::{
+    path::{Path, PathBuf},
+    time::{SystemTime, UNIX_EPOCH},
+  };
 
   use rusqlite::Connection;
 
@@ -672,19 +717,29 @@ mod tests {
 
   fn repo() -> EntityRepository {
     let connection = Connection::open_in_memory().unwrap();
-    connection.execute_batch(include_str!("../migrations/0001_init.sql")).unwrap();
-    connection.execute_batch(include_str!("../migrations/0002_entities.sql")).unwrap();
-    connection.execute_batch(include_str!("../migrations/0003_autosave.sql")).unwrap();
+    connection.execute_batch(include_str!("../../migrations/0001_init.sql")).unwrap();
+    connection.execute_batch(include_str!("../../migrations/0002_entities.sql")).unwrap();
+    connection.execute_batch(include_str!("../../migrations/0003_autosave.sql")).unwrap();
     EntityRepository { connection }
   }
 
   fn autosave_test_dir() -> PathBuf {
+    let nonce = SystemTime::now()
+      .duration_since(UNIX_EPOCH)
+      .unwrap()
+      .as_nanos();
     let base = std::env::temp_dir().join(format!(
-      "worldaltar-autosave-test-{}",
-      database::now_timestamp()
+      "worldaltar-autosave-test-{}-{}",
+      std::process::id(),
+      nonce
     ));
-    std::fs::create_dir_all(base.join("cache")).unwrap();
+    std::fs::create_dir_all(base.join("cache").join("autosave")).unwrap();
     base.join("worldaltar.db")
+  }
+
+  fn file_repo(database_path: &Path) -> EntityRepository {
+    database::migrate_database(database_path).unwrap();
+    EntityRepository::open(database_path).unwrap()
   }
 
   #[test]
@@ -704,8 +759,14 @@ mod tests {
 
     assert!(repository.list(Some(1203)).unwrap().is_empty());
     assert_eq!(repository.list(Some(1204)).unwrap().len(), 1);
-    assert_eq!(repository.search("Battle", Some(1204)).unwrap().len(), 1);
-    assert!(repository.search("Battle", Some(1205)).unwrap().is_empty());
+    assert_eq!(
+      repository
+        .search("Battle", Some(1204), Some(EntityType::Event))
+        .unwrap()
+        .len(),
+      1
+    );
+    assert!(repository.search("Battle", Some(1205), None).unwrap().is_empty());
   }
 
   #[test]
@@ -740,14 +801,56 @@ mod tests {
       .map(|record| record.common().id.clone())
       .collect();
     let search_ids: Vec<_> = repository
-      .search("", Some(1453))
+      .search("", Some(1453), None)
+      .unwrap()
+      .into_iter()
+      .map(|record| record.id)
+      .collect();
+    let typed_search_ids: Vec<_> = repository
+      .search("", Some(1453), Some(EntityType::Location))
+      .unwrap()
+      .into_iter()
+      .map(|record| record.id)
+      .collect();
+    let hidden_type_ids: Vec<_> = repository
+      .search("", Some(1453), Some(EntityType::Event))
       .unwrap()
       .into_iter()
       .map(|record| record.id)
       .collect();
 
     assert_eq!(list_ids, search_ids);
+    assert_eq!(list_ids, typed_search_ids);
     assert_eq!(list_ids.len(), 1);
+    assert!(hidden_type_ids.is_empty());
+  }
+
+  #[test]
+  fn at03_rename_preserves_stable_id() {
+    let mut repository = repo();
+    let created = repository
+      .create(CreateEntityInput::Character {
+        common: CreateEntityCommon {
+          title: "Alp Er Tunga".into(),
+          ..CreateEntityCommon::default()
+        },
+        fields: CharacterFields::default(),
+      })
+      .unwrap();
+
+    let renamed = repository
+      .rename(RenameEntityInput {
+        id: created.common().id.clone(),
+        title: "Alp Tunga".into(),
+      })
+      .unwrap();
+    let fetched = repository.get(&created.common().id).unwrap().unwrap();
+
+    assert_eq!(renamed.common().id, created.common().id);
+    assert_eq!(fetched.common().id, created.common().id);
+    assert_eq!(renamed.common().title, "Alp Tunga");
+    assert_eq!(fetched.common().title, "Alp Tunga");
+    assert_ne!(renamed.common().slug, created.common().slug);
   }
 
   #[test]
@@ -785,9 +888,9 @@ mod tests {
   }
 
   #[test]
-  fn recovery_discards_uncommitted_pending_payload() {
-    let mut repository = repo();
+  fn recovery_preserves_uncommitted_pending_payload_as_conflict() {
     let database_path = autosave_test_dir();
+    let mut repository = file_repo(&database_path);
     let created = repository
       .create(CreateEntityInput::Event {
         common: CreateEntityCommon {
@@ -816,15 +919,17 @@ mod tests {
     let report = recover_autosave(&database_path).unwrap();
     let current = repository.get(&created.common().id).unwrap().unwrap();
 
-    assert_eq!(report.discarded_count, 1);
+    assert_eq!(report.conflicted_count, 1);
+    assert_eq!(report.discarded_count, 0);
     assert_eq!(current.common().title, "Battle of X");
     assert!(!pending_path(&database_path, &created.common().id).exists());
+    assert!(conflict_path(&database_path, &created.common().id).exists());
   }
 
   #[test]
   fn recovery_marks_committed_pending_payload_as_recovered() {
-    let mut repository = repo();
     let database_path = autosave_test_dir();
+    let mut repository = file_repo(&database_path);
     let created = repository
       .create(CreateEntityInput::Event {
         common: CreateEntityCommon {
@@ -859,7 +964,7 @@ mod tests {
   }
 
   #[test]
-  fn recovery_discards_bad_pending_payload_without_global_failure() {
+  fn recovery_preserves_bad_pending_payload_without_global_failure() {
     let database_path = autosave_test_dir();
     let bad_path = pending_path(&database_path, "char_404");
     std::fs::write(&bad_path, "{bad json").unwrap();
@@ -867,14 +972,16 @@ mod tests {
     let report = recover_autosave(&database_path).unwrap();
 
     assert_eq!(report.recovered_count, 0);
-    assert_eq!(report.discarded_count, 1);
+    assert_eq!(report.conflicted_count, 1);
+    assert_eq!(report.discarded_count, 0);
     assert!(!bad_path.exists());
+    assert!(autosave_dir(&database_path).join("char_404.conflict.raw").exists());
   }
 
   #[test]
   fn recovery_is_idempotent_after_cleanup() {
-    let mut repository = repo();
     let database_path = autosave_test_dir();
+    let mut repository = file_repo(&database_path);
     let created = repository
       .create(CreateEntityInput::Event {
         common: CreateEntityCommon {
@@ -903,8 +1010,9 @@ mod tests {
     let first = recover_autosave(&database_path).unwrap();
     let second = recover_autosave(&database_path).unwrap();
 
-    assert_eq!(first.discarded_count, 1);
+    assert_eq!(first.conflicted_count, 1);
     assert_eq!(second.recovered_count, 0);
+    assert_eq!(second.conflicted_count, 0);
     assert_eq!(second.discarded_count, 0);
   }
 }

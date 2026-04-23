@@ -52,5 +52,6 @@ export type EntityBacklink = {
 
 export type ManuscriptRecoveryReport = {
   recoveredCount: number;
+  conflictedCount: number;
   discardedCount: number;
 };

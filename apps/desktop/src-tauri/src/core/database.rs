@@ -8,10 +8,10 @@ use rusqlite::{params, Connection};
 use super::projects::WorldProject;
 
 const MIGRATIONS: [(&str, &str); 4] = [
-  ("0001_init", include_str!("../migrations/0001_init.sql")),
-  ("0002_entities", include_str!("../migrations/0002_entities.sql")),
-  ("0003_autosave", include_str!("../migrations/0003_autosave.sql")),
-  ("0004_manuscript", include_str!("../migrations/0004_manuscript.sql")),
+  ("0001_init", include_str!("../../migrations/0001_init.sql")),
+  ("0002_entities", include_str!("../../migrations/0002_entities.sql")),
+  ("0003_autosave", include_str!("../../migrations/0003_autosave.sql")),
+  ("0004_manuscript", include_str!("../../migrations/0004_manuscript.sql")),
 ];
 
 pub fn current_schema_version() -> u32 {

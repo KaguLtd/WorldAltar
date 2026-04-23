@@ -3,6 +3,7 @@ import type { EntityRecord } from './types';
 
 export type AutosaveRecoveryReport = {
   recoveredCount: number;
+  conflictedCount: number;
   discardedCount: number;
 };
 

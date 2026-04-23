@@ -1,28 +1,34 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import { App } from './App';
 
-const addLayer = vi.fn();
-const addSource = vi.fn();
-const easeTo = vi.fn();
-const getSource = vi.fn();
-const on = vi.fn();
-const remove = vi.fn();
-const setData = vi.fn();
-const createWorld = vi.fn();
-const listEntities = vi.fn();
-const searchEntities = vi.fn();
-const autosaveEntity = vi.fn();
-const recoverAutosave = vi.fn();
-const listManuscriptTree = vi.fn();
-const getManuscriptScene = vi.fn();
-const listManuscriptBacklinks = vi.fn();
-const recoverManuscriptAutosave = vi.fn();
-const autosaveManuscriptScene = vi.fn();
-const createManuscriptChapter = vi.fn();
-const createManuscriptScene = vi.fn();
-const listExportJobs = vi.fn();
-const queueExport = vi.fn();
+const {
+  addLayer,
+  addSource,
+  easeTo,
+  getSource,
+  on,
+  remove,
+  setData,
+  createWorld,
+  listEntities,
+  searchEntities,
+  autosaveEntity,
+  recoverAutosave
+} = vi.hoisted(() => ({
+  addLayer: vi.fn(),
+  addSource: vi.fn(),
+  easeTo: vi.fn(),
+  getSource: vi.fn(),
+  on: vi.fn(),
+  remove: vi.fn(),
+  setData: vi.fn(),
+  createWorld: vi.fn(),
+  listEntities: vi.fn(),
+  searchEntities: vi.fn(),
+  autosaveEntity: vi.fn(),
+  recoverAutosave: vi.fn()
+}));
 
 vi.mock('./modules/projects/api', () => ({
   getBootstrapStatus: vi.fn().mockResolvedValue({
@@ -46,21 +52,6 @@ vi.mock('./modules/entity-model/api', () => ({
   recoverAutosave
 }));
 
-vi.mock('./modules/manuscript/api', () => ({
-  listManuscriptTree,
-  getManuscriptScene,
-  listManuscriptBacklinks,
-  recoverManuscriptAutosave,
-  autosaveManuscriptScene,
-  createManuscriptChapter,
-  createManuscriptScene
-}));
-
-vi.mock('./modules/export/api', () => ({
-  listExportJobs,
-  queueExport
-}));
-
 vi.mock('maplibre-gl', () => {
   class MockMap {
     constructor() {}
@@ -81,24 +72,33 @@ vi.mock('maplibre-gl', () => {
 });
 
 describe('App', () => {
-  it('renders book experience modes', async () => {
-    vi.useFakeTimers();
+  beforeEach(() => {
+    vi.useRealTimers();
+    window.localStorage.clear();
+    vi.clearAllMocks();
+
     getSource.mockImplementation((id?: string) => {
       if (id === 'worldaltar-markers') {
         return { setData };
       }
+
       return undefined;
     });
-    on.mockImplementation((event: string, arg2?: unknown) => {
+
+    on.mockImplementation((event: string, arg2?: unknown, arg3?: unknown) => {
+      const callback =
+        typeof arg2 === 'function' ? arg2 : typeof arg3 === 'function' ? arg3 : undefined;
+
       if (event === 'load') {
-        const callback = typeof arg2 === 'function' ? arg2 : undefined;
         callback?.();
       }
     });
+
     createWorld.mockResolvedValue({
       slug: 'demo-world',
       databasePath: 'C:/Users/Test/Documents/WorldAltar/worlds/demo-world/worldaltar.db'
     });
+
     listEntities.mockResolvedValue([
       {
         type: 'character',
@@ -108,12 +108,12 @@ describe('App', () => {
           slug: 'alp-er-tunga',
           title: 'Alp Er Tunga',
           summary: 'Hero',
-          body: 'Hero seed',
+          body: 'Hero seed body',
           startYear: 1200,
           endYear: null,
           isOngoing: false,
-          latitude: null,
-          longitude: null,
+          latitude: 41,
+          longitude: 69,
           geometryRef: null,
           coverImagePath: null,
           thumbnailPath: null,
@@ -121,90 +121,56 @@ describe('App', () => {
           updatedAt: '1'
         },
         fields: { culture: 'Turkic', birthYearLabel: null }
-      }
-    ]);
-    searchEntities.mockResolvedValue([]);
-    recoverAutosave.mockResolvedValue({ recoveredCount: 0, discardedCount: 0 });
-    recoverManuscriptAutosave.mockResolvedValue({ recoveredCount: 0, discardedCount: 0 });
-    listExportJobs.mockResolvedValue([]);
-    listManuscriptTree.mockResolvedValue([
+      },
       {
-        node: {
-          id: 'msc_ch_001',
-          parentId: null,
-          kind: 'chapter',
-          slug: 'chapter-1',
-          title: 'Chapter 1',
-          body: '',
-          summary: '',
-          position: 1,
+        type: 'event',
+        common: {
+          id: 'evt_001',
+          type: 'event',
+          slug: 'raid-at-dawn',
+          title: 'Raid at Dawn',
+          summary: 'Event seed',
+          body: 'Event body',
+          startYear: 1204,
+          endYear: 1204,
+          isOngoing: false,
+          latitude: 40,
+          longitude: 70,
+          geometryRef: null,
+          coverImagePath: null,
+          thumbnailPath: null,
           createdAt: '1',
           updatedAt: '1'
         },
-        children: [
-          {
-            id: 'msc_sc_001',
-            parentId: 'msc_ch_001',
-            kind: 'scene',
-            slug: 'arrival-at-altin-ova',
-            title: 'Arrival at Altin Ova',
-            body: 'Alp Er Tunga enters Altin Ova. Wind rises. Camp waits.',
-            summary: 'Seed manuscript scene',
-            position: 1,
-            createdAt: '1',
-            updatedAt: '1'
-          }
-        ]
+        fields: { eventKind: 'battle' }
       }
     ]);
-    getManuscriptScene.mockResolvedValue({
-      node: {
-        id: 'msc_sc_001',
-        parentId: 'msc_ch_001',
-        kind: 'scene',
-        slug: 'arrival-at-altin-ova',
-        title: 'Arrival at Altin Ova',
-        body: 'Alp Er Tunga enters Altin Ova. Wind rises. Camp waits.',
-        summary: 'Seed manuscript scene',
-        position: 1,
-        createdAt: '1',
-        updatedAt: '1'
-      },
-      mentions: [
-        {
-          id: 'msm_001',
-          nodeId: 'msc_sc_001',
-          entityId: 'char_001',
-          label: 'Alp Er Tunga',
-          startOffset: 0,
-          endOffset: 12
-        }
-      ]
-    });
-    listManuscriptBacklinks.mockResolvedValue([
+
+    searchEntities.mockResolvedValue([
       {
-        nodeId: 'msc_sc_001',
-        chapterId: 'msc_ch_001',
-        chapterTitle: 'Chapter 1',
-        sceneTitle: 'Arrival at Altin Ova',
-        entityId: 'char_001',
-        label: 'Alp Er Tunga'
-      }
-    ]);
-    autosaveEntity.mockResolvedValue({
-      type: 'character',
-      common: {
         id: 'char_001',
-        type: 'character',
-        slug: 'alp-er-tunga',
         title: 'Alp Er Tunga',
         summary: 'Hero',
-        body: 'Hero seed',
+        type: 'character'
+      }
+    ]);
+
+    recoverAutosave.mockResolvedValue({ recoveredCount: 1, conflictedCount: 0, discardedCount: 0 });
+
+    autosaveEntity.mockImplementation(async (_dbPath: string, input: { id: string; title: string; summary: string; body: string }) => ({
+      type: 'character',
+      common: {
+        id: input.id,
+        type: 'character',
+        slug: 'alp-er-tunga',
+        title: input.title,
+        summary: input.summary,
+        body: input.body,
         startYear: 1200,
         endYear: null,
         isOngoing: false,
-        latitude: null,
-        longitude: null,
+        latitude: 41,
+        longitude: 69,
         geometryRef: null,
         coverImagePath: null,
         thumbnailPath: null,
@@ -212,62 +178,10 @@ describe('App', () => {
         updatedAt: '6'
       },
       fields: { culture: 'Turkic', birthYearLabel: null }
-    });
-    autosaveManuscriptScene.mockImplementation((_dbPath: string, input: { id: string; title: string; summary: string; body: string; mentions: unknown[] }) =>
-      Promise.resolve({
-        node: {
-          id: input.id,
-          parentId: 'msc_ch_001',
-          kind: 'scene',
-          slug: 'arrival-at-altin-ova',
-          title: input.title,
-          body: input.body,
-          summary: input.summary,
-          position: 1,
-          createdAt: '1',
-          updatedAt: '7'
-        },
-        mentions: input.mentions
-      })
-    );
-    createManuscriptChapter.mockResolvedValue({
-      id: 'msc_ch_002',
-      parentId: null,
-      kind: 'chapter',
-      slug: 'chapter-2',
-      title: 'Chapter 2',
-      body: '',
-      summary: '',
-      position: 2,
-      createdAt: '1',
-      updatedAt: '1'
-    });
-    createManuscriptScene.mockResolvedValue({
-      node: {
-        id: 'msc_sc_002',
-        parentId: 'msc_ch_001',
-        kind: 'scene',
-        slug: 'new-scene',
-        title: 'New Scene',
-        body: '',
-        summary: '',
-        position: 2,
-        createdAt: '1',
-        updatedAt: '1'
-      },
-      mentions: []
-    });
-    queueExport.mockImplementation((_dbPath: string, request: { kind: 'manuscript_pdf' | 'pdf_dossier' }) =>
-      Promise.resolve({
-        id: `exp_${request.kind}`,
-        kind: request.kind,
-        status: 'done',
-        targetPath: `C:/Users/Test/Documents/WorldAltar/worlds/demo-world/exports/${request.kind}.pdf`,
-        artifactPaths: ['C:/Users/Test/Documents/WorldAltar/worlds/demo-world/exports/asset-manifest.json'],
-        createdAt: '9'
-      })
-    );
+    }));
+  });
 
+  it('keeps only MVP lenses and one-shot startup recovery', async () => {
     render(<App />);
 
     fireEvent.change(screen.getByLabelText(/world title/i), {
@@ -275,75 +189,64 @@ describe('App', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /create world/i }));
 
-    fireEvent.click(await screen.findByRole('button', { name: /^manuscript$/i }));
-    expect(await screen.findByDisplayValue(/Arrival at Altin Ova/i)).toBeInTheDocument();
-    expect(recoverAutosave).toHaveBeenCalledTimes(1);
-    expect(recoverManuscriptAutosave).toHaveBeenCalledTimes(1);
-    expect(listManuscriptTree).toHaveBeenCalledTimes(1);
-    expect(listExportJobs).toHaveBeenCalledTimes(1);
-    expect(listEntities).toHaveBeenCalledTimes(1);
+    await screen.findByText('demo-world');
+
+    expect(screen.getByRole('navigation', { name: /lens navigation/i })).toHaveTextContent(
+      'WikiMapTimelineSearch'
+    );
+    expect(screen.queryByText('Manuscript')).not.toBeInTheDocument();
+    expect(screen.queryByText('Canvas')).not.toBeInTheDocument();
+    expect(screen.getByText(/Recovered 1 \/ Conflicts 0 \/ Dropped 0/i)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(/year slider/i), {
       target: { value: '1205' }
     });
-    await screen.findByText(/1205/i);
+
+    await waitFor(() => expect(listEntities).toHaveBeenCalledTimes(2));
     expect(recoverAutosave).toHaveBeenCalledTimes(1);
-    expect(recoverManuscriptAutosave).toHaveBeenCalledTimes(1);
-    expect(listManuscriptTree).toHaveBeenCalledTimes(1);
-    expect(listExportJobs).toHaveBeenCalledTimes(1);
-    expect(listEntities).toHaveBeenCalledTimes(2);
+  });
 
-    fireEvent.click(screen.getByRole('button', { name: /^wiki$/i }));
-    fireEvent.mouseEnter(screen.getByRole('button', { name: /alp er tunga hero/i }));
-    expect(screen.getByRole('complementary', { name: /hover preview/i })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /open manuscript/i }));
-    expect(screen.getByRole('button', { name: /^draft$/i })).toBeInTheDocument();
+  it('keeps map, search, hover preview, and entity autosave on MVP shell', async () => {
+    render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /^timeline$/i }));
-    fireEvent.click(screen.getByRole('button', { name: /^bands$/i }));
-    expect(screen.getByRole('region', { name: /timeline bands/i })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /^chains$/i }));
-    expect(screen.getByRole('region', { name: /timeline chains/i })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /^canvas$/i }));
-    fireEvent.click(screen.getByRole('button', { name: /^event$/i }));
-    expect(screen.getByRole('region', { name: /advanced canvas/i })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /arrival at altin ova/i }));
-    expect(screen.getByRole('button', { name: /^manuscript$/i })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /^map$/i }));
-    expect(screen.getByRole('img', { name: /offline world map/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/map overlays/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/entity gallery panel/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /^manuscript$/i }));
-    expect(screen.getByLabelText(/premium manuscript editor/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /^split$/i }));
-    expect(screen.getByRole('region', { name: /book spread preview/i })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /^book$/i }));
-    expect(screen.getByText(/chapter break/i)).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText(/print trim/i), {
-      target: { value: 'Royal' }
+    fireEvent.change(screen.getByLabelText(/world title/i), {
+      target: { value: 'Demo World' }
     });
-    fireEvent.click(screen.getByRole('button', { name: /^print$/i }));
-    expect(screen.getByText(/print preview/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Chapter 1/i).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole('button', { name: /manuscript pdf/i }));
-    fireEvent.click(screen.getByRole('button', { name: /dossier pdf/i }));
-    expect(queueExport).toHaveBeenCalledTimes(2);
-    expect(await screen.findByText(/manuscript_pdf/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /create world/i }));
 
-    fireEvent.change(screen.getByLabelText(/scene-editor-body/i), {
-      target: { value: 'Alp Er Tunga enters Altin Ova. Wind rises. Camp waits. Scouts watch.' }
+    await screen.findByText('Alp Er Tunga');
+
+    fireEvent.mouseEnter(screen.getAllByText('Alp Er Tunga')[0].closest('button') as HTMLButtonElement);
+    expect(screen.getByLabelText(/hover preview/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open map/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /^Search$/i }));
+    fireEvent.change(screen.getByLabelText(/search query/i), {
+      target: { value: 'alp' }
     });
-    const sceneRow = screen.getByRole('button', { name: /chapter 1 \/ arrival at altin ova/i });
-    fireEvent.dragStart(sceneRow);
-    fireEvent.drop(sceneRow);
-    await vi.advanceTimersByTimeAsync(5000);
-    expect(autosaveManuscriptScene).toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText(/entity type/i), {
+      target: { value: 'character' }
+    });
+    await waitFor(() =>
+      expect(searchEntities).toHaveBeenCalledWith(expect.any(String), 'alp', 1204, 'character')
+    );
 
-    vi.useRealTimers();
+    fireEvent.click(screen.getByRole('button', { name: /^Map$/i }));
+    expect(screen.getByLabelText(/offline world map/i)).toBeInTheDocument();
+    expect(on).toHaveBeenCalled();
+    expect(screen.getByText(/Focus: Alp Er Tunga \(char_001\)/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /^Wiki$/i }));
+    vi.useFakeTimers();
+    fireEvent.change(screen.getByLabelText(/^Summary$/i), {
+      target: { value: 'Hero revised' }
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
+      await Promise.resolve();
+    });
+
+    expect(autosaveEntity).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(/Saved 6/i)).toBeInTheDocument();
   });
 });

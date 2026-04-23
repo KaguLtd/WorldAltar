@@ -128,6 +128,7 @@ pub struct AutosaveSceneInput {
 #[serde(rename_all = "camelCase")]
 pub struct ManuscriptRecoveryReport {
   pub recovered_count: usize,
+  pub conflicted_count: usize,
   pub discarded_count: usize,
 }
 
@@ -204,15 +205,16 @@ impl ManuscriptRepository {
       return Err("scene title required".into());
     }
 
+    let chapter_id = input.chapter_id.clone();
     let node = ManuscriptNode {
       id: next_node_id(&self.connection, ManuscriptNodeKind::Scene)?,
-      parent_id: Some(input.chapter_id),
+      parent_id: Some(chapter_id.clone()),
       kind: ManuscriptNodeKind::Scene,
       slug: unique_node_slug(&self.connection, slugify(title), None)?,
       title: title.into(),
       body: input.body.unwrap_or_default(),
       summary: input.summary.unwrap_or_default(),
-      position: next_position(&self.connection, Some(input.chapter_id.clone()))?,
+      position: next_position(&self.connection, Some(chapter_id))?,
       created_at: database::now_timestamp(),
       updated_at: database::now_timestamp(),
     };
@@ -387,6 +389,7 @@ pub fn recover_manuscript_autosave(database_path: &Path) -> Result<ManuscriptRec
 
   let repository = ManuscriptRepository::open(database_path)?;
   let mut recovered_count = 0;
+  let mut conflicted_count = 0;
   let mut discarded_count = 0;
 
   for entry in fs::read_dir(&autosave_dir).map_err(|err| err.to_string())? {
@@ -399,8 +402,8 @@ pub fn recover_manuscript_autosave(database_path: &Path) -> Result<ManuscriptRec
     let payload = match read_pending_scene_payload(&path) {
       Some(payload) => payload,
       None => {
-        remove_file_if_exists(&path)?;
-        discarded_count += 1;
+        preserve_unreadable_pending(database_path, &path)?;
+        conflicted_count += 1;
         continue;
       }
     };
@@ -418,14 +421,15 @@ pub fn recover_manuscript_autosave(database_path: &Path) -> Result<ManuscriptRec
         recovered_count += 1;
       }
       _ => {
-        remove_file_if_exists(&path)?;
-        discarded_count += 1;
+        move_pending_to_conflict(database_path, &path, &payload.id)?;
+        conflicted_count += 1;
       }
     }
   }
 
   Ok(ManuscriptRecoveryReport {
     recovered_count,
+    conflicted_count,
     discarded_count,
   })
 }
@@ -677,6 +681,10 @@ fn scene_pending_path(database_path: &Path, node_id: &str) -> PathBuf {
   manuscript_autosave_dir(database_path).join(format!("{node_id}.pending"))
 }
 
+fn scene_conflict_path(database_path: &Path, node_id: &str) -> PathBuf {
+  manuscript_autosave_dir(database_path).join(format!("{node_id}.conflict.json"))
+}
+
 fn scene_success_path(database_path: &Path, node_id: &str) -> PathBuf {
   manuscript_autosave_dir(database_path).join(format!("{node_id}.last.json"))
 }
@@ -731,11 +739,24 @@ fn read_pending_scene_payload(path: &Path) -> Option<SceneAutosavePayload> {
   serde_json::from_str(&raw).ok()
 }
 
-fn remove_file_if_exists(path: &Path) -> Result<(), String> {
-  if path.exists() {
-    fs::remove_file(path).map_err(|err| err.to_string())?;
+fn move_pending_to_conflict(database_path: &Path, pending_path: &Path, node_id: &str) -> Result<(), String> {
+  let conflict_path = scene_conflict_path(database_path, node_id);
+  if conflict_path.exists() {
+    fs::remove_file(&conflict_path).map_err(|err| err.to_string())?;
   }
-  Ok(())
+  fs::rename(pending_path, conflict_path).map_err(|err| err.to_string())
+}
+
+fn preserve_unreadable_pending(database_path: &Path, pending_path: &Path) -> Result<(), String> {
+  let file_stem = pending_path
+    .file_stem()
+    .and_then(|value| value.to_str())
+    .unwrap_or("unknown");
+  let conflict_path = manuscript_autosave_dir(database_path).join(format!("{file_stem}.conflict.raw"));
+  if conflict_path.exists() {
+    fs::remove_file(&conflict_path).map_err(|err| err.to_string())?;
+  }
+  fs::rename(pending_path, conflict_path).map_err(|err| err.to_string())
 }
 
 fn mention_inputs_equal(mentions: &[ManuscriptMention], inputs: &[MentionInput]) -> bool {
@@ -753,16 +774,21 @@ fn mention_inputs_equal(mentions: &[ManuscriptMention], inputs: &[MentionInput])
 
 #[cfg(test)]
 mod tests {
+  use std::{
+    path::Path,
+    time::{SystemTime, UNIX_EPOCH},
+  };
+
   use rusqlite::Connection;
 
   use super::*;
 
   fn repo() -> ManuscriptRepository {
     let connection = Connection::open_in_memory().unwrap();
-    connection.execute_batch(include_str!("../migrations/0001_init.sql")).unwrap();
-    connection.execute_batch(include_str!("../migrations/0002_entities.sql")).unwrap();
-    connection.execute_batch(include_str!("../migrations/0003_autosave.sql")).unwrap();
-    connection.execute_batch(include_str!("../migrations/0004_manuscript.sql")).unwrap();
+    connection.execute_batch(include_str!("../../migrations/0001_init.sql")).unwrap();
+    connection.execute_batch(include_str!("../../migrations/0002_entities.sql")).unwrap();
+    connection.execute_batch(include_str!("../../migrations/0003_autosave.sql")).unwrap();
+    connection.execute_batch(include_str!("../../migrations/0004_manuscript.sql")).unwrap();
     connection.execute(
       "INSERT INTO entities (id, type, slug, title, summary, body, extra_json, created_at, updated_at, is_ongoing)
        VALUES ('char_001', 'character', 'alp-er-tunga', 'Alp Er Tunga', '', '', '{}', '1', '1', 0)",
@@ -772,9 +798,28 @@ mod tests {
   }
 
   fn manuscript_test_db() -> PathBuf {
-    let base = std::env::temp_dir().join(format!("worldaltar-manuscript-{}", database::now_timestamp()));
-    std::fs::create_dir_all(base.join("cache")).unwrap();
+    let nonce = SystemTime::now()
+      .duration_since(UNIX_EPOCH)
+      .unwrap()
+      .as_nanos();
+    let base = std::env::temp_dir().join(format!(
+      "worldaltar-manuscript-{}-{}",
+      std::process::id(),
+      nonce
+    ));
+    std::fs::create_dir_all(base.join("cache").join("autosave").join("manuscript")).unwrap();
     base.join("worldaltar.db")
+  }
+
+  fn file_repo(database_path: &Path) -> ManuscriptRepository {
+    database::migrate_database(database_path).unwrap();
+    let repository = ManuscriptRepository::open(database_path).unwrap();
+    repository.connection.execute(
+      "INSERT INTO entities (id, type, slug, title, summary, body, extra_json, created_at, updated_at, is_ongoing)
+       VALUES ('char_001', 'character', 'alp-er-tunga', 'Alp Er Tunga', '', '', '{}', '1', '1', 0)",
+      [],
+    ).unwrap();
+    repository
   }
 
   #[test]
@@ -840,8 +885,9 @@ mod tests {
   }
 
   #[test]
-  fn manuscript_recovery_discards_uncommitted_pending_payload() {
-    let mut repository = repo();
+  fn manuscript_recovery_preserves_uncommitted_pending_payload_as_conflict() {
+    let database_path = manuscript_test_db();
+    let mut repository = file_repo(&database_path);
     let chapter = repository.create_chapter(CreateChapterInput { title: "One".into() }).unwrap();
     let scene = repository.create_scene(CreateSceneInput {
       chapter_id: chapter.id,
@@ -850,7 +896,6 @@ mod tests {
       summary: Some("Before".into()),
       mentions: vec![],
     }).unwrap();
-    let database_path = manuscript_test_db();
 
     write_pending_scene_autosave(
       &database_path,
@@ -866,13 +911,16 @@ mod tests {
     .unwrap();
 
     let report = recover_manuscript_autosave(&database_path).unwrap();
-    assert_eq!(report.discarded_count, 1);
+    assert_eq!(report.conflicted_count, 1);
+    assert_eq!(report.discarded_count, 0);
     assert!(!scene_pending_path(&database_path, &scene.node.id).exists());
+    assert!(scene_conflict_path(&database_path, &scene.node.id).exists());
   }
 
   #[test]
   fn manuscript_recovery_marks_committed_pending_payload_as_recovered() {
-    let mut repository = repo();
+    let database_path = manuscript_test_db();
+    let mut repository = file_repo(&database_path);
     let chapter = repository.create_chapter(CreateChapterInput { title: "One".into() }).unwrap();
     let scene = repository.create_scene(CreateSceneInput {
       chapter_id: chapter.id,
@@ -881,7 +929,6 @@ mod tests {
       summary: Some("Before".into()),
       mentions: vec![],
     }).unwrap();
-    let database_path = manuscript_test_db();
 
     write_pending_scene_autosave(
       &database_path,
@@ -905,21 +952,25 @@ mod tests {
   }
 
   #[test]
-  fn manuscript_recovery_discards_bad_pending_payload_without_global_failure() {
+  fn manuscript_recovery_preserves_bad_pending_payload_without_global_failure() {
     let database_path = manuscript_test_db();
     let bad_path = scene_pending_path(&database_path, "msc_sc_404");
+    std::fs::create_dir_all(bad_path.parent().unwrap()).unwrap();
     std::fs::write(&bad_path, "{bad json").unwrap();
 
     let report = recover_manuscript_autosave(&database_path).unwrap();
 
     assert_eq!(report.recovered_count, 0);
-    assert_eq!(report.discarded_count, 1);
+    assert_eq!(report.conflicted_count, 1);
+    assert_eq!(report.discarded_count, 0);
     assert!(!bad_path.exists());
+    assert!(manuscript_autosave_dir(&database_path).join("msc_sc_404.conflict.raw").exists());
   }
 
   #[test]
   fn manuscript_recovery_is_idempotent_after_cleanup() {
-    let mut repository = repo();
+    let database_path = manuscript_test_db();
+    let mut repository = file_repo(&database_path);
     let chapter = repository.create_chapter(CreateChapterInput { title: "One".into() }).unwrap();
     let scene = repository.create_scene(CreateSceneInput {
       chapter_id: chapter.id,
@@ -928,7 +979,6 @@ mod tests {
       summary: Some("Before".into()),
       mentions: vec![],
     }).unwrap();
-    let database_path = manuscript_test_db();
 
     write_pending_scene_autosave(
       &database_path,
@@ -946,8 +996,9 @@ mod tests {
     let first = recover_manuscript_autosave(&database_path).unwrap();
     let second = recover_manuscript_autosave(&database_path).unwrap();
 
-    assert_eq!(first.discarded_count, 1);
+    assert_eq!(first.conflicted_count, 1);
     assert_eq!(second.recovered_count, 0);
+    assert_eq!(second.conflicted_count, 0);
     assert_eq!(second.discarded_count, 0);
   }
 }

@@ -54,9 +54,10 @@ fn search_entities_command(
   database_path: String,
   query: String,
   year: Option<i32>,
+  entity_type: Option<core::entity_model::EntityType>,
 ) -> Result<Vec<SearchResult>, String> {
   let repository = EntityRepository::open(Path::new(&database_path))?;
-  repository.search(&query, year)
+  repository.search(&query, year, entity_type)
 }
 
 #[tauri::command]

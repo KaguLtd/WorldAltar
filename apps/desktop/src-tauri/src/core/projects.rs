@@ -94,7 +94,7 @@ pub fn create_world(request: CreateWorldRequest) -> Result<WorldProject, String>
   write_project_metadata(&world_path.join(PROJECT_FILE_NAME), &project)?;
   database::seed_project_metadata(&database_path, &project)?;
   repository::seed_sample_entities(&database_path)?;
-  manuscript::seed_sample_manuscript(&database_path)?;
+  let _ = manuscript::seed_sample_manuscript(&database_path);
 
   Ok(project)
 }

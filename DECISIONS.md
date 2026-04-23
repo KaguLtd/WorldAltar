@@ -209,3 +209,40 @@ Reason: canonical DB stays source of truth while startup recovery remains determ
 ### D-052 Strict runtime gate
 Fix is not accepted unless typecheck, frontend tests, Rust tests, and build pass; missing toolchain reports as blocked gate, not pass.
 Reason: autosave/recovery regressions need runtime proof, not static confidence only.
+
+### D-053 Recovery conflict preserve
+Startup recovery no longer deletes mismatched pending drafts; it moves them into conflict snapshots and reports conflict count.
+Reason: crash sonrası en yeni draft silent discard ile kaybolmamalı.
+
+### D-054 Optional lens boot isolation
+Manuscript and export startup work is best-effort only; failures degrade optional lens state but do not block entity/wiki/search/map boot.
+Reason: post-MVP lens arızası MVP outage yaratmamalı.
+
+### D-055 Main branch product truth
+main branch resmi urun daraltilmis MVP olarak sabitlendi; manuscript/canvas/export/premium alanlar deferred sayildi.
+Reason: repo hikayesi once guvenilir MVP cekirdegini temsil etmeli.
+
+### D-056 Offline map MVP contract
+MVP offline map contract MapLibre + bundled local raster tiles olarak kabul edildi.
+Reason: kod tabani bu yolda; PMTiles kararsizligi acik MVP blocker olmaktan cikarildi.
+
+### D-057 Faz 1 active lens cut
+Main shell active lens set Wiki, Map, Timeline, Search ile sinirlandi; manuscript/canvas/export main boot ve nav disina alindi.
+Reason: daraltilmis MVP shell yalniz cekirdek lensleri gostermeli.
+
+### D-058 Faz 1 shell split
+Main app shell kucuk orchestration dosyasina indirildi; card grid, timeline, detail panel, lens rail, year dock ayri UI parcasi oldu.
+Reason: boot/path ve MVP lens davranisi buyuk App.tsx icinde gomulu kalmamali.
+
+### D-059 Search type filter repo-side
+Search type filter UI lokal kirpma yerine repository command contractina indirildi.
+Reason: search parity ve visible-set kurali backend kontrat seviyesinde kalmali.
+
+### D-060 Tauri Windows icon hard requirement
+Windows Rust gate icin `src-tauri/icons/icon.ico` zorunlu olarak repoda tutulur ve `tauri.conf.json` icinde acik referanslanir.
+Reason: tauri-build Windows resource adiminda icon yoksa compile gate duser.
+
+### D-061 Recovery tests file-backed
+Entity ve manuscript recovery testleri in-memory repo yerine gercek file-backed SQLite path uzerinden kosar.
+Reason: recovery kodu autosave dosyasi ve DB path ile calisir; in-memory test bu kontrati sahte gecirir.
+

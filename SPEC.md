@@ -1,36 +1,47 @@
 # SPEC
 
-## Scope
+## Active Product
 
-Current scope Faz A technical core cut on top of Faz 0/1 base.
+`main` branch resmi urun: daraltilmis MVP.
 
-Deliverables:
-- Tauri 2 + React + TypeScript desktop skeleton
-- workspace + module layout
-- lint/test/format baseline
-- architecture/task/decision docs
-- Documents/WorldAltar bootstrap
-- world create flow
-- SQLite file and migration base
-- project metadata base
-- explicit core module boundaries:
-  - Projects
-  - Database
-  - Entity Model
-  - Time Engine
+Aktif kapsam:
+- local-first Tauri desktop app
+- world create/open
+- `Documents/WorldAltar/worlds` klasor yapisi
+- SQLite migration + project metadata
+- typed entities
+- stable ids
+- merkezi `is_visible_at_year()` kurali
+- minimal wiki list/detail
+- minimal search
+- minimal offline map
+- year slider
+- autosave + recovery
 
-## Exit Criteria
+Aktif olmayan ama repoda izi bulunabilen alanlar:
+- manuscript studio
+- book preview
+- canvas
+- export pipeline
+- premium visual polish
 
-- app shell scaffold exists
-- desktop window config exists
-- local scripts defined for dev/build/lint/test/format/typecheck
-- local app root resolves
-- new world creates folders, db, metadata
-- dependency direction documented and reflected in folder layout
+Bu alanlar MVP contract degildir.
+
+## MVP Acceptance
+
+- yeni world localde acilir
+- db ve klasorler olusur
+- entity create/list/search calisir
+- rename teknik id bozmaz
+- wiki/search/map ayni visible set mantigi ile calisir
+- year degisince wiki/search/map birlikte guncellenir
+- autosave crash sonrasi pending draft silent kaybolmaz
 
 ## Explicit Non-Scope
 
-- domain entities
-- time engine
-- map, wiki, search, autosave behavior
-- wiki/map/timeline/search/assets modules
+- active manuscript workflow
+- active canvas workflow
+- active export workflow
+- premium encyclopedia/manuscript hissi
+- deep asset pipeline
+- post-MVP relation genislemesi
