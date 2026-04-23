@@ -27,6 +27,17 @@ Aktif olmayan ama repoda izi bulunabilen alanlar:
 
 Bu alanlar MVP contract degildir.
 
+Frontend contract export kural:
+- aktif lens contractlari `src/modules/mvp-lenses.ts`
+- deferred lens contractlari `src/modules/deferred-lenses.ts`
+- deferred lens acma kapisi `src/modules/features.ts`, default `off`
+- kontrollu geri acilan lensler:
+  - `manuscript`: edit + autosave + mention/backlink
+  - `canvas`: local derived board
+  - `export`: lazy queue
+  - `relations`: stable-id reference seam
+- bunlar explicit toggle ister, core boot sahibi degildir
+
 ## MVP Acceptance
 
 - yeni world localde acilir
@@ -45,3 +56,11 @@ Bu alanlar MVP contract degildir.
 - premium encyclopedia/manuscript hissi
 - deep asset pipeline
 - post-MVP relation genislemesi
+
+## Deferred Lens Rule
+
+Deferred lensler repoda calisabilir ama:
+- MVP contract sayilmaz
+- startup boot path bloklayamaz
+- explicit local flag ister
+- canonical DB, stable id ve time engine disina cikamaz

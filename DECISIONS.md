@@ -246,3 +246,47 @@ Reason: tauri-build Windows resource adiminda icon yoksa compile gate duser.
 Entity ve manuscript recovery testleri in-memory repo yerine gercek file-backed SQLite path uzerinden kosar.
 Reason: recovery kodu autosave dosyasi ve DB path ile calisir; in-memory test bu kontrati sahte gecirir.
 
+### D-062 Empty world is production default
+`create_world` artik seed/demo veri yuklemez; yeni world bos baslar.
+Reason: production world create ile demo bootstrap ayni akis olmamali.
+
+### D-063 Demo world is explicit path
+Sample entity/manuscript verisi sadece `create_demo_world` ile acik istek uzerine yuklenir.
+Reason: test, demo ve gercek urun davranisi birbirinden ayrilmali.
+
+### D-064 Desktop formatting scope
+Desktop Prettier kontrolu `dist`, `src-tauri/target` ve `src-tauri/gen` disini resmi format yuzeyi sayar.
+Reason: generated/build ciktilari gate gurultusu yaratmamali; format gercek kaynak dosyalar icin kilitlenmeli.
+
+### D-065 MVP and deferred lens exports split
+Frontend lens contract export yuzeyi `mvp-lenses.ts` ve `deferred-lenses.ts` olarak ayrildi.
+Reason: aktif MVP import yolu ile parked future lens yolu ayni dosyada karismamali.
+
+### D-066 Dead lens aggregator removed
+Kullanilmayan `src/modules/lenses.ts` kaldirildi.
+Reason: tek satirlik ama bos aggregator aktif import yuzeyini bulandiriyordu.
+
+### D-067 Deferred lenses require explicit flags
+Deferred lensler repo icinde kalir ama `src/modules/features.ts` icindeki flag kapisi olmadan aktif shell'e giremez.
+Reason: Faz 5 geri acma kontrollu, reversible ve MVP-safe olmali.
+
+### D-068 Manuscript reopens as lazy deferred lens
+Ilk geri acilan deferred lens `manuscript` oldu; explicit UI toggle ile acilir ve ancak lens secilince yuklenir.
+Reason: Faz 5 geri acma sirasinda boot coupling geri gelmemeli.
+
+### D-069 Manuscript edit returns with local autosave
+Deferred `manuscript` lens geri acildiginda ilk aktif davranis scene title/summary/body edit ve 5 saniye autosave oldu.
+Reason: lens geri aciliyorsa salt-okuma degil, mevcut writing omurgasi ile faydali minimum akis vermeli.
+
+### D-070 Mention and backlink bridge stays entity-id based
+Deferred `manuscript` lens mention gecisi ve wiki detail backlink gecisi `entity_id` ve `node_id` uzerinden kuruldu.
+Reason: title/slug rename olsa bile reference guvenligi stable id ile korunmali.
+
+### D-071 Deferred toggles are symmetric
+`manuscript`, `canvas`, `export` ve `relations` lensleri ayni local flag mekanigi ile acilir ve nav'a ancak flag `on` ise girer.
+Reason: Faz 5 kontrollu geri acma tek lens icin ozel-case degil, genel ve reversible olmali.
+
+### D-072 Deferred shells stay secondary
+`canvas`, `export` ve `relations` lensleri geri acildi ama lazy shell olarak kaldi; core startup, wiki/search/map ve DB bootstrap bunlara baglanmadi.
+Reason: plan v2 tamamlansa da `main` branch resmi urun hikayesi hala dar MVP'dir.
+

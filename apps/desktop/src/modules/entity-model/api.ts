@@ -7,7 +7,10 @@ export type AutosaveRecoveryReport = {
   discardedCount: number;
 };
 
-export function autosaveEntity(databasePath: string, input: { id: string; title: string; summary: string; body: string }) {
+export function autosaveEntity(
+  databasePath: string,
+  input: { id: string; title: string; summary: string; body: string }
+) {
   return invoke<EntityRecord>('autosave_entity_command', {
     databasePath,
     input

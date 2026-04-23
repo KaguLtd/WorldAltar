@@ -16,6 +16,11 @@ Core frontend active MVP lenses:
 - `timeline`
 - `map`
 
+Frontend export surfaces:
+- `src/modules/mvp-lenses.ts`: active MVP lens contracts
+- `src/modules/deferred-lenses.ts`: parked future lens contracts
+- `src/modules/features.ts`: deferred lens enable flags
+
 Support seams allowed on `main` but non-core:
 - `manuscript`
 - `export`
@@ -24,8 +29,10 @@ Support seams allowed on `main` but non-core:
 
 Kural:
 - bunlar repo icinde durabilir
+- default flag `off`
 - ama MVP boot path sahibi olamaz
 - core wiki/search/map acilisini bloklayamaz
+- geri acilan her lens lazy-load ve explicit toggle ile gelir
 
 ## Dependency Direction
 
@@ -42,6 +49,12 @@ Deferred / optional:
 - `canvas -> entity-model + manuscript + time-engine`
 - `relations -> stable id seam only`
 
+Current controlled reopen state:
+- `manuscript`: lazy mount, scene edit, autosave, mention/backlink
+- `canvas`: lazy mount, local derived visible-set board
+- `export`: lazy mount, queue/jobs read
+- `relations`: lazy mount, stable-id backlink seam
+
 ## Runtime Rules
 
 - canonical DB tek kaynak
@@ -50,6 +63,7 @@ Deferred / optional:
 - map kendi visibility mantigini yazmaz
 - startup recovery deterministic olur
 - optional lens fail => MVP outage degil
+- deferred lens load sadece secilince baslar
 
 ## Offline Map Contract
 

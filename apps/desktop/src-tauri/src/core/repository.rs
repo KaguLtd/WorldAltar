@@ -287,7 +287,7 @@ pub fn recover_autosave(database_path: &Path) -> Result<AutosaveRecoveryReport, 
   let repository = EntityRepository::open(database_path)?;
   let mut recovered_count = 0;
   let mut conflicted_count = 0;
-  let mut discarded_count = 0;
+  let discarded_count = 0;
 
   for entry in fs::read_dir(&autosave_dir).map_err(|err| err.to_string())? {
     let entry = entry.map_err(|err| err.to_string())?;

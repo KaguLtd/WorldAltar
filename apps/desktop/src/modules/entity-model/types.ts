@@ -56,4 +56,8 @@ export type EventEntity = {
   };
 };
 
-export type EntityRecord = CharacterEntity | LocationEntity | RegionEntity | EventEntity;
+export type EntityRecord =
+  | CharacterEntity
+  | LocationEntity
+  | RegionEntity
+  | EventEntity;

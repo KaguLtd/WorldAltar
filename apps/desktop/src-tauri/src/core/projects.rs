@@ -53,6 +53,14 @@ pub fn get_bootstrap_status() -> Result<BootstrapStatus, String> {
 }
 
 pub fn create_world(request: CreateWorldRequest) -> Result<WorldProject, String> {
+  create_world_with_mode(request, false)
+}
+
+pub fn create_demo_world(request: CreateWorldRequest) -> Result<WorldProject, String> {
+  create_world_with_mode(request, true)
+}
+
+fn create_world_with_mode(request: CreateWorldRequest, seed_demo: bool) -> Result<WorldProject, String> {
   let title = request.title.trim();
   if title.is_empty() {
     return Err("world title required".into());
@@ -93,8 +101,11 @@ pub fn create_world(request: CreateWorldRequest) -> Result<WorldProject, String>
 
   write_project_metadata(&world_path.join(PROJECT_FILE_NAME), &project)?;
   database::seed_project_metadata(&database_path, &project)?;
-  repository::seed_sample_entities(&database_path)?;
-  let _ = manuscript::seed_sample_manuscript(&database_path);
+
+  if seed_demo {
+    repository::seed_sample_entities(&database_path)?;
+    let _ = manuscript::seed_sample_manuscript(&database_path);
+  }
 
   Ok(project)
 }
@@ -140,7 +151,10 @@ fn now_timestamp() -> String {
 
 #[cfg(test)]
 mod tests {
-  use crate::core::entity_model::slugify;
+  use super::now_timestamp;
+  use std::path::Path;
+
+  use crate::core::{database, entity_model::slugify, manuscript::ManuscriptRepository, repository::EntityRepository};
 
   #[test]
   fn slugify_basic_title() {
@@ -150,5 +164,37 @@ mod tests {
   #[test]
   fn slugify_fallback_entity() {
     assert_eq!(slugify("!!!"), "entity");
+  }
+
+  #[test]
+  fn new_world_is_empty_by_default() {
+    let base = std::env::temp_dir().join(format!("worldaltar-projects-{}", now_timestamp()));
+    std::fs::create_dir_all(base.join("cache")).unwrap();
+    let database_path = base.join("worldaltar.db");
+
+    database::migrate_database(&database_path).unwrap();
+
+    let entity_repository = EntityRepository::open(Path::new(&database_path)).unwrap();
+    let manuscript_repository = ManuscriptRepository::open(Path::new(&database_path)).unwrap();
+
+    assert!(entity_repository.list(None).unwrap().is_empty());
+    assert!(manuscript_repository.list_tree().unwrap().is_empty());
+  }
+
+  #[test]
+  fn demo_seed_populates_entity_and_manuscript() {
+    let base = std::env::temp_dir().join(format!("worldaltar-projects-demo-{}", now_timestamp()));
+    std::fs::create_dir_all(base.join("cache")).unwrap();
+    let database_path = base.join("worldaltar.db");
+
+    database::migrate_database(&database_path).unwrap();
+    crate::core::repository::seed_sample_entities(&database_path).unwrap();
+    crate::core::manuscript::seed_sample_manuscript(&database_path).unwrap();
+
+    let entity_repository = EntityRepository::open(Path::new(&database_path)).unwrap();
+    let manuscript_repository = ManuscriptRepository::open(Path::new(&database_path)).unwrap();
+
+    assert!(!entity_repository.list(None).unwrap().is_empty());
+    assert!(!manuscript_repository.list_tree().unwrap().is_empty());
   }
 }

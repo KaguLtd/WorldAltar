@@ -1,19 +1,20 @@
 import type { EntityRecord, EntityType } from '../modules/entity-model/types';
+import type { EntityBacklink } from '../modules/manuscript/contracts';
 
 type EntityDetailPanelProps = {
   selectedEntity: EntityRecord | null;
-  selectedVisual:
-    | {
-        coverMode: 'entity' | 'fallback';
-        coverPath: string;
-        logo: { path: string };
-        motif: { path: string };
-      }
-    | null;
+  selectedVisual: {
+    coverMode: 'entity' | 'fallback';
+    coverPath: string;
+    logo: { path: string };
+    motif: { path: string };
+  } | null;
   currentThemeLabel: string;
   draftTitle: string;
   draftSummary: string;
   draftBody: string;
+  backlinks: EntityBacklink[];
+  onOpenBacklink: (nodeId: string) => void;
   setDraftTitle: (value: string) => void;
   setDraftSummary: (value: string) => void;
   setDraftBody: (value: string) => void;
@@ -28,6 +29,8 @@ export function EntityDetailPanel({
   draftTitle,
   draftSummary,
   draftBody,
+  backlinks,
+  onOpenBacklink,
   setDraftTitle,
   setDraftSummary,
   setDraftBody,
@@ -48,13 +51,21 @@ export function EntityDetailPanel({
             </span>
             <span className="detail-code">{selectedEntity.common.id}</span>
           </div>
-          <div className="detail-asset-shell premium-gallery-shell" aria-label="entity gallery panel">
+          <div
+            className="detail-asset-shell premium-gallery-shell"
+            aria-label="entity gallery panel"
+          >
             <img
               alt={`${selectedEntity.common.title} cover`}
               className="detail-asset"
               src={selectedVisual?.coverPath}
             />
-            <img alt="" aria-hidden="true" className="detail-motif" src={selectedVisual?.motif.path} />
+            <img
+              alt=""
+              aria-hidden="true"
+              className="detail-motif"
+              src={selectedVisual?.motif.path}
+            />
             <div className="detail-gallery-rail" aria-hidden="true">
               <span>{typeLabels[selectedEntity.type]}</span>
               <span>{selectedEntity.common.startYear ?? 'open'}</span>
@@ -93,24 +104,45 @@ export function EntityDetailPanel({
             <div>
               <dt>Years</dt>
               <dd>
-                {selectedEntity.common.startYear ?? 'open'} - {selectedEntity.common.endYear ?? 'open'}
+                {selectedEntity.common.startYear ?? 'open'} -{' '}
+                {selectedEntity.common.endYear ?? 'open'}
               </dd>
             </div>
             <div>
               <dt>Location</dt>
               <dd>
-                {selectedEntity.common.latitude ?? 'n/a'}, {selectedEntity.common.longitude ?? 'n/a'}
+                {selectedEntity.common.latitude ?? 'n/a'},{' '}
+                {selectedEntity.common.longitude ?? 'n/a'}
               </dd>
             </div>
             <div>
               <dt>Cover</dt>
-              <dd>{selectedVisual?.coverMode === 'entity' ? selectedEntity.common.coverImagePath : 'fallback asset'}</dd>
+              <dd>
+                {selectedVisual?.coverMode === 'entity'
+                  ? selectedEntity.common.coverImagePath
+                  : 'fallback asset'}
+              </dd>
             </div>
             <div>
               <dt>Theme</dt>
               <dd>{currentThemeLabel}</dd>
             </div>
           </dl>
+          {backlinks.length ? (
+            <div className="manuscript-links">
+              <strong>Manuscript backlinks</strong>
+              {backlinks.map((backlink) => (
+                <button
+                  key={backlink.nodeId}
+                  className="button ghost-button"
+                  onClick={() => onOpenBacklink(backlink.nodeId)}
+                  type="button"
+                >
+                  {backlink.sceneTitle}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </>
       ) : (
         <p className="empty">Select entity</p>

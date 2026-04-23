@@ -10,7 +10,7 @@ use core::{
     EntityBacklink, ManuscriptRecoveryReport, ManuscriptRepository, ManuscriptSceneDetail,
     ManuscriptTreeItem,
   },
-  projects::{create_world, get_bootstrap_status, BootstrapStatus, CreateWorldRequest, WorldProject},
+  projects::{create_demo_world, create_world, get_bootstrap_status, BootstrapStatus, CreateWorldRequest, WorldProject},
   repository::{recover_autosave, AutosaveRecoveryReport, EntityRepository, SearchResult},
 };
 use std::path::Path;
@@ -23,6 +23,11 @@ fn bootstrap_status() -> Result<BootstrapStatus, String> {
 #[tauri::command]
 fn create_world_command(request: CreateWorldRequest) -> Result<WorldProject, String> {
   create_world(request)
+}
+
+#[tauri::command]
+fn create_demo_world_command(request: CreateWorldRequest) -> Result<WorldProject, String> {
+  create_demo_world(request)
 }
 
 #[tauri::command]
@@ -130,6 +135,7 @@ fn main() {
     .invoke_handler(tauri::generate_handler![
       bootstrap_status,
       create_world_command,
+      create_demo_world_command,
       create_entity_command,
       list_entities_command,
       rename_entity_command,

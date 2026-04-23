@@ -35,7 +35,12 @@ export function CardGrid({
             type="button"
           >
             <div className={`card-cover card-cover-${record.type}`}>
-              <img alt="" aria-hidden="true" className="card-image" src={visual.coverPath} />
+              <img
+                alt=""
+                aria-hidden="true"
+                className="card-image"
+                src={visual.coverPath}
+              />
               <div className="card-badge-row">
                 <span className={`type-badge type-${record.type}`}>
                   <span className="type-icon" aria-hidden="true">
@@ -49,13 +54,16 @@ export function CardGrid({
               <strong>{record.common.title}</strong>
               <span>{record.common.summary || 'No summary'}</span>
               <span>
-                {record.common.startYear ?? 'open'} - {record.common.endYear ?? 'open'}
+                {record.common.startYear ?? 'open'} -{' '}
+                {record.common.endYear ?? 'open'}
               </span>
             </div>
           </button>
         );
       })}
-      {!records.length ? <p className="empty card-empty">No visible entity</p> : null}
+      {!records.length ? (
+        <p className="empty card-empty">No visible entity</p>
+      ) : null}
     </section>
   );
 }

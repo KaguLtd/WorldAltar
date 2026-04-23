@@ -21,7 +21,10 @@ export function getManuscriptScene(databasePath: string, id: string) {
   });
 }
 
-export function createManuscriptChapter(databasePath: string, input: { title: string }) {
+export function createManuscriptChapter(
+  databasePath: string,
+  input: { title: string }
+) {
   return invoke<ManuscriptNode>('create_manuscript_chapter_command', {
     databasePath,
     input
@@ -61,12 +64,18 @@ export function autosaveManuscriptScene(
 }
 
 export function recoverManuscriptAutosave(databasePath: string) {
-  return invoke<ManuscriptRecoveryReport>('recover_manuscript_autosave_command', {
-    databasePath
-  });
+  return invoke<ManuscriptRecoveryReport>(
+    'recover_manuscript_autosave_command',
+    {
+      databasePath
+    }
+  );
 }
 
-export function listManuscriptBacklinks(databasePath: string, entityId: string) {
+export function listManuscriptBacklinks(
+  databasePath: string,
+  entityId: string
+) {
   return invoke<EntityBacklink[]>('list_manuscript_backlinks_command', {
     databasePath,
     entityId

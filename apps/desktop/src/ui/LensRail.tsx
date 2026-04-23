@@ -1,26 +1,33 @@
 import type { FormEvent } from 'react';
+import type { DeferredLensFlag } from '../modules/features';
 import type { BootstrapStatus } from '../modules/projects/api';
 import type { ActiveLens } from '../App';
 
 type LensRailProps = {
   lensItems: readonly ActiveLens[];
   activeLens: ActiveLens;
+  onDeferredLensToggle: (id: DeferredLensFlag['id']) => void;
   onLensChange: (lens: ActiveLens) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onCreateDemoWorld: () => void;
   title: string;
   setTitle: (value: string) => void;
   busy: boolean;
+  deferredLensFlags: DeferredLensFlag[];
   status: BootstrapStatus | null;
 };
 
 export function LensRail({
   lensItems,
   activeLens,
+  onDeferredLensToggle,
   onLensChange,
   onSubmit,
+  onCreateDemoWorld,
   title,
   setTitle,
   busy,
+  deferredLensFlags,
   status
 }: LensRailProps) {
   return (
@@ -58,7 +65,33 @@ export function LensRail({
           <button className="button" disabled={busy} type="submit">
             {busy ? 'Creating...' : 'Create world'}
           </button>
+          <button
+            className="button ghost-button"
+            disabled={busy}
+            onClick={onCreateDemoWorld}
+            type="button"
+          >
+            {busy ? 'Creating...' : 'Create demo world'}
+          </button>
         </form>
+      </div>
+
+      <div className="rail-block">
+        <p className="eyebrow">Deferred</p>
+        <ul className="meta-list" aria-label="deferred lens flags">
+          {deferredLensFlags.map((flag) => (
+            <li key={flag.id}>
+              <span>{flag.label}</span>
+              <button
+                className="button ghost-button"
+                onClick={() => onDeferredLensToggle(flag.id)}
+                type="button"
+              >
+                {flag.enabled ? 'On' : 'Off'}
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {status ? (

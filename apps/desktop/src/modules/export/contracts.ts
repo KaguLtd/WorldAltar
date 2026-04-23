@@ -1,6 +1,4 @@
-export type ExportKind =
-  | 'pdf_dossier'
-  | 'manuscript_pdf';
+export type ExportKind = 'pdf_dossier' | 'manuscript_pdf';
 
 export type ExportRequest = {
   kind: ExportKind;

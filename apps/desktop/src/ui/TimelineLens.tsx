@@ -33,13 +33,17 @@ export function TimelineLens({
             role="listitem"
             type="button"
           >
-            <span className="timeline-year">{record.common.startYear ?? 'open'}</span>
+            <span className="timeline-year">
+              {record.common.startYear ?? 'open'}
+            </span>
             <strong>{record.common.title}</strong>
             <span>{typeLabels[record.type]}</span>
           </button>
         ))}
         {!records.length ? (
-          <p className="empty card-empty">{isRefreshingEntities ? 'Loading...' : 'No visible entity'}</p>
+          <p className="empty card-empty">
+            {isRefreshingEntities ? 'Loading...' : 'No visible entity'}
+          </p>
         ) : null}
       </section>
 
@@ -74,7 +78,8 @@ function buildTimelineBands(records: EntityRecord[]): TimelineBand[] {
 
   records.forEach((record) => {
     const year = record.common.startYear ?? 0;
-    const century = year <= 0 ? 'Open Range' : `${Math.floor(year / 100) * 100}s`;
+    const century =
+      year <= 0 ? 'Open Range' : `${Math.floor(year / 100) * 100}s`;
     const current = bucket.get(century) ?? [];
     current.push(record);
     bucket.set(century, current);

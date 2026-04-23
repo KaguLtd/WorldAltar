@@ -27,3 +27,9 @@ export function createWorld(title: string) {
     request: { title }
   });
 }
+
+export function createDemoWorld(title: string) {
+  return invoke<WorldProject>('create_demo_world_command', {
+    request: { title }
+  });
+}

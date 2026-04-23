@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import maplibregl, { type GeoJSONSourceSpecification, type LngLatLike, type Map as MapLibreMap } from 'maplibre-gl';
+import maplibregl, {
+  type GeoJSONSourceSpecification,
+  type LngLatLike,
+  type Map as MapLibreMap
+} from 'maplibre-gl';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { EntityRecord } from '../entity-model/types';
 
@@ -14,13 +18,23 @@ const CIRCLE_LAYER_ID = 'worldaltar-markers-circle';
 const LABEL_LAYER_ID = 'worldaltar-markers-label';
 const OFFLINE_STYLE_URL = '/offline-map/style.json';
 
-export function OfflineMap({ records, selectedEntityId, onSelect }: OfflineMapProps) {
+export function OfflineMap({
+  records,
+  selectedEntityId,
+  onSelect
+}: OfflineMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const loadedRef = useRef(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const markers = useMemo(() => buildMarkerGeoJson(records, selectedEntityId), [records, selectedEntityId]);
-  const focus = markers.features.find((feature) => feature.properties.selected) ?? markers.features[0] ?? null;
+  const markers = useMemo(
+    () => buildMarkerGeoJson(records, selectedEntityId),
+    [records, selectedEntityId]
+  );
+  const focus =
+    markers.features.find((feature) => feature.properties.selected) ??
+    markers.features[0] ??
+    null;
   const hoveredRecord =
     records.find((record) => record.common.id === hoveredId) ??
     records.find((record) => record.common.id === selectedEntityId) ??
@@ -29,7 +43,9 @@ export function OfflineMap({ records, selectedEntityId, onSelect }: OfflineMapPr
     () => ({
       regions: records.filter((record) => record.type === 'region').slice(0, 3),
       events: records.filter((record) => record.type === 'event').slice(0, 3),
-      locations: records.filter((record) => record.type === 'location').slice(0, 3)
+      locations: records
+        .filter((record) => record.type === 'location')
+        .slice(0, 3)
     }),
     [records]
   );
@@ -96,14 +112,22 @@ export function OfflineMap({ records, selectedEntityId, onSelect }: OfflineMapPr
         <p className="map-copy">MapLibre + bundled local raster tiles.</p>
       </div>
       <div className="map-frame">
-        <div ref={containerRef} className="map-canvas" role="img" aria-label="offline world map" />
+        <div
+          ref={containerRef}
+          className="map-canvas"
+          role="img"
+          aria-label="offline world map"
+        />
         {hoveredRecord ? (
           <div className="map-popover" aria-label="map hover preview">
-            <span className={`type-badge type-${hoveredRecord.type}`}>{hoveredRecord.type}</span>
+            <span className={`type-badge type-${hoveredRecord.type}`}>
+              {hoveredRecord.type}
+            </span>
             <strong>{hoveredRecord.common.title}</strong>
             <span>{hoveredRecord.common.summary || 'No summary'}</span>
             <span>
-              {hoveredRecord.common.startYear ?? 'open'} - {hoveredRecord.common.endYear ?? 'open'}
+              {hoveredRecord.common.startYear ?? 'open'} -{' '}
+              {hoveredRecord.common.endYear ?? 'open'}
             </span>
           </div>
         ) : null}
@@ -119,14 +143,20 @@ export function OfflineMap({ records, selectedEntityId, onSelect }: OfflineMapPr
             </span>
           ))}
           {overlays.locations.map((record) => (
-            <span key={record.common.id} className="map-overlay-chip is-location">
+            <span
+              key={record.common.id}
+              className="map-overlay-chip is-location"
+            >
               Place {record.common.title}
             </span>
           ))}
         </div>
       </div>
       <p className="map-focus">
-        Focus: {focus ? `${focus.properties.title} (${focus.properties.id})` : 'No geocoded entity'}
+        Focus:{' '}
+        {focus
+          ? `${focus.properties.title} (${focus.properties.id})`
+          : 'No geocoded entity'}
       </p>
     </section>
   );
@@ -145,13 +175,19 @@ function buildMarkerGeoJson(
   return {
     type: 'FeatureCollection',
     features: records
-      .filter((record) => record.common.latitude !== null && record.common.longitude !== null)
+      .filter(
+        (record) =>
+          record.common.latitude !== null && record.common.longitude !== null
+      )
       .map(
         (record): Feature<Point, MarkerProperties> => ({
           type: 'Feature',
           geometry: {
             type: 'Point',
-            coordinates: [record.common.longitude as number, record.common.latitude as number]
+            coordinates: [
+              record.common.longitude as number,
+              record.common.latitude as number
+            ]
           },
           properties: {
             id: record.common.id,
@@ -182,7 +218,12 @@ function ensureMarkerLayers(map: MapLibreMap) {
     source: GEOJSON_SOURCE_ID,
     paint: {
       'circle-radius': ['case', ['==', ['get', 'selected'], true], 9, 6],
-      'circle-color': ['case', ['==', ['get', 'selected'], true], '#77d0ff', '#c89b65'],
+      'circle-color': [
+        'case',
+        ['==', ['get', 'selected'], true],
+        '#77d0ff',
+        '#c89b65'
+      ],
       'circle-stroke-width': 2,
       'circle-stroke-color': '#10161d'
     }
@@ -206,14 +247,20 @@ function ensureMarkerLayers(map: MapLibreMap) {
   });
 }
 
-function syncMarkerSource(map: MapLibreMap, markers: FeatureCollection<Point, MarkerProperties>) {
+function syncMarkerSource(
+  map: MapLibreMap,
+  markers: FeatureCollection<Point, MarkerProperties>
+) {
   const source = map.getSource(GEOJSON_SOURCE_ID) as
     | { setData: (data: FeatureCollection<Point, MarkerProperties>) => void }
     | undefined;
   source?.setData(markers);
 }
 
-function focusMap(map: MapLibreMap, focus: Feature<Point, MarkerProperties> | null) {
+function focusMap(
+  map: MapLibreMap,
+  focus: Feature<Point, MarkerProperties> | null
+) {
   if (!focus) {
     return;
   }

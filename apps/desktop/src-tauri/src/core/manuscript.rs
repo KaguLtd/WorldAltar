@@ -330,7 +330,7 @@ impl ManuscriptRepository {
 }
 
 pub fn seed_sample_manuscript(database_path: &Path) -> Result<(), String> {
-  let mut repository = ManuscriptRepository::open(database_path)?;
+  let repository = ManuscriptRepository::open(database_path)?;
   if !repository.list_tree()?.is_empty() {
     return Ok(());
   }
@@ -390,7 +390,7 @@ pub fn recover_manuscript_autosave(database_path: &Path) -> Result<ManuscriptRec
   let repository = ManuscriptRepository::open(database_path)?;
   let mut recovered_count = 0;
   let mut conflicted_count = 0;
-  let mut discarded_count = 0;
+  let discarded_count = 0;
 
   for entry in fs::read_dir(&autosave_dir).map_err(|err| err.to_string())? {
     let entry = entry.map_err(|err| err.to_string())?;
@@ -824,7 +824,7 @@ mod tests {
 
   #[test]
   fn mention_ids_stay_entity_bound_after_title_change() {
-    let mut repository = repo();
+    let repository = repo();
     let chapter = repository.create_chapter(CreateChapterInput { title: "One".into() }).unwrap();
     let scene = repository.create_scene(CreateSceneInput {
       chapter_id: chapter.id.clone(),
@@ -887,7 +887,7 @@ mod tests {
   #[test]
   fn manuscript_recovery_preserves_uncommitted_pending_payload_as_conflict() {
     let database_path = manuscript_test_db();
-    let mut repository = file_repo(&database_path);
+    let repository = file_repo(&database_path);
     let chapter = repository.create_chapter(CreateChapterInput { title: "One".into() }).unwrap();
     let scene = repository.create_scene(CreateSceneInput {
       chapter_id: chapter.id,
@@ -920,7 +920,7 @@ mod tests {
   #[test]
   fn manuscript_recovery_marks_committed_pending_payload_as_recovered() {
     let database_path = manuscript_test_db();
-    let mut repository = file_repo(&database_path);
+    let repository = file_repo(&database_path);
     let chapter = repository.create_chapter(CreateChapterInput { title: "One".into() }).unwrap();
     let scene = repository.create_scene(CreateSceneInput {
       chapter_id: chapter.id,
@@ -970,7 +970,7 @@ mod tests {
   #[test]
   fn manuscript_recovery_is_idempotent_after_cleanup() {
     let database_path = manuscript_test_db();
-    let mut repository = file_repo(&database_path);
+    let repository = file_repo(&database_path);
     let chapter = repository.create_chapter(CreateChapterInput { title: "One".into() }).unwrap();
     let scene = repository.create_scene(CreateSceneInput {
       chapter_id: chapter.id,
