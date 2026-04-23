@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "WorldAltar",
+  "version": "0.1.0",
+  "identifier": "com.worldaltar.desktop",
+  "build": {
+    "beforeDevCommand": "npm --workspace @worldaltar/desktop run vite:dev",
+    "beforeBuildCommand": "npm --workspace @worldaltar/desktop run vite:build",
+    "devUrl": "http://127.0.0.1:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "WorldAltar",
+        "width": 1280,
+        "height": 800,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": []
+  }
+}

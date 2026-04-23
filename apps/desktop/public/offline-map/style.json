@@ -1,0 +1,23 @@
+{
+  "version": 8,
+  "name": "WorldAltar Offline Raster",
+  "sources": {
+    "offline-raster": {
+      "type": "raster",
+      "tiles": ["./tiles/{z}/{x}/{y}.png"],
+      "tileSize": 256,
+      "minzoom": 0,
+      "maxzoom": 1
+    }
+  },
+  "layers": [
+    {
+      "id": "offline-raster",
+      "type": "raster",
+      "source": "offline-raster",
+      "paint": {
+        "raster-opacity": 1
+      }
+    }
+  ]
+}

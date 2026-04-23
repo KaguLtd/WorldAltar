@@ -1,0 +1,18 @@
+{
+  "name": "worldaltar",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "npm@10.9.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace @worldaltar/desktop run dev",
+    "build": "npm --workspace @worldaltar/desktop run build",
+    "lint": "npm --workspace @worldaltar/desktop run lint",
+    "test": "npm --workspace @worldaltar/desktop run test",
+    "format": "npm --workspace @worldaltar/desktop run format",
+    "typecheck": "npm --workspace @worldaltar/desktop run typecheck"
+  }
+}

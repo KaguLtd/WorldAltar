@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 96" role="img" aria-labelledby="title">
+  <title>WorldAltar logo</title>
+  <rect width="240" height="96" rx="18" fill="#11161d"/>
+  <path d="M28 69 56 24l28 45" fill="none" stroke="#c89b65" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="56" cy="48" r="10" fill="#6f9c96"/>
+  <path d="M90 69h20l10-22 10 22h22l14-42" fill="none" stroke="#ece4d5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M174 69V28l16 24 16-24v41" fill="none" stroke="#ece4d5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M214 68V30" fill="none" stroke="#c89b65" stroke-width="6" stroke-linecap="round"/>
+</svg>
