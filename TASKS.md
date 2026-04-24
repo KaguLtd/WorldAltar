@@ -15,17 +15,29 @@
 - [x] Faz 5 deferred lensleri kontrollu geri ac
 - [x] deferred lensler explicit toggle + lazy mount
 - [x] manuscript mention/backlink bridge
+- [x] Phase 7 first UX pass
+- [x] wiki spotlight + grouped cards
+- [x] detail editor/facts rhythm
+- [x] timeline spotlight
+- [x] manuscript facts/mentions rhythm
+- [x] deferred shell spotlight pass
 
 ## Active Next
 
 - [x] warning temizligi
 - [x] import/katman sadeleme
 - [x] plan v2 tamamlama
+- [x] full recheck gate
 
 ## Deferred
 
-- [ ] manuscript studio depth
-- [ ] two-page manuscript productization
-- [ ] advanced canvas
-- [ ] export depth
-- [ ] premium asset/polish layers
+- [x] manuscript studio depth
+- [x] two-page manuscript productization
+- [x] advanced canvas
+- [x] export depth
+- [x] premium asset/polish layers
+- [x] deeper phase 7 premium motion/theme pass
+
+## Remainder
+
+- [ ] yeni plan / yeni belge

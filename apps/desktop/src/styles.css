@@ -180,10 +180,24 @@ body {
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .command-button {
   cursor: pointer;
+}
+
+.command-chip:hover,
+.command-chip:focus-visible {
+  border-color: var(--line-strong);
+  color: var(--text);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.14);
 }
 
 .command-chip.is-dirty {
@@ -515,6 +529,118 @@ h2 {
   animation: lensFade 180ms ease;
 }
 
+.wiki-lens {
+  display: grid;
+  gap: 14px;
+  animation: lensFade 180ms ease;
+}
+
+.card-group {
+  display: grid;
+  gap: 10px;
+}
+
+.card-group-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.card-group-head span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 11px;
+}
+
+.wiki-spotlight {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(200, 155, 101, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(180deg, rgba(21, 29, 37, 0.94), rgba(12, 17, 23, 0.98));
+}
+
+.timeline-spotlight {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(111, 156, 150, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(180deg, rgba(21, 29, 37, 0.94), rgba(12, 17, 23, 0.98));
+}
+
+.timeline-spotlight-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.timeline-summary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wiki-spotlight-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.wiki-spotlight-copy strong {
+  font-size: 22px;
+}
+
+.wiki-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(86px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.wiki-facts div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.wiki-facts dt {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wiki-facts dd {
+  margin: 0;
+}
+
 .manuscript-shell {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
@@ -685,6 +811,13 @@ h2 {
   gap: 10px;
 }
 
+.chapter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .chapter-row,
 .scene-row,
 .mention-chip,
@@ -717,6 +850,16 @@ h2 {
   gap: 8px;
 }
 
+.scene-card-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .scene-row.is-active,
 .mention-chip:hover,
 .backlink-chip:hover,
@@ -733,6 +876,46 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.manuscript-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.manuscript-studio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.studio-card {
+  display: grid;
+  gap: 4px;
+  min-height: 74px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(200, 155, 101, 0.08),
+      transparent 30%
+    ),
+    rgba(10, 14, 18, 0.48);
+}
+
+.studio-card span {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.studio-card strong {
+  font-size: 18px;
 }
 
 .manuscript-body {
@@ -1044,11 +1227,35 @@ h2 {
     box-shadow 140ms ease;
 }
 
+.wiki-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    118deg,
+    transparent 0 18%,
+    rgba(255, 255, 255, 0.06) 28%,
+    transparent 42%
+  );
+  opacity: 0;
+  transform: translateX(-22px);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
 .wiki-card.is-active,
 .wiki-card:hover {
   border-color: var(--line-strong);
   transform: translateY(-2px) scale(1.01);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.wiki-card.is-active::after,
+.wiki-card:hover::after {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .card-cover {
@@ -1140,6 +1347,19 @@ h2 {
   justify-content: space-between;
   align-items: start;
   gap: 10px;
+}
+
+.card-code {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(10, 15, 20, 0.36);
+  color: var(--parchment);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.06em;
 }
 
 .card-body {
@@ -1248,6 +1468,16 @@ h2 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.detail-section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
 .detail-cover {
   display: flex;
   justify-content: space-between;
@@ -1289,6 +1519,10 @@ h2 {
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.detail-section .eyebrow {
+  margin-bottom: 0;
 }
 
 .detail-asset {
@@ -1450,6 +1684,16 @@ h2 {
   transform: translateY(-1px);
 }
 
+.timeline-row,
+.theme-card,
+.canvas-node,
+.chapter-row,
+.scene-row,
+.mention-chip,
+.backlink-chip {
+  will-change: transform;
+}
+
 .theme-card::after {
   content: '';
   position: absolute;
@@ -1476,6 +1720,20 @@ h2 {
 .asset-stack {
   display: grid;
   gap: 10px;
+}
+
+.theme-tones {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.theme-tone {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
 .brand-logo {
@@ -1505,6 +1763,36 @@ h2 {
   color: var(--muted);
   font-family: var(--sans);
   font-size: 12px;
+}
+
+.asset-manifest {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.asset-manifest li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(10, 14, 18, 0.46);
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.asset-manifest strong {
+  color: var(--text);
+  font-size: 11px;
 }
 
 .meta-list {
@@ -1589,10 +1877,17 @@ h2 {
     align-items: stretch;
   }
 
+  .wiki-spotlight,
+  .timeline-spotlight,
+  .wiki-facts {
+    grid-template-columns: 1fr;
+  }
+
   .shell-grid,
   .context-panel,
   .toolbar-inline,
   .manuscript-toolbar,
+  .manuscript-studio,
   .detail-grid,
   .workspace-meta {
     grid-template-columns: 1fr;
@@ -1610,5 +1905,37 @@ h2 {
   }
   to {
     opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .wiki-card.is-active,
+  .wiki-card:hover,
+  .premium-manuscript-editor:hover,
+  .premium-book-preview:hover,
+  .premium-gallery-shell:hover,
+  .canvas-node.is-emphasis,
+  .canvas-node:hover,
+  .timeline-row:hover,
+  .timeline-row.is-active,
+  .theme-card:hover,
+  .theme-card.is-active,
+  .chapter-row:hover,
+  .scene-row:hover,
+  .scene-row.is-active,
+  .mention-chip:hover,
+  .backlink-chip:hover,
+  .command-chip:hover,
+  .command-chip:focus-visible {
+    transform: none;
   }
 }

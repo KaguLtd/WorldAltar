@@ -27,6 +27,20 @@ Aktif olmayan ama repoda izi bulunabilen alanlar:
 
 Bu alanlar MVP contract degildir.
 
+UI reality on `main`:
+- wiki lens: spotlight + grouped cards + quick jump hover
+- detail panel: editor/facts split
+- timeline lens: spotlight summary
+- manuscript lens: facts + mentions rhythm
+- manuscript studio: chapter count + scene meta + word/read stats
+- manuscript preview: local Draft / Split / Book switch with two-page preview shell
+- canvas lens: local Relations / Family / Chain board switch with derived links
+- export lens: filterable queue + artifact list from same export jobs payload
+- deferred shells: canvas/export/relations spotlight summary
+- deeper polish: restrained hover/sheen motion + reduced-motion fallback
+- side rails: theme palette swatches + asset manifest chips
+- bunlar UX ritim iyilestirmesidir, core contract degisikligi degildir
+
 Frontend contract export kural:
 - aktif lens contractlari `src/modules/mvp-lenses.ts`
 - deferred lens contractlari `src/modules/deferred-lenses.ts`

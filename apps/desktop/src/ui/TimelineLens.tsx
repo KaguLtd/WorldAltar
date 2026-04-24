@@ -21,9 +21,29 @@ export function TimelineLens({
   isRefreshingEntities
 }: TimelineLensProps) {
   const timelineBands = buildTimelineBands(records);
+  const selectedRecord =
+    records.find((record) => record.common.id === selectedEntityId) ?? null;
 
   return (
     <>
+      {selectedRecord ? (
+        <article className="timeline-spotlight" aria-label="timeline spotlight">
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Timeline Focus</p>
+            <strong>{selectedRecord.common.title}</strong>
+            <span>{typeLabels[selectedRecord.type]}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">
+              Start {selectedRecord.common.startYear ?? 'open'}
+            </span>
+            <span className="command-chip">
+              End {selectedRecord.common.endYear ?? 'open'}
+            </span>
+          </div>
+        </article>
+      ) : null}
+
       <section className="timeline-list" role="list">
         {records.map((record) => (
           <button

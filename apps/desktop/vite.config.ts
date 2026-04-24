@@ -8,5 +8,25 @@ export default defineConfig({
     port: 1420,
     strictPort: true
   },
+  build: {
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('maplibre-gl')) {
+            return 'maplibre';
+          }
+
+          if (id.includes('node_modules/react')) {
+            return 'react-vendor';
+          }
+
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+        }
+      }
+    }
+  },
   clearScreen: false
 });

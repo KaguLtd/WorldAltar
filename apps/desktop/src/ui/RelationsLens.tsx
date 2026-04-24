@@ -24,6 +24,20 @@ export function RelationsLens({
             <span className="command-chip">{selectedEntity.common.id}</span>
           </div>
 
+          <article
+            className="timeline-spotlight"
+            aria-label="relations spotlight"
+          >
+            <div className="timeline-spotlight-copy">
+              <p className="eyebrow">Relations Focus</p>
+              <strong>{selectedEntity.common.title}</strong>
+              <span>{backlinks.length} backlinks</span>
+            </div>
+            <div className="timeline-summary">
+              <span className="command-chip">{selectedEntity.common.id}</span>
+            </div>
+          </article>
+
           {backlinks.length ? (
             <div className="theme-stack">
               {backlinks.map((backlink) => (

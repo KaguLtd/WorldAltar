@@ -113,6 +113,21 @@ describe('App', () => {
     vi.useRealTimers();
     window.localStorage.clear();
     vi.clearAllMocks();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          id: 'offline-raster-v1',
+          mode: 'bundled_raster',
+          styleUrl: '/offline-map/style.json',
+          manifestUrl: '/offline-map/manifest.json',
+          minZoom: 0,
+          maxZoom: 1,
+          coverage: 'world-low-zoom'
+        })
+      })
+    );
 
     getSource.mockImplementation((id?: string) => {
       if (id === 'worldaltar-markers') {
@@ -224,6 +239,14 @@ describe('App', () => {
           'C:/Users/Test/Documents/WorldAltar/export/dossier.pdf'
         ],
         createdAt: '9'
+      },
+      {
+        id: 'job_002',
+        kind: 'manuscript_pdf',
+        status: 'queued',
+        targetPath: 'C:/Users/Test/Documents/WorldAltar/export/manuscript.pdf',
+        artifactPaths: [],
+        createdAt: '10'
       }
     ]);
     queueExport.mockImplementation(async (_databasePath: string, request) => ({
@@ -401,13 +424,29 @@ describe('App', () => {
     await screen.findByText('Alp Er Tunga');
     expect(createWorld).not.toHaveBeenCalled();
     expect(createDemoWorld).toHaveBeenCalledWith('Demo World');
+    expect(screen.getByLabelText(/wiki spotlight/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
+    expect(screen.getByLabelText(/character group/i)).toHaveTextContent('1');
+    expect(screen.getByLabelText(/event group/i)).toHaveTextContent('1');
+    expect(screen.getByLabelText(/detail facts/i)).toHaveTextContent('Theme');
+    expect(screen.getByLabelText(/asset manifest/i)).toHaveTextContent(
+      'CoverfallbackLogologoMotifmotif'
+    );
+    expect(screen.getAllByText('Dusk')[0]).toBeInTheDocument();
 
     fireEvent.mouseEnter(
       screen
-        .getAllByText('Alp Er Tunga')[0]
+        .getAllByText('Alp Er Tunga')[1]
         .closest('button') as HTMLButtonElement
     );
     expect(screen.getByLabelText(/hover preview/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /open wiki/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /open timeline/i })
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /open map/i })
     ).toBeInTheDocument();
@@ -428,8 +467,18 @@ describe('App', () => {
       )
     );
 
+    fireEvent.click(screen.getByRole('button', { name: /^Timeline$/i }));
+    expect(screen.getByLabelText(/timeline spotlight/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
+
     fireEvent.click(screen.getByRole('button', { name: /^Map$/i }));
     expect(screen.getByLabelText(/offline world map/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByLabelText(/map package status/i)).toHaveTextContent(
+        'bundled_rasterworld-low-zoomz0-1manifest ok'
+      )
+    );
     expect(on).toHaveBeenCalled();
     expect(
       screen.getByText(/Focus: Alp Er Tunga \(char_001\)/i)
@@ -477,6 +526,25 @@ describe('App', () => {
       'msc_sc_001'
     );
     expect(screen.getByDisplayValue('Arrival body')).toBeInTheDocument();
+    expect(screen.getByLabelText(/manuscript facts/i)).toHaveTextContent(
+      'msc_sc_001'
+    );
+    expect(screen.getByLabelText(/manuscript mentions/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
+    expect(screen.getByLabelText(/manuscript studio/i)).toHaveTextContent(
+      'ChapterChapter 1Order1.1Words2Read1 minMentions1Summaryset'
+    );
+    expect(screen.getByText(/1 scenes/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /split/i }));
+    expect(screen.getByLabelText(/book preview/i)).toBeInTheDocument();
+    expect(
+      screen.getAllByLabelText(/book page|chapter break page/i).length
+    ).toBe(2);
+
+    fireEvent.click(screen.getByRole('button', { name: /book/i }));
+    expect(screen.getByLabelText(/book preview/i)).toHaveTextContent('2 pages');
 
     vi.useFakeTimers();
     fireEvent.change(screen.getByLabelText(/manuscript body/i), {
@@ -541,10 +609,43 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^Canvas$/i }));
     expect(screen.getByLabelText(/canvas lens/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/canvas spotlight/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
+    expect(screen.getByLabelText(/canvas views/i)).toHaveTextContent(
+      'RelationsFamilyChainYear 1204'
+    );
+    expect(screen.getByLabelText(/canvas links/i)).toHaveTextContent('linked');
+
+    fireEvent.click(screen.getByRole('button', { name: /family/i }));
+    expect(screen.getByLabelText(/canvas links/i)).toHaveTextContent(
+      'blood line'
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /^Export$/i }));
     await screen.findByLabelText(/export lens/i);
     expect(listExportJobs).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText(/export spotlight/i)).toHaveTextContent(
+      'pdf_dossier'
+    );
+    expect(screen.getByLabelText(/export filters/i)).toHaveTextContent(
+      'AllDossierManuscript'
+    );
+    expect(screen.getByLabelText(/export spotlight/i)).toHaveTextContent(
+      '2 jobs1 artifacts'
+    );
+    expect(screen.getByLabelText(/artifacts job_001/i)).toHaveTextContent(
+      'dossier.pdf'
+    );
+
+    fireEvent.click(
+      within(screen.getByLabelText(/export filters/i)).getByRole('button', {
+        name: /manuscript/i
+      })
+    );
+    expect(screen.getByLabelText(/export spotlight/i)).toHaveTextContent(
+      'manuscript_pdfqueued1 jobs0 artifacts'
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /queue dossier pdf/i }));
     await waitFor(() =>
@@ -555,5 +656,39 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^Relations$/i }));
     expect(screen.getByLabelText(/relations lens/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/relations spotlight/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
+  });
+
+  it('keeps map usable when manifest load fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500
+      })
+    );
+
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText(/world title/i), {
+      target: { value: 'Demo World' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create demo world/i }));
+
+    await screen.findByText('demo-world');
+
+    fireEvent.click(screen.getByRole('button', { name: /^Map$/i }));
+    expect(screen.getByLabelText(/offline world map/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByLabelText(/map package status/i)).toHaveTextContent(
+        'bundled_rasterworld-low-zoomz0-1fallback'
+      )
+    );
+    expect(on).toHaveBeenCalled();
+    expect(
+      screen.getByText(/Focus: Alp Er Tunga \(char_001\)/i)
+    ).toBeInTheDocument();
   });
 });

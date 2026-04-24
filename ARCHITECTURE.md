@@ -42,6 +42,8 @@ Core:
 Active MVP:
 - `timeline -> wiki/search/map`
 - `wiki/search/map -> entity-model + time-engine`
+- `ui/card-grid -> same entity spine, grouped presentation only`
+- `ui/detail-panel -> same entity spine, editor/facts split only`
 
 Deferred / optional:
 - `manuscript -> entity-model`
@@ -54,6 +56,19 @@ Current controlled reopen state:
 - `canvas`: lazy mount, local derived visible-set board
 - `export`: lazy mount, queue/jobs read
 - `relations`: lazy mount, stable-id backlink seam
+
+Current presentation uplift state:
+- wiki: grouped cards by type, selected spotlight
+- hover preview: wiki/timeline/map quick jump
+- timeline: selected spotlight with start/end chips
+- manuscript: scene facts and mention block
+- manuscript studio: derived chapter/order/word stats from same selected scene payload
+- manuscript preview: book pages derive from current scene draft only, no second writing store
+- canvas: board views and links derive from visible entity set only
+- export: queue filters and artifact list derive from same export jobs payload only
+- deferred shells: canvas/export/relations spotlight summary
+- motion/theme: command chips and cards get restrained sheen/hover, with reduced-motion fallback
+- side rails: theme and asset panels expose presentation metadata only, never new domain state
 
 ## Runtime Rules
 

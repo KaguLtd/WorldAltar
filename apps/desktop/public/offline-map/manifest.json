@@ -1,0 +1,14 @@
+{
+  "id": "offline-raster-v1",
+  "mode": "bundled_raster",
+  "coverage": "world-low-zoom",
+  "styleUrl": "/offline-map/style.json",
+  "tilesRoot": "/offline-map/tiles",
+  "minZoom": 0,
+  "maxZoom": 1,
+  "notes": [
+    "MVP fallback basemap",
+    "offline-only local package",
+    "future PMTiles path remains optional"
+  ]
+}

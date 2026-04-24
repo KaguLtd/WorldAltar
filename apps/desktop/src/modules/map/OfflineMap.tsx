@@ -6,6 +6,11 @@ import maplibregl, {
 } from 'maplibre-gl';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { EntityRecord } from '../entity-model/types';
+import {
+  loadOfflineMapPackage,
+  OFFLINE_MAP_PACKAGE,
+  type OfflineMapPackage
+} from './contracts';
 
 type OfflineMapProps = {
   records: EntityRecord[];
@@ -16,8 +21,6 @@ type OfflineMapProps = {
 const GEOJSON_SOURCE_ID = 'worldaltar-markers';
 const CIRCLE_LAYER_ID = 'worldaltar-markers-circle';
 const LABEL_LAYER_ID = 'worldaltar-markers-label';
-const OFFLINE_STYLE_URL = '/offline-map/style.json';
-
 export function OfflineMap({
   records,
   selectedEntityId,
@@ -27,6 +30,11 @@ export function OfflineMap({
   const mapRef = useRef<MapLibreMap | null>(null);
   const loadedRef = useRef(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [mapPackage, setMapPackage] =
+    useState<OfflineMapPackage>(OFFLINE_MAP_PACKAGE);
+  const [mapPackageSource, setMapPackageSource] = useState<
+    'manifest' | 'fallback'
+  >('fallback');
   const markers = useMemo(
     () => buildMarkerGeoJson(records, selectedEntityId),
     [records, selectedEntityId]
@@ -51,15 +59,39 @@ export function OfflineMap({
   );
 
   useEffect(() => {
+    let cancelled = false;
+
+    loadOfflineMapPackage()
+      .then((pkg) => {
+        if (!cancelled) {
+          setMapPackage(pkg);
+          setMapPackageSource('manifest');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMapPackage(OFFLINE_MAP_PACKAGE);
+          setMapPackageSource('fallback');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!containerRef.current || mapRef.current) {
       return;
     }
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: OFFLINE_STYLE_URL,
+      style: mapPackage.styleUrl,
       center: [20, 40],
       zoom: 1.2,
+      minZoom: mapPackage.minZoom,
+      maxZoom: 3.2,
       attributionControl: false
     });
 
@@ -93,7 +125,7 @@ export function OfflineMap({
       map.remove();
       mapRef.current = null;
     };
-  }, [focus, markers, onSelect]);
+  }, [focus, mapPackage.minZoom, mapPackage.styleUrl, markers, onSelect]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -110,6 +142,16 @@ export function OfflineMap({
       <div className="map-header">
         <p className="eyebrow">Offline Map</p>
         <p className="map-copy">MapLibre + bundled local raster tiles.</p>
+        <div className="map-overlay-stack" aria-label="map package status">
+          <span className="map-overlay-chip">{mapPackage.mode}</span>
+          <span className="map-overlay-chip">{mapPackage.coverage}</span>
+          <span className="map-overlay-chip">
+            z{mapPackage.minZoom}-{mapPackage.maxZoom}
+          </span>
+          <span className="map-overlay-chip">
+            {mapPackageSource === 'manifest' ? 'manifest ok' : 'fallback'}
+          </span>
+        </div>
       </div>
       <div className="map-frame">
         <div

@@ -586,6 +586,10 @@ export function App() {
     setSelectedEntityId(entityId);
   }
 
+  function handleQuickJump(lens: ActiveLens) {
+    setActiveLens(lens);
+  }
+
   async function handleQueueExport(kind: ExportKind) {
     if (!databasePath || !exportEnabled) {
       return;
@@ -814,7 +818,21 @@ export function App() {
                       <div className="hover-actions">
                         <button
                           className="button ghost-button"
-                          onClick={() => setActiveLens('Map')}
+                          onClick={() => handleQuickJump('Wiki')}
+                          type="button"
+                        >
+                          Open wiki
+                        </button>
+                        <button
+                          className="button ghost-button"
+                          onClick={() => handleQuickJump('Timeline')}
+                          type="button"
+                        >
+                          Open timeline
+                        </button>
+                        <button
+                          className="button ghost-button"
+                          onClick={() => handleQuickJump('Map')}
                           type="button"
                         >
                           Open map
@@ -868,6 +886,15 @@ export function App() {
                       >
                         <strong>{option.label}</strong>
                         <span>{option.summary}</span>
+                        <span className="theme-tones" aria-hidden="true">
+                          {option.tones.map((tone) => (
+                            <span
+                              key={tone}
+                              className="theme-tone"
+                              style={{ backgroundColor: tone }}
+                            />
+                          ))}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -890,6 +917,23 @@ export function App() {
                         </strong>
                         <span>{selectedVisual.coverPath}</span>
                       </div>
+                      <ul
+                        className="asset-manifest"
+                        aria-label="asset manifest"
+                      >
+                        <li>
+                          <span>Cover</span>
+                          <strong>{selectedVisual.coverMode}</strong>
+                        </li>
+                        <li>
+                          <span>Logo</span>
+                          <strong>{selectedVisual.logo.kind}</strong>
+                        </li>
+                        <li>
+                          <span>Motif</span>
+                          <strong>{selectedVisual.motif.kind}</strong>
+                        </li>
+                      </ul>
                     </div>
                   ) : (
                     <p className="empty">Select entity</p>

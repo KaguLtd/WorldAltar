@@ -73,63 +73,73 @@ export function EntityDetailPanel({
             </div>
           </div>
           <h2>{selectedEntity.common.title}</h2>
-          <label className="label" htmlFor="entity-title">
-            Title
-          </label>
-          <input
-            id="entity-title"
-            className="input"
-            onChange={(event) => setDraftTitle(event.target.value)}
-            value={draftTitle}
-          />
-          <label className="label" htmlFor="entity-summary">
-            Summary
-          </label>
-          <textarea
-            id="entity-summary"
-            className="textarea"
-            onChange={(event) => setDraftSummary(event.target.value)}
-            value={draftSummary}
-          />
-          <label className="label" htmlFor="entity-body">
-            Body
-          </label>
-          <textarea
-            id="entity-body"
-            className="textarea textarea-body"
-            onChange={(event) => setDraftBody(event.target.value)}
-            value={draftBody}
-          />
-          <dl className="meta detail-grid">
-            <div>
-              <dt>Years</dt>
-              <dd>
-                {selectedEntity.common.startYear ?? 'open'} -{' '}
-                {selectedEntity.common.endYear ?? 'open'}
-              </dd>
-            </div>
-            <div>
-              <dt>Location</dt>
-              <dd>
-                {selectedEntity.common.latitude ?? 'n/a'},{' '}
-                {selectedEntity.common.longitude ?? 'n/a'}
-              </dd>
-            </div>
-            <div>
-              <dt>Cover</dt>
-              <dd>
-                {selectedVisual?.coverMode === 'entity'
-                  ? selectedEntity.common.coverImagePath
-                  : 'fallback asset'}
-              </dd>
-            </div>
-            <div>
-              <dt>Theme</dt>
-              <dd>{currentThemeLabel}</dd>
-            </div>
-          </dl>
+          <section className="detail-section" aria-label="detail editor">
+            <p className="eyebrow">Editor</p>
+            <label className="label" htmlFor="entity-title">
+              Title
+            </label>
+            <input
+              id="entity-title"
+              className="input"
+              onChange={(event) => setDraftTitle(event.target.value)}
+              value={draftTitle}
+            />
+            <label className="label" htmlFor="entity-summary">
+              Summary
+            </label>
+            <textarea
+              id="entity-summary"
+              className="textarea"
+              onChange={(event) => setDraftSummary(event.target.value)}
+              value={draftSummary}
+            />
+            <label className="label" htmlFor="entity-body">
+              Body
+            </label>
+            <textarea
+              id="entity-body"
+              className="textarea textarea-body"
+              onChange={(event) => setDraftBody(event.target.value)}
+              value={draftBody}
+            />
+          </section>
+          <section className="detail-section" aria-label="detail facts">
+            <p className="eyebrow">Facts</p>
+            <dl className="meta detail-grid">
+              <div>
+                <dt>Years</dt>
+                <dd>
+                  {selectedEntity.common.startYear ?? 'open'} -{' '}
+                  {selectedEntity.common.endYear ?? 'open'}
+                </dd>
+              </div>
+              <div>
+                <dt>Location</dt>
+                <dd>
+                  {selectedEntity.common.latitude ?? 'n/a'},{' '}
+                  {selectedEntity.common.longitude ?? 'n/a'}
+                </dd>
+              </div>
+              <div>
+                <dt>Cover</dt>
+                <dd>
+                  {selectedVisual?.coverMode === 'entity'
+                    ? selectedEntity.common.coverImagePath
+                    : 'fallback asset'}
+                </dd>
+              </div>
+              <div>
+                <dt>Theme</dt>
+                <dd>{currentThemeLabel}</dd>
+              </div>
+            </dl>
+          </section>
           {backlinks.length ? (
-            <div className="manuscript-links">
+            <section
+              className="detail-section manuscript-links"
+              aria-label="detail backlinks"
+            >
+              <p className="eyebrow">Backlinks</p>
               <strong>Manuscript backlinks</strong>
               {backlinks.map((backlink) => (
                 <button
@@ -141,7 +151,7 @@ export function EntityDetailPanel({
                   {backlink.sceneTitle}
                 </button>
               ))}
-            </div>
+            </section>
           ) : null}
         </>
       ) : (
