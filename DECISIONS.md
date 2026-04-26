@@ -554,3 +554,19 @@ Reason: ileriki format yolu gorunsun ama ayri format registry acilmasin.
 ### D-120 Target roots stay job-derived
 Export lens hedef klasor koklerini ayni export jobs payload'indeki target path'lerden turetir.
 Reason: package/target dagilimi gorunsun ama ayri target-root registry acilmasin.
+
+### D-121 Bundle contents stay job-derived
+Export lens bundle icerik satirlarini ayni export jobs payload'indeki artifact path'lerden turetir.
+Reason: paket icerigi gorunsun ama ayri bundle-content registry acilmasin.
+
+### D-122 Manuscript folio strip stays presentation-only
+Manuscript split/book preview folio strip ve page ribbon gosterebilir ama mevcut scene/chapter/mention verisini yalnizca sunum icin kullanir.
+Reason: premium kitap hissi artsin ama ikinci reading model ya da pagination state acilmasin.
+
+### D-123 Detail luxury strip stays presentation-only
+Detail panel type/year/cover/theme chiplerini premium strip olarak gosterebilir ama mevcut entity verisini yalnizca sunum icin kullanir.
+Reason: detail panel daha zengin hissetsin ama ikinci entity summary modeli acilmasin.
+
+### D-124 Hover preview strip stays presentation-only
+Hover preview id/year/cover chiplerini premium strip olarak gosterebilir ama mevcut hovered entity verisini yalnizca sunum icin kullanir.
+Reason: hover preview daha zengin hissetsin ama ikinci hover modeli ya da cache acilmasin.

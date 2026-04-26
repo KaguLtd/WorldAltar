@@ -103,6 +103,10 @@ Current presentation uplift state:
 - export delivery checklist also derives from same export jobs payload; no publish-state registry
 - export format readiness also derives from same export jobs payload; no future-format registry
 - export target roots also derive from same export jobs payload; no target-root registry
+- export bundle contents also derive from same export jobs payload; no bundle-content registry
+- manuscript folio strip and page ribbon stay presentation-only; no second manuscript/read model
+- detail luxury strip stays presentation-only; no second entity summary model
+- hover preview strip stays presentation-only; no second hover/read model
 
 ## Runtime Rules
 

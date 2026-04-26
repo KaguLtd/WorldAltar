@@ -1143,6 +1143,22 @@ export function App() {
                       <span>
                         {hoveredEntity.common.summary || 'No summary'}
                       </span>
+                      <div
+                        className="hover-preview-strip"
+                        aria-label="hover preview strip"
+                      >
+                        <span className="command-chip">
+                          {hoveredEntity.common.id}
+                        </span>
+                        <span className="command-chip">
+                          {hoveredEntity.common.startYear ?? 'open'}
+                        </span>
+                        <span className="command-chip">
+                          {hoveredEntity.common.coverImagePath
+                            ? 'Custom cover'
+                            : 'Fallback cover'}
+                        </span>
+                      </div>
                       <div className="hover-actions">
                         <button
                           className="button ghost-button"

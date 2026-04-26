@@ -355,6 +355,16 @@ export function ManuscriptLens({
             <p className="eyebrow">Book Preview</p>
             <span className="command-chip">{bookPages.length} pages</span>
           </div>
+          <div className="folio-strip" aria-label="folio strip">
+            <span className="command-chip">
+              Folio {mode === 'split' ? 'Desk' : 'Book'}
+            </span>
+            <span className="command-chip">
+              Chapter {activeChapter?.node.position ?? scene.node.position}
+            </span>
+            <span className="command-chip">{readingMinutes} min read</span>
+            <span className="command-chip">{scene.mentions.length} mentions</span>
+          </div>
           <div className="spread-shell">
             {bookPages.slice(0, 2).map((page, index) => (
               <article
@@ -366,6 +376,9 @@ export function ManuscriptLens({
               >
                 <span className="page-corner" aria-hidden="true" />
                 <span className="page-sheen" aria-hidden="true" />
+                <span className="folio-ribbon" aria-hidden="true">
+                  {page.isChapterBreak ? 'Chapter' : 'Scene'}
+                </span>
                 <div className="book-running">
                   <span>{activeChapter?.node.title ?? 'Loose scene'}</span>
                   <span>{index + 1}</span>

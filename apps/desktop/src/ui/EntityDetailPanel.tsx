@@ -104,6 +104,16 @@ export function EntityDetailPanel({
               <span>{currentThemeLabel}</span>
             </div>
           </div>
+          <div className="detail-lux-strip" aria-label="detail luxury strip">
+            <span className="command-chip">{typeLabels[selectedEntity.type]}</span>
+            <span className="command-chip">
+              {selectedEntity.common.startYear ?? 'open'}
+            </span>
+            <span className="command-chip">
+              {selectedEntity.common.coverImagePath ? 'Custom cover' : 'Fallback cover'}
+            </span>
+            <span className="command-chip">{currentThemeLabel}</span>
+          </div>
           <h2>{selectedEntity.common.title}</h2>
           <section className="detail-section" aria-label="detail editor">
             <p className="eyebrow">Editor</p>

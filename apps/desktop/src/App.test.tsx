@@ -638,6 +638,9 @@ describe('App', () => {
     expect(screen.getByLabelText(/character group/i)).toHaveTextContent('1');
     expect(screen.getByLabelText(/event group/i)).toHaveTextContent('1');
     expect(screen.getByLabelText(/detail facts/i)).toHaveTextContent('Theme');
+    expect(screen.getByLabelText(/detail luxury strip/i)).toHaveTextContent(
+      'Character1200Fallback coverDusk'
+    );
     expect(screen.getByLabelText(/asset manifest/i)).toHaveTextContent(
       'CoverfallbackLogologoMotifmotif'
     );
@@ -794,7 +797,10 @@ describe('App', () => {
         .getAllByText('Alp Er Tunga')[0]
         .closest('button') as HTMLButtonElement
     );
-    expect(screen.getByLabelText(/hover preview/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^hover preview$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/hover preview strip/i)).toHaveTextContent(
+      'char_0011200Fallback cover'
+    );
     expect(
       screen.getByRole('button', { name: /open wiki/i })
     ).toBeInTheDocument();
@@ -1014,6 +1020,9 @@ describe('App', () => {
     expect(
       screen.getAllByLabelText(/book page|chapter break page/i).length
     ).toBe(2);
+    expect(screen.getByLabelText(/folio strip/i)).toHaveTextContent(
+      'Folio DeskChapter 11 min read3 mentions'
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /book/i }));
     expect(screen.getByLabelText(/book preview/i)).toHaveTextContent('2 pages');
@@ -1165,6 +1174,9 @@ describe('App', () => {
     expect(screen.getByLabelText(/target roots/i)).toHaveTextContent(
       'Target roots1 rootsC:/Users/Test/Documents/WorldAltar/exportmanuscript.pdf2 jobs1 artifacts'
     );
+    expect(screen.getByLabelText(/bundle contents/i)).toHaveTextContent(
+      'Bundle contents1 filesdossier.pdfC:/Users/Test/Documents/WorldAltar/exportDossier'
+    );
     expect(screen.getByLabelText(/export groups/i)).toHaveTextContent(
       'Dossier1 jobspdf_dossierdone'
     );
@@ -1222,6 +1234,7 @@ describe('App', () => {
     expect(screen.getByLabelText(/target roots/i)).toHaveTextContent(
       'Target roots1 rootsC:/Users/Test/Documents/WorldAltar/exportmanuscript.pdf1 jobs0 artifacts'
     );
+    expect(screen.queryByLabelText(/bundle contents/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /queue dossier pdf/i }));
     await waitFor(() =>

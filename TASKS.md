@@ -71,3 +71,7 @@
 - [x] Faz 6 delivery checklist pass
 - [x] Faz 6 format readiness pass
 - [x] Faz 6 target roots pass
+- [x] Faz 6 bundle contents pass
+- [x] Faz 5 manuscript folio strip pass
+- [x] Faz 5 detail luxury strip pass
+- [x] Faz 5 hover preview strip pass

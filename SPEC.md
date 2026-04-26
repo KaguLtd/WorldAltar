@@ -74,6 +74,10 @@ UI reality on `main`:
 - export lens also exposes delivery checklist from same queue payload
 - export lens also exposes format readiness from same queue payload
 - export lens also exposes target roots from same queue payload
+- export lens also exposes bundle contents from same queue payload
+- manuscript preview also exposes folio strip and page ribbon as presentation-only premium layer
+- detail panel also exposes luxury strip chips as presentation-only premium layer
+- hover preview also exposes premium strip chips as presentation-only premium layer
 
 Frontend contract export kural:
 - aktif lens contractlari `src/modules/mvp-lenses.ts`

@@ -38,6 +38,7 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
   const deliveryChecklist = buildDeliveryChecklist(filteredJobs, jobs);
   const formatReadiness = buildFormatReadiness(filteredJobs, jobs);
   const targetRoots = buildTargetRoots(filteredJobs, jobs);
+  const bundleContents = buildBundleContents(filteredJobs, jobs);
 
   return (
     <section className="lens-frame" aria-label="export lens">
@@ -265,6 +266,26 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
                 <span className="scene-card-meta">
                   <span>{item.jobs} jobs</span>
                   <span>{item.artifacts} artifacts</span>
+                </span>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {bundleContents.length ? (
+        <section className="timeline-band" aria-label="bundle contents">
+          <div className="timeline-band-head">
+            <strong>Bundle contents</strong>
+            <span>{bundleContents.length} files</span>
+          </div>
+          <div className="theme-stack">
+            {bundleContents.map((item) => (
+              <article key={item.fileName} className="theme-card is-active">
+                <strong>{item.fileName}</strong>
+                <span>{item.root}</span>
+                <span className="scene-card-meta">
+                  <span>{item.kind}</span>
                 </span>
               </article>
             ))}
@@ -674,4 +695,23 @@ function buildTargetRoots(filteredJobs: ExportJob[], jobs: ExportJob[]) {
   });
 
   return [...bucket.values()];
+}
+
+function buildBundleContents(filteredJobs: ExportJob[], jobs: ExportJob[]) {
+  const source = filteredJobs.length ? filteredJobs : jobs;
+  const artifactRows = source.flatMap((job) =>
+    job.artifactPaths.map((artifactPath) => ({
+      fileName: artifactPath.split('/').pop() ?? artifactPath,
+      root: dirname(artifactPath),
+      kind: job.kind === 'pdf_dossier' ? 'Dossier' : 'Manuscript'
+    }))
+  );
+
+  return artifactRows.filter(
+    (item, index, items) =>
+      items.findIndex(
+        (current) =>
+          current.fileName === item.fileName && current.root === item.root
+      ) === index
+  );
 }
