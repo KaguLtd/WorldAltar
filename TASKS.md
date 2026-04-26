@@ -40,4 +40,34 @@
 
 ## Remainder
 
-- [ ] yeni plan / yeni belge
+- [x] Faz 2 quick relation entry pass
+- [x] Faz 2 studio preset pass
+- [x] Faz 2 asset preset pass
+- [x] Faz 2 asset import pass
+- [x] Faz 3 geocoded focus rail pass
+- [x] Faz 3 map summary strip pass
+- [x] Faz 3 map popover jump pass
+- [x] Faz 3 map detail shortcut pass
+- [x] Faz 3 map selected strip pass
+- [x] Faz 3 map type strip pass
+- [x] Faz 3 map legend pass
+- [x] Faz 3 map overlay semantic count pass
+- [x] Faz 3 map year micro-copy pass
+- [x] Faz 2 spotlight authoring pass
+- [x] Faz 4 manuscript bridge pass
+- [x] Faz 4 manuscript mention picker pass
+- [x] Faz 4 manuscript timeline context pass
+- [x] Faz 4 caret-aware mention insert pass
+- [x] Faz 4 wiki scene-context pass
+- [x] Faz 4 relations chapter grouping pass
+- [x] Faz 6 export artifact grouping pass
+- [x] Faz 6 manuscript export metadata pass
+- [x] Faz 6 export package summary pass
+- [x] Faz 6 curated outputs pass
+- [x] Faz 6 bundle readiness pass
+- [x] Faz 6 reference sheets pass
+- [x] Faz 6 export manifest digest pass
+- [x] Faz 6 export history pass
+- [x] Faz 6 delivery checklist pass
+- [x] Faz 6 format readiness pass
+- [x] Faz 6 target roots pass

@@ -15,7 +15,9 @@ import {
 type OfflineMapProps = {
   records: EntityRecord[];
   selectedEntityId: string | null;
+  year: number;
   onSelect: (id: string) => void;
+  onJump: (lens: 'Wiki' | 'Timeline', id: string) => void;
 };
 
 const GEOJSON_SOURCE_ID = 'worldaltar-markers';
@@ -24,7 +26,9 @@ const LABEL_LAYER_ID = 'worldaltar-markers-label';
 export function OfflineMap({
   records,
   selectedEntityId,
-  onSelect
+  year,
+  onSelect,
+  onJump
 }: OfflineMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -43,6 +47,10 @@ export function OfflineMap({
     markers.features.find((feature) => feature.properties.selected) ??
     markers.features[0] ??
     null;
+  const geocodedRecords = records.filter(
+    (record) =>
+      record.common.latitude !== null && record.common.longitude !== null
+  );
   const hoveredRecord =
     records.find((record) => record.common.id === hoveredId) ??
     records.find((record) => record.common.id === selectedEntityId) ??
@@ -55,6 +63,41 @@ export function OfflineMap({
         .filter((record) => record.type === 'location')
         .slice(0, 3)
     }),
+    [records]
+  );
+  const selectedRecord =
+    records.find((record) => record.common.id === selectedEntityId) ?? null;
+  const overlayCounts = useMemo(
+    () => ({
+      regions: records.filter((record) => record.type === 'region').length,
+      events: records.filter((record) => record.type === 'event').length,
+      locations: records.filter((record) => record.type === 'location').length
+    }),
+    [records]
+  );
+  const typeStrip = useMemo(
+    () => [
+      {
+        key: 'character',
+        label: 'Characters',
+        records: records.filter((record) => record.type === 'character')
+      },
+      {
+        key: 'region',
+        label: 'Regions',
+        records: records.filter((record) => record.type === 'region')
+      },
+      {
+        key: 'event',
+        label: 'Events',
+        records: records.filter((record) => record.type === 'event')
+      },
+      {
+        key: 'location',
+        label: 'Places',
+        records: records.filter((record) => record.type === 'location')
+      }
+    ],
     [records]
   );
 
@@ -153,6 +196,65 @@ export function OfflineMap({
           </span>
         </div>
       </div>
+      <section className="map-summary" aria-label="map summary">
+        <div className="map-summary-card">
+          <span>Visible</span>
+          <strong>{records.length}</strong>
+        </div>
+        <div className="map-summary-card">
+          <span>Geocoded</span>
+          <strong>{geocodedRecords.length}</strong>
+        </div>
+        <div className="map-summary-card">
+          <span>Events</span>
+          <strong>{records.filter((record) => record.type === 'event').length}</strong>
+        </div>
+        <div className="map-summary-card">
+          <span>Places</span>
+          <strong>
+            {records.filter((record) => record.type === 'location').length}
+          </strong>
+        </div>
+        <div className="map-summary-card">
+          <span>Selected</span>
+          <strong>{selectedRecord?.common.id ?? 'none'}</strong>
+        </div>
+      </section>
+      <section className="map-type-strip" aria-label="map type strip">
+        {typeStrip.map((entry) => (
+          <button
+            key={entry.key}
+            className={`map-type-chip${selectedRecord?.type === entry.key ? ' is-active' : ''}`}
+            onClick={() => entry.records[0] && onSelect(entry.records[0].common.id)}
+            type="button"
+          >
+            <span>{entry.label}</span>
+            <strong>{entry.records.length}</strong>
+          </button>
+        ))}
+      </section>
+      <section className="map-legend" aria-label="map legend">
+        <div className="map-legend-item">
+          <span className="map-legend-dot is-character" />
+          <span>Character</span>
+          <strong>{records.filter((record) => record.type === 'character').length}</strong>
+        </div>
+        <div className="map-legend-item">
+          <span className="map-legend-dot is-region" />
+          <span>Region</span>
+          <strong>{records.filter((record) => record.type === 'region').length}</strong>
+        </div>
+        <div className="map-legend-item">
+          <span className="map-legend-dot is-event" />
+          <span>Event</span>
+          <strong>{records.filter((record) => record.type === 'event').length}</strong>
+        </div>
+        <div className="map-legend-item">
+          <span className="map-legend-dot is-location" />
+          <span>Place</span>
+          <strong>{records.filter((record) => record.type === 'location').length}</strong>
+        </div>
+      </section>
       <div className="map-frame">
         <div
           ref={containerRef}
@@ -171,29 +273,123 @@ export function OfflineMap({
               {hoveredRecord.common.startYear ?? 'open'} -{' '}
               {hoveredRecord.common.endYear ?? 'open'}
             </span>
+            <div className="hover-actions">
+              <button
+                className="button ghost-button"
+                onClick={() => onSelect(hoveredRecord.common.id)}
+                type="button"
+              >
+                Show detail
+              </button>
+              <button
+                className="button ghost-button"
+                onClick={() => onJump('Wiki', hoveredRecord.common.id)}
+                type="button"
+              >
+                Open wiki
+              </button>
+              <button
+                className="button ghost-button"
+                onClick={() => onJump('Timeline', hoveredRecord.common.id)}
+                type="button"
+              >
+                Open timeline
+              </button>
+            </div>
           </div>
         ) : null}
         <div className="map-overlay-stack" aria-label="map overlays">
+          <button
+            className={`map-overlay-chip${focus ? ' is-active' : ''}`}
+            onClick={() => focus && onSelect(focus.properties.id)}
+            type="button"
+          >
+            Geo {geocodedRecords.length} @ {year}
+          </button>
           {overlays.regions.map((record) => (
-            <span key={record.common.id} className="map-overlay-chip">
-              Region {record.common.title}
-            </span>
+            <button
+              key={record.common.id}
+              className={`map-overlay-chip${record.common.id === selectedEntityId ? ' is-active' : ''}`}
+              onClick={() => onSelect(record.common.id)}
+              type="button"
+            >
+              R:{overlayCounts.regions} {record.common.title}
+            </button>
           ))}
           {overlays.events.map((record) => (
-            <span key={record.common.id} className="map-overlay-chip is-event">
-              Event {record.common.title}
-            </span>
+            <button
+              key={record.common.id}
+              className={`map-overlay-chip is-event${record.common.id === selectedEntityId ? ' is-active' : ''}`}
+              onClick={() => onSelect(record.common.id)}
+              type="button"
+            >
+              E:{overlayCounts.events} {record.common.title}
+            </button>
           ))}
           {overlays.locations.map((record) => (
-            <span
+            <button
               key={record.common.id}
-              className="map-overlay-chip is-location"
+              className={`map-overlay-chip is-location${record.common.id === selectedEntityId ? ' is-active' : ''}`}
+              onClick={() => onSelect(record.common.id)}
+              type="button"
             >
-              Place {record.common.title}
-            </span>
+              P:{overlayCounts.locations} {record.common.title}
+            </button>
           ))}
         </div>
       </div>
+      <section className="map-focus-rail" aria-label="map focus rail">
+        {geocodedRecords.length ? (
+          geocodedRecords.slice(0, 5).map((record) => (
+            <button
+              key={record.common.id}
+              className={`map-focus-row${record.common.id === selectedEntityId ? ' is-active' : ''}`}
+              onClick={() => onSelect(record.common.id)}
+              type="button"
+            >
+              <span className={`type-badge type-${record.type}`}>
+                {record.type}
+              </span>
+              <strong>{record.common.title}</strong>
+              <span>
+                {record.common.latitude}, {record.common.longitude}
+              </span>
+            </button>
+          ))
+        ) : (
+          <p className="empty">No geocoded entity</p>
+        )}
+      </section>
+      {selectedRecord ? (
+        <section className="map-selected-strip" aria-label="map selected strip">
+          <p className="eyebrow">Visible at {year}</p>
+          <span className={`type-badge type-${selectedRecord.type}`}>
+            {selectedRecord.type}
+          </span>
+          <strong>{selectedRecord.common.title}</strong>
+          <span>{selectedRecord.common.summary || 'No summary'}</span>
+          <span>
+            {selectedRecord.common.latitude ?? 'open'}, {' '}
+            {selectedRecord.common.longitude ?? 'open'}
+          </span>
+          <div className="hover-actions">
+            <button
+              className="button ghost-button"
+              onClick={() => onJump('Wiki', selectedRecord.common.id)}
+              type="button"
+            >
+              Open wiki
+            </button>
+            <button
+              className="button ghost-button"
+              onClick={() => onJump('Timeline', selectedRecord.common.id)}
+              type="button"
+            >
+              Open timeline
+            </button>
+          </div>
+        </section>
+      ) : null}
       <p className="map-focus">
         Focus:{' '}
         {focus
@@ -207,6 +403,7 @@ export function OfflineMap({
 type MarkerProperties = {
   id: string;
   title: string;
+  type: EntityRecord['type'];
   selected: boolean;
 };
 
@@ -234,6 +431,7 @@ function buildMarkerGeoJson(
           properties: {
             id: record.common.id,
             title: record.common.title,
+            type: record.type,
             selected: record.common.id === selectedEntityId
           }
         })

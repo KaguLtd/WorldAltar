@@ -29,6 +29,10 @@ const {
   recoverManuscriptAutosave,
   searchEntities,
   autosaveEntity,
+  createEntity,
+  importEntityMedia,
+  updateEntityMedia,
+  updateEntityLinks,
   recoverAutosave
 } = vi.hoisted(() => ({
   addLayer: vi.fn(),
@@ -50,6 +54,10 @@ const {
   recoverManuscriptAutosave: vi.fn(),
   searchEntities: vi.fn(),
   autosaveEntity: vi.fn(),
+  createEntity: vi.fn(),
+  importEntityMedia: vi.fn(),
+  updateEntityMedia: vi.fn(),
+  updateEntityLinks: vi.fn(),
   recoverAutosave: vi.fn()
 }));
 
@@ -73,6 +81,10 @@ vi.mock('./modules/search/api', () => ({
 
 vi.mock('./modules/entity-model/api', () => ({
   autosaveEntity,
+  createEntity,
+  importEntityMedia,
+  updateEntityMedia,
+  updateEntityLinks,
   recoverAutosave
 }));
 
@@ -108,8 +120,37 @@ vi.mock('maplibre-gl', () => {
   };
 });
 
+function triggerMapEvent(
+  eventName: string,
+  featureId: string,
+  layerId = 'worldaltar-markers-circle'
+) {
+  const call = on.mock.calls.find(
+    ([event, layer]) => event === eventName && layer === layerId
+  );
+  const callback =
+    (typeof call?.[2] === 'function' ? call[2] : undefined) ??
+    (typeof call?.[1] === 'function' ? call[1] : undefined);
+
+  callback?.({
+    features: [
+      {
+        properties: {
+          id: featureId
+        }
+      }
+    ]
+  });
+}
+
 describe('App', () => {
   beforeEach(() => {
+    const createCounters = {
+      character: 1,
+      location: 1,
+      region: 1,
+      event: 1
+    };
     vi.useRealTimers();
     window.localStorage.clear();
     vi.clearAllMocks();
@@ -260,7 +301,18 @@ describe('App', () => {
     autosaveManuscriptScene.mockImplementation(
       async (
         _databasePath: string,
-        input: { id: string; title: string; summary: string; body: string }
+        input: {
+          id: string;
+          title: string;
+          summary: string;
+          body: string;
+          mentions?: Array<{
+            entityId: string;
+            label: string;
+            startOffset: number;
+            endOffset: number;
+          }>;
+        }
       ) => ({
         node: {
           id: input.id,
@@ -274,16 +326,24 @@ describe('App', () => {
           createdAt: '1',
           updatedAt: '8'
         },
-        mentions: [
-          {
-            id: 'mm_001',
-            nodeId: input.id,
-            entityId: 'char_001',
-            label: 'Alp Er Tunga',
-            startOffset: 0,
-            endOffset: 12
-          }
-        ]
+        mentions: (input.mentions?.length
+          ? input.mentions
+          : [
+              {
+                entityId: 'char_001',
+                label: 'Alp Er Tunga',
+                startOffset: 0,
+                endOffset: 12
+              }
+            ]
+        ).map((mention, index) => ({
+          id: `mm_${index + 1}`,
+          nodeId: input.id,
+          entityId: mention.entityId,
+          label: mention.label,
+          startOffset: mention.startOffset,
+          endOffset: mention.endOffset
+        }))
       })
     );
 
@@ -376,6 +436,152 @@ describe('App', () => {
         fields: { culture: 'Turkic', birthYearLabel: null }
       })
     );
+    createEntity.mockImplementation(
+      async (
+        _databasePath: string,
+        input: {
+          type: string;
+          common: {
+            title: string;
+            summary?: string;
+            body?: string;
+            startYear?: number | null;
+            endYear?: number | null;
+            latitude?: number | null;
+            longitude?: number | null;
+          };
+          fields: Record<string, unknown>;
+        }
+      ) => ({
+        ...(createCounters[input.type as keyof typeof createCounters]++,
+        {}),
+        type: input.type,
+        common: {
+          id:
+            input.type === 'character'
+              ? `char_${String(createCounters.character).padStart(3, '0')}`
+              : input.type === 'location'
+                ? `loc_${String(createCounters.location).padStart(3, '0')}`
+                : input.type === 'region'
+                  ? `reg_${String(createCounters.region).padStart(3, '0')}`
+                  : `evt_${String(createCounters.event).padStart(3, '0')}`,
+          type: input.type,
+          slug: input.common.title.toLowerCase().replace(/\s+/g, '-'),
+          title: input.common.title,
+          summary: input.common.summary ?? '',
+          body: input.common.body ?? '',
+          startYear: input.common.startYear ?? null,
+          endYear: input.common.endYear ?? null,
+          isOngoing: false,
+          latitude: input.common.latitude ?? null,
+          longitude: input.common.longitude ?? null,
+          geometryRef: null,
+          coverImagePath: null,
+          thumbnailPath: null,
+          createdAt: '11',
+          updatedAt: '11'
+        },
+        fields: input.fields
+      })
+    );
+    updateEntityMedia.mockImplementation(
+      async (
+        _databasePath: string,
+        input: { id: string; coverImagePath: string | null; thumbnailPath: string | null }
+      ) => ({
+        type: 'event',
+        common: {
+          id: input.id,
+          type: 'event',
+          slug: 'new-winter-camp-event',
+          title: 'New Winter Camp event',
+          summary: 'Event linked to Winter Camp',
+          body: '',
+          startYear: null,
+          endYear: null,
+          isOngoing: false,
+          latitude: null,
+          longitude: null,
+          geometryRef: null,
+          coverImagePath: input.coverImagePath,
+          thumbnailPath: input.thumbnailPath,
+          createdAt: '11',
+          updatedAt: '12'
+        },
+        fields: {
+          locationId: 'loc_002'
+        }
+      })
+    );
+    importEntityMedia.mockImplementation(
+      async (
+        _databasePath: string,
+        input: { id: string; sourcePath: string; variant: 'cover' | 'thumbnail' }
+      ) => ({
+        type: 'event',
+        common: {
+          id: input.id,
+          type: 'event',
+          slug: 'new-winter-camp-event',
+          title: 'New Winter Camp event',
+          summary: 'Event linked to Winter Camp',
+          body: '',
+          startYear: null,
+          endYear: null,
+          isOngoing: false,
+          latitude: null,
+          longitude: null,
+          geometryRef: null,
+          coverImagePath:
+            input.variant === 'cover'
+              ? 'C:/Users/Test/Documents/WorldAltar/worlds/demo-world/assets/entities/event/new-winter-camp-event/cover.png'
+              : 'C:/art/winter-camp.png',
+          thumbnailPath:
+            input.variant === 'thumbnail'
+              ? 'C:/Users/Test/Documents/WorldAltar/worlds/demo-world/assets/entities/event/new-winter-camp-event/thumb.png'
+              : 'C:/art/winter-camp-thumb.png',
+          createdAt: '11',
+          updatedAt: '14'
+        },
+        fields: {
+          locationId: 'loc_002'
+        }
+      })
+    );
+    updateEntityLinks.mockImplementation(
+      async (
+        _databasePath: string,
+        input: {
+          id: string;
+          regionId: string | null;
+          parentRegionId: string | null;
+          locationId: string | null;
+        }
+      ) => ({
+        type: 'event',
+        common: {
+          id: input.id,
+          type: 'event',
+          slug: 'new-winter-camp-event',
+          title: 'New Winter Camp event',
+          summary: 'Event linked to Winter Camp',
+          body: '',
+          startYear: null,
+          endYear: null,
+          isOngoing: false,
+          latitude: null,
+          longitude: null,
+          geometryRef: null,
+          coverImagePath: 'C:/art/winter-camp.png',
+          thumbnailPath: 'C:/art/winter-camp-thumb.png',
+          createdAt: '11',
+          updatedAt: '13'
+        },
+        fields: {
+          locationId: input.locationId
+        }
+      })
+    );
   });
 
   it('keeps only MVP lenses and one-shot startup recovery', async () => {
@@ -413,7 +619,9 @@ describe('App', () => {
     expect(recoverAutosave).toHaveBeenCalledTimes(1);
   });
 
-  it('creates demo world on explicit path and keeps MVP shell behavior', async () => {
+  it(
+    'creates demo world on explicit path and keeps MVP shell behavior',
+    async () => {
     render(<App />);
 
     fireEvent.change(screen.getByLabelText(/world title/i), {
@@ -434,10 +642,156 @@ describe('App', () => {
       'CoverfallbackLogologoMotifmotif'
     );
     expect(screen.getAllByText('Dusk')[0]).toBeInTheDocument();
+    expect(screen.getByLabelText(/create entity studio/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/create entity type/i), {
+      target: { value: 'location' }
+    });
+    fireEvent.change(screen.getByLabelText(/create entity title/i), {
+      target: { value: 'Winter Camp' }
+    });
+    fireEvent.change(screen.getByLabelText(/create entity summary/i), {
+      target: { value: 'Cold base' }
+    });
+    fireEvent.change(screen.getByLabelText(/create location kind/i), {
+      target: { value: 'camp' }
+    });
+    fireEvent.change(screen.getByLabelText(/create latitude/i), {
+      target: { value: '42.1' }
+    });
+    fireEvent.change(screen.getByLabelText(/create longitude/i), {
+      target: { value: '71.2' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create location/i }));
+
+    await waitFor(() =>
+      expect(createEntity).toHaveBeenCalledWith(expect.any(String), {
+        type: 'location',
+        common: {
+          title: 'Winter Camp',
+          summary: 'Cold base',
+          body: undefined,
+          startYear: null,
+          endYear: null,
+          latitude: 42.1,
+          longitude: 71.2
+        },
+        fields: {
+          regionId: null,
+          locationKind: 'camp'
+        }
+      })
+    );
+    expect(screen.getByLabelText(/wiki spotlight/i)).toHaveTextContent(
+      'Winter Camp'
+    );
+    expect(screen.getByLabelText(/create presets/i)).toHaveTextContent(
+      'New event at selected location'
+    );
+    expect(screen.getByLabelText(/spotlight actions/i)).toHaveTextContent(
+      'New event here'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/spotlight actions/i)).getByRole('button', {
+        name: /new event here/i
+      })
+    );
+    await waitFor(() =>
+      expect(createEntity).toHaveBeenLastCalledWith(expect.any(String), {
+        type: 'event',
+        common: {
+          title: 'New Winter Camp event',
+          summary: 'Event linked to Winter Camp'
+        },
+        fields: {
+          locationId: 'loc_002'
+        }
+      })
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/location group/i))
+        .getAllByText('Winter Camp')[0]
+        .closest('button') as HTMLButtonElement
+    );
+    await screen.findByLabelText(/create presets/i);
+    fireEvent.click(
+      screen.getByRole('button', { name: /new event at selected location/i })
+    );
+    expect(screen.getByLabelText(/create entity type/i)).toHaveValue('event');
+    expect(screen.getByLabelText(/create event location/i)).toHaveValue(
+      'loc_002'
+    );
+    expect(screen.getByLabelText(/detail authoring/i)).toHaveTextContent(
+      'New event here'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/detail authoring/i)).getByRole('button', {
+        name: /new event here/i
+      })
+    );
+    await waitFor(() =>
+      expect(createEntity).toHaveBeenLastCalledWith(expect.any(String), {
+        type: 'event',
+        common: {
+          title: 'New Winter Camp event',
+          summary: 'Event linked to Winter Camp'
+        },
+        fields: {
+          locationId: 'loc_002'
+        }
+      })
+    );
+    expect(screen.getByLabelText(/wiki spotlight/i)).toHaveTextContent(
+      'New Winter Camp event'
+    );
+    fireEvent.click(screen.getByRole('button', { name: /preset asset paths/i }));
+    expect(screen.getByLabelText(/cover path/i)).toHaveValue(
+      'assets/entities/event/new-winter-camp-event/cover.png'
+    );
+    expect(screen.getByLabelText(/thumbnail path/i)).toHaveValue(
+      'assets/entities/event/new-winter-camp-event/thumb.png'
+    );
+    fireEvent.change(screen.getByLabelText(/source path/i), {
+      target: { value: 'D:/drop/winter-camp.png' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /import to cover/i }));
+    await waitFor(() =>
+      expect(importEntityMedia).toHaveBeenCalledWith(expect.any(String), {
+        id: 'evt_003',
+        sourcePath: 'D:/drop/winter-camp.png',
+        variant: 'cover'
+      })
+    );
+    fireEvent.change(screen.getByLabelText(/cover path/i), {
+      target: { value: 'C:/art/winter-camp.png' }
+    });
+    fireEvent.change(screen.getByLabelText(/thumbnail path/i), {
+      target: { value: 'C:/art/winter-camp-thumb.png' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /save asset paths/i }));
+    await waitFor(() =>
+      expect(updateEntityMedia).toHaveBeenCalledWith(expect.any(String), {
+        id: 'evt_003',
+        coverImagePath: 'C:/art/winter-camp.png',
+        thumbnailPath: 'C:/art/winter-camp-thumb.png'
+      })
+    );
+    fireEvent.change(screen.getByLabelText(/^event location$/i), {
+      target: { value: 'loc_002' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /save relation link/i }));
+    await waitFor(() =>
+      expect(updateEntityLinks).toHaveBeenCalledWith(expect.any(String), {
+        id: 'evt_003',
+        regionId: null,
+        parentRegionId: null,
+        locationId: 'loc_002'
+      })
+    );
 
     fireEvent.mouseEnter(
       screen
-        .getAllByText('Alp Er Tunga')[1]
+        .getAllByText('Alp Er Tunga')[0]
         .closest('button') as HTMLButtonElement
     );
     expect(screen.getByLabelText(/hover preview/i)).toBeInTheDocument();
@@ -479,10 +833,76 @@ describe('App', () => {
         'bundled_rasterworld-low-zoomz0-1manifest ok'
       )
     );
-    expect(on).toHaveBeenCalled();
+    expect(screen.getByLabelText(/map overlays/i)).toHaveTextContent(
+      'Geo 1 @ 1204'
+    );
+    expect(screen.getByLabelText(/map summary/i)).toHaveTextContent(
+      'Visible1Geocoded1Events0Places0Selectedchar_001'
+    );
+    expect(screen.getByLabelText(/map type strip/i)).toHaveTextContent(
+      'Characters1Regions0Events0Places0'
+    );
+    expect(screen.getByLabelText(/map legend/i)).toHaveTextContent(
+      'Character1Region0Event0Place0'
+    );
+    expect(screen.getByLabelText(/map focus rail/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
+    expect(screen.getByLabelText(/map selected strip/i)).toHaveTextContent(
+      'Visible at 1204characterAlp Er TungaHero41, 69Open wikiOpen timeline'
+    );
+    await act(async () => {
+      triggerMapEvent('mousemove', 'char_001');
+      await Promise.resolve();
+    });
+    expect(screen.getByLabelText(/map hover preview/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
     expect(
-      screen.getByText(/Focus: Alp Er Tunga \(char_001\)/i)
+      screen.getByRole('button', { name: /^show detail$/i })
     ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^show detail$/i }));
+    expect(screen.getByText(/Focus: Alp Er Tunga \(char_001\)/i)).toBeInTheDocument();
+    fireEvent.click(
+      within(screen.getByLabelText(/map selected strip/i)).getByRole('button', {
+        name: /^open timeline$/i
+      })
+    );
+    expect(screen.getByLabelText(/timeline spotlight/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Map$/i }));
+    fireEvent.click(
+      within(screen.getByLabelText(/map hover preview/i)).getByRole('button', {
+        name: /^open timeline$/i
+      })
+    );
+    expect(screen.getByLabelText(/timeline spotlight/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Map$/i }));
+    await act(async () => {
+      triggerMapEvent('mousemove', 'char_001');
+      await Promise.resolve();
+    });
+    fireEvent.click(
+      within(screen.getByLabelText(/map hover preview/i)).getByRole('button', {
+        name: /^open wiki$/i
+      })
+    );
+    expect(screen.getByLabelText(/wiki spotlight/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Map$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /geo 1/i }));
+    expect(screen.getByText(/Focus: Alp Er Tunga \(char_001\)/i)).toBeInTheDocument();
+    fireEvent.click(
+      within(screen.getByLabelText(/map type strip/i)).getByRole('button', {
+        name: /characters 1/i
+      })
+    );
+    expect(screen.getByText(/Focus: Alp Er Tunga \(char_001\)/i)).toBeInTheDocument();
+    expect(on).toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: /^Wiki$/i }));
     vi.useFakeTimers();
@@ -496,7 +916,9 @@ describe('App', () => {
 
     expect(autosaveEntity).toHaveBeenCalledTimes(1);
     expect(screen.getByText(/Saved 6/i)).toBeInTheDocument();
-  });
+    },
+    10000
+  );
 
   it('opens manuscript only after explicit deferred flag toggle', async () => {
     render(<App />);
@@ -511,6 +933,7 @@ describe('App', () => {
     expect(
       screen.getByRole('navigation', { name: /lens navigation/i })
     ).not.toHaveTextContent('Manuscript');
+    fireEvent.click(screen.getByText('Raid at Dawn'));
 
     const deferredFlags = screen.getByLabelText(/deferred lens flags/i);
     fireEvent.click(
@@ -535,7 +958,56 @@ describe('App', () => {
     expect(screen.getByLabelText(/manuscript studio/i)).toHaveTextContent(
       'ChapterChapter 1Order1.1Words2Read1 minMentions1Summaryset'
     );
+    expect(screen.getByLabelText(/manuscript bridge/i)).toHaveTextContent(
+      'eventevt_001Visible at 1204Backlinks 1Raid at Dawn'
+    );
+    expect(screen.getByLabelText(/manuscript mention picker/i)).toHaveTextContent(
+      'Alp Er TungaRaid at Dawn'
+    );
+    expect(
+      screen.getByLabelText(/manuscript timeline context/i)
+    ).toHaveTextContent('Alp Er Tunga @ 1200');
     expect(screen.getByText(/1 scenes/i)).toBeInTheDocument();
+    const manuscriptBody = screen.getByLabelText(
+      /manuscript body/i
+    ) as HTMLTextAreaElement;
+    manuscriptBody.setSelectionRange(8, 8);
+    fireEvent.select(manuscriptBody);
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript mention picker/i)).getByRole(
+        'button',
+        { name: /alp er tunga/i }
+      )
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript bridge/i)).getByRole('button', {
+        name: /insert mention/i
+      })
+    );
+    await waitFor(() =>
+      expect(screen.getByLabelText(/manuscript body/i)).toHaveValue(
+        'Arrival Alp Er Tunga Raid at Dawn body'
+      )
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript bridge/i)).getByRole('button', {
+        name: /^open timeline$/i
+      })
+    );
+    expect(screen.getByLabelText(/timeline spotlight/i)).toHaveTextContent(
+      'Raid at Dawn'
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Manuscript$/i }));
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript timeline context/i)).getByRole(
+        'button',
+        { name: /alp er tunga @ 1200/i }
+      )
+    );
+    expect(screen.getByLabelText(/timeline spotlight/i)).toHaveTextContent(
+      'Alp Er Tunga'
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Manuscript$/i }));
 
     fireEvent.click(screen.getByRole('button', { name: /split/i }));
     expect(screen.getByLabelText(/book preview/i)).toBeInTheDocument();
@@ -557,24 +1029,49 @@ describe('App', () => {
     });
 
     expect(autosaveManuscriptScene).toHaveBeenCalledTimes(1);
-    expect(screen.getAllByText(/Saved manuscript 8/i).length).toBeGreaterThan(
-      0
+    expect(autosaveManuscriptScene).toHaveBeenLastCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        mentions: expect.arrayContaining([
+          expect.objectContaining({
+            entityId: 'char_001',
+            label: 'Alp Er Tunga'
+          }),
+          expect.objectContaining({
+            entityId: 'evt_001',
+            label: 'Raid at Dawn'
+          })
+        ])
+      })
     );
 
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole('button', { name: /alp er tunga \[char_001\]/i })
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript mentions/i)).getAllByRole(
+        'button',
+        { name: /alp er tunga \[char_001\]/i }
+      )[0]
       );
       await Promise.resolve();
     });
     expect(
       screen.getByRole('navigation', { name: /lens navigation/i })
     ).toHaveTextContent('Wiki');
+    expect(screen.getByLabelText(/detail scene context/i)).toHaveTextContent(
+      '1 linked scenesChapter 11200 startOpen latest sceneOpen scene graph'
+    );
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /arrival/i }));
       await Promise.resolve();
     });
+    expect(screen.getByLabelText(/manuscript lens/i)).toBeInTheDocument();
+    fireEvent.click(
+      within(screen.getByLabelText(/detail scene context/i)).getByRole(
+        'button',
+        { name: /open latest scene/i }
+      )
+    );
     expect(screen.getByLabelText(/manuscript lens/i)).toBeInTheDocument();
   });
 
@@ -593,6 +1090,7 @@ describe('App', () => {
       name: /^Off$/i
     });
 
+    fireEvent.click(flagButtons[0]);
     fireEvent.click(flagButtons[1]);
     fireEvent.click(flagButtons[2]);
     fireEvent.click(flagButtons[3]);
@@ -634,6 +1132,51 @@ describe('App', () => {
     expect(screen.getByLabelText(/export spotlight/i)).toHaveTextContent(
       '2 jobs1 artifacts'
     );
+    expect(screen.getByLabelText(/artifact spotlight/i)).toHaveTextContent(
+      'dossier.pdfdossier.pdfpdf_dossierdone'
+    );
+    expect(
+      screen.getByLabelText(/manuscript export metadata/i)
+    ).toHaveTextContent('manuscript.pdfNo artifact yetqueued0 files');
+    expect(screen.getByLabelText(/^export package$/i)).toHaveTextContent(
+      'Dossier bundleC:/Users/Test/Documents/WorldAltar/export2 jobs2 files'
+    );
+    expect(screen.getByLabelText(/curated outputs/i)).toHaveTextContent(
+      'Curated outputs2 lanesDossier sheetdossier.pdfdone1 filesManuscript PDFmanuscript.pdfqueued0 files'
+    );
+    expect(screen.getByLabelText(/bundle readiness/i)).toHaveTextContent(
+      '3/3 lanesReusable world bundle closeDossier readyManuscript readyBundle ready'
+    );
+    expect(screen.getByLabelText(/reference sheets/i)).toHaveTextContent(
+      'Reference sheets2 sheetsWorld dossierdossier.pdfwiki/mapdoneScene manuscriptmanuscript.pdfmanuscriptqueued'
+    );
+    expect(screen.getByLabelText(/export manifest/i)).toHaveTextContent(
+      'Asset manifestC:/Users/Test/Documents/WorldAltar/export1 artifact filesPDF 1Other 0'
+    );
+    expect(screen.getByLabelText(/export history/i)).toHaveTextContent(
+      'Export history2 lanesDossier lane9done1 runsManuscript lane10queued1 runs'
+    );
+    expect(screen.getByLabelText(/delivery checklist/i)).toHaveTextContent(
+      'Delivery checklist4 checksQueuedone2 jobs trackedDossier lanereadyworld sheet path presentManuscript lanereadybook path presentArtifactsreadyartifact files present'
+    );
+    expect(screen.getByLabelText(/format readiness/i)).toHaveTextContent(
+      'Format readiness2 formatsPDFreadyartifact path presentEPUBlaterfuture richer format'
+    );
+    expect(screen.getByLabelText(/target roots/i)).toHaveTextContent(
+      'Target roots1 rootsC:/Users/Test/Documents/WorldAltar/exportmanuscript.pdf2 jobs1 artifacts'
+    );
+    expect(screen.getByLabelText(/export groups/i)).toHaveTextContent(
+      'Dossier1 jobspdf_dossierdone'
+    );
+    expect(screen.getByLabelText(/export groups/i)).toHaveTextContent(
+      'dossier.pdf'
+    );
+    expect(screen.getByLabelText(/export groups/i)).toHaveTextContent(
+      'Manuscript1 jobsmanuscript_pdfqueued'
+    );
+    expect(screen.getByLabelText(/export packages/i)).toHaveTextContent(
+      'Packages1 rootsDossier bundleC:/Users/Test/Documents/WorldAltar/export2 jobs2 files'
+    );
     expect(screen.getByLabelText(/artifacts job_001/i)).toHaveTextContent(
       'dossier.pdf'
     );
@@ -646,6 +1189,39 @@ describe('App', () => {
     expect(screen.getByLabelText(/export spotlight/i)).toHaveTextContent(
       'manuscript_pdfqueued1 jobs0 artifacts'
     );
+    expect(screen.getByLabelText(/artifact spotlight/i)).toHaveTextContent(
+      'No artifact yetmanuscript.pdfmanuscript_pdfqueued'
+    );
+    expect(
+      screen.getByLabelText(/manuscript export metadata/i)
+    ).toHaveTextContent('manuscript.pdfNo artifact yetqueued0 files');
+    expect(screen.getByLabelText(/^export package$/i)).toHaveTextContent(
+      'Manuscript bundleC:/Users/Test/Documents/WorldAltar/export1 jobs1 files'
+    );
+    expect(screen.getByLabelText(/curated outputs/i)).toHaveTextContent(
+      'Curated outputs1 lanesManuscript PDFmanuscript.pdfqueued0 files'
+    );
+    expect(screen.getByLabelText(/bundle readiness/i)).toHaveTextContent(
+      '1/3 lanesBundle still partialDossier pendingManuscript readyBundle pending'
+    );
+    expect(screen.getByLabelText(/reference sheets/i)).toHaveTextContent(
+      'Reference sheets1 sheetsScene manuscriptmanuscript.pdfmanuscriptqueued'
+    );
+    expect(screen.getByLabelText(/export manifest/i)).toHaveTextContent(
+      'Asset manifestC:/Users/Test/Documents/WorldAltar/exportNo artifact files yetPDF 0Other 0'
+    );
+    expect(screen.getByLabelText(/export history/i)).toHaveTextContent(
+      'Export history1 lanesManuscript lane10queued1 runs'
+    );
+    expect(screen.getByLabelText(/delivery checklist/i)).toHaveTextContent(
+      'Delivery checklist4 checksQueuequeued1 jobs trackedDossier lanependingno dossier jobManuscript lanereadybook path presentArtifactspendingartifact files missing'
+    );
+    expect(screen.getByLabelText(/format readiness/i)).toHaveTextContent(
+      'Format readiness2 formatsPDFreadyqueue onlyEPUBlaterfuture richer format'
+    );
+    expect(screen.getByLabelText(/target roots/i)).toHaveTextContent(
+      'Target roots1 rootsC:/Users/Test/Documents/WorldAltar/exportmanuscript.pdf1 jobs0 artifacts'
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /queue dossier pdf/i }));
     await waitFor(() =>
@@ -657,7 +1233,10 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Relations$/i }));
     expect(screen.getByLabelText(/relations lens/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/relations spotlight/i)).toHaveTextContent(
-      'Alp Er Tunga'
+      'Alp Er Tunga1 backlinkschar_0011 chapters'
+    );
+    expect(screen.getByLabelText(/relations groups/i)).toHaveTextContent(
+      'Chapter 11 scenesArrivalChapter 1Alp Er Tunga'
     );
   });
 

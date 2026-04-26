@@ -1,39 +1,60 @@
 import { useMemo, useState } from 'react';
+import type { EntityRecord } from '../modules/entity-model/types';
 import type {
   ManuscriptSceneDetail,
   ManuscriptTreeItem
 } from '../modules/manuscript/contracts';
 
 type ManuscriptLensProps = {
+  backlinkCount: number;
   draftBody: string;
   draftSummary: string;
   draftTitle: string;
   dirty: boolean;
+  mentionOptions: EntityRecord[];
+  onInsertMention: (entityId?: string) => void;
   onMentionSelect: (entityId: string) => void;
+  onOpenTimelineEntity: (entityId: string) => void;
+  onOpenTimelineContext: () => void;
+  onOpenWikiContext: () => void;
   onDraftBodyChange: (value: string) => void;
+  onDraftBodyCursorChange: (start: number | null, end: number | null) => void;
   onDraftSummaryChange: (value: string) => void;
   onDraftTitleChange: (value: string) => void;
   scene: ManuscriptSceneDetail | null;
+  selectedEntity: EntityRecord | null;
   selectedSceneId: string | null;
   setSelectedSceneId: (id: string) => void;
   status: string;
   tree: ManuscriptTreeItem[];
+  timelineContext: EntityRecord[];
+  year: number;
 };
 
 export function ManuscriptLens({
+  backlinkCount,
   draftBody,
   draftSummary,
   draftTitle,
   dirty,
+  mentionOptions,
+  onInsertMention,
   onMentionSelect,
+  onOpenTimelineEntity,
+  onOpenTimelineContext,
+  onOpenWikiContext,
   onDraftBodyChange,
+  onDraftBodyCursorChange,
   onDraftSummaryChange,
   onDraftTitleChange,
   scene,
+  selectedEntity,
   selectedSceneId,
   setSelectedSceneId,
   status,
-  tree
+  tree,
+  timelineContext,
+  year
 }: ManuscriptLensProps) {
   const activeChapter =
     tree.find((chapter) =>
@@ -184,6 +205,89 @@ export function ManuscriptLens({
                 <strong>{draftSummary.trim() ? 'set' : 'empty'}</strong>
               </div>
             </div>
+            <section className="manuscript-links" aria-label="manuscript bridge">
+              <strong>World link</strong>
+              {selectedEntity ? (
+                <>
+                  <div className="manuscript-meta">
+                    <span className="command-chip">{selectedEntity.type}</span>
+                    <span className="command-chip">
+                      {selectedEntity.common.id}
+                    </span>
+                    <span className="command-chip">Visible at {year}</span>
+                    <span className="command-chip">
+                      Backlinks {backlinkCount}
+                    </span>
+                  </div>
+                  <p className="copy">{selectedEntity.common.title}</p>
+                  <div className="detail-authoring-actions">
+                    <button
+                      className="button ghost-button"
+                      onClick={() => onInsertMention()}
+                      type="button"
+                    >
+                      Insert mention
+                    </button>
+                    <button
+                      className="button ghost-button"
+                      onClick={onOpenWikiContext}
+                      type="button"
+                    >
+                      Open wiki
+                    </button>
+                    <button
+                      className="button ghost-button"
+                      onClick={onOpenTimelineContext}
+                      type="button"
+                    >
+                      Open timeline
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="empty">Select entity for scene bridge.</p>
+              )}
+            </section>
+            {mentionOptions.length ? (
+              <section
+                className="manuscript-links"
+                aria-label="manuscript mention picker"
+              >
+                <strong>Quick mentions</strong>
+                <div className="detail-authoring-actions mention-picker">
+                  {mentionOptions.map((record) => (
+                    <button
+                      key={record.common.id}
+                      className="button ghost-button"
+                      onClick={() => onInsertMention(record.common.id)}
+                      type="button"
+                    >
+                      {record.common.title}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+            {timelineContext.length ? (
+              <section
+                className="manuscript-links"
+                aria-label="manuscript timeline context"
+              >
+                <strong>Timeline context</strong>
+                <div className="detail-authoring-actions mention-picker">
+                  {timelineContext.map((record) => (
+                    <button
+                      key={record.common.id}
+                      className="button ghost-button"
+                      onClick={() => onOpenTimelineEntity(record.common.id)}
+                      type="button"
+                    >
+                      {record.common.title} @ {record.common.startYear ?? year}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
             <textarea
               aria-label="manuscript summary"
               className="textarea"
@@ -194,6 +298,24 @@ export function ManuscriptLens({
               aria-label="manuscript body"
               className="textarea manuscript-body"
               onChange={(event) => onDraftBodyChange(event.target.value)}
+              onClick={(event) =>
+                onDraftBodyCursorChange(
+                  event.currentTarget.selectionStart,
+                  event.currentTarget.selectionEnd
+                )
+              }
+              onKeyUp={(event) =>
+                onDraftBodyCursorChange(
+                  event.currentTarget.selectionStart,
+                  event.currentTarget.selectionEnd
+                )
+              }
+              onSelect={(event) =>
+                onDraftBodyCursorChange(
+                  event.currentTarget.selectionStart,
+                  event.currentTarget.selectionEnd
+                )
+              }
               value={draftBody}
             />
             {scene.mentions.length ? (

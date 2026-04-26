@@ -535,6 +535,43 @@ h2 {
   animation: lensFade 180ms ease;
 }
 
+.wiki-stage {
+  display: grid;
+  gap: 14px;
+}
+
+.create-studio {
+  display: grid;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(111, 156, 150, 0.08),
+      transparent 24%
+    ),
+    linear-gradient(180deg, rgba(21, 29, 37, 0.94), rgba(12, 17, 23, 0.98));
+}
+
+.create-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.create-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.create-body {
+  min-height: 110px;
+  grid-column: 1 / -1;
+}
+
 .card-group {
   display: grid;
   gap: 10px;
@@ -1478,6 +1515,17 @@ h2 {
   background: rgba(255, 255, 255, 0.02);
 }
 
+.detail-authoring-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mention-picker .button {
+  min-height: 34px;
+  padding-inline: 12px;
+}
+
 .detail-cover {
   display: flex;
   justify-content: space-between;
@@ -1617,6 +1665,7 @@ h2 {
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  cursor: pointer;
 }
 
 .map-overlay-chip.is-event {
@@ -1627,9 +1676,172 @@ h2 {
   border-color: rgba(111, 156, 150, 0.3);
 }
 
+.map-overlay-chip.is-active {
+  border-color: rgba(119, 208, 255, 0.54);
+  box-shadow: inset 0 0 0 1px rgba(119, 208, 255, 0.16);
+  color: #f7fbff;
+}
+
 .map-focus {
   margin: 12px 0 0;
   color: var(--muted);
+}
+
+.map-focus-rail {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.map-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.map-summary-card {
+  display: grid;
+  gap: 4px;
+  min-height: 70px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(10, 14, 18, 0.48);
+}
+
+.map-summary-card span {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.map-summary-card strong {
+  font-size: 18px;
+}
+
+.map-type-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.map-type-chip {
+  display: grid;
+  gap: 4px;
+  min-height: 62px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(10, 14, 18, 0.48);
+  color: var(--text);
+  text-align: left;
+}
+
+.map-type-chip span {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.map-type-chip strong {
+  font-size: 18px;
+}
+
+.map-type-chip.is-active,
+.map-type-chip:hover {
+  border-color: var(--line-strong);
+  background: var(--accent-soft);
+}
+
+.map-legend {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.map-legend-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 52px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(10, 14, 18, 0.42);
+}
+
+.map-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #c89b65;
+  box-shadow: 0 0 0 2px #10161d;
+}
+
+.map-legend-dot.is-character {
+  background: #c89b65;
+}
+
+.map-legend-dot.is-region {
+  background: #8f7bd8;
+}
+
+.map-legend-dot.is-event {
+  background: #5e70b6;
+}
+
+.map-legend-dot.is-location {
+  background: #6f9c96;
+}
+
+.spotlight-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.map-focus-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(10, 14, 18, 0.52);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.map-focus-row strong,
+.map-focus-row span:last-child {
+  grid-column: 2;
+}
+
+.map-focus-row.is-active,
+.map-focus-row:hover {
+  border-color: var(--line-strong);
+  background: var(--accent-soft);
+}
+
+.map-selected-strip {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(10, 14, 18, 0.52);
 }
 
 .empty-stage {
@@ -1887,6 +2099,8 @@ h2 {
   .context-panel,
   .toolbar-inline,
   .manuscript-toolbar,
+  .create-grid,
+  .map-summary,
   .manuscript-studio,
   .detail-grid,
   .workspace-meta {

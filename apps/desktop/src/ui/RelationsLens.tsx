@@ -12,6 +12,8 @@ export function RelationsLens({
   selectedEntity,
   onOpenBacklink
 }: RelationsLensProps) {
+  const chapterGroups = buildChapterGroups(backlinks);
+
   return (
     <section className="lens-frame" aria-label="relations lens">
       {selectedEntity ? (
@@ -35,22 +37,35 @@ export function RelationsLens({
             </div>
             <div className="timeline-summary">
               <span className="command-chip">{selectedEntity.common.id}</span>
+              <span className="command-chip">
+                {chapterGroups.length} chapters
+              </span>
             </div>
           </article>
 
           {backlinks.length ? (
-            <div className="theme-stack">
-              {backlinks.map((backlink) => (
-                <button
-                  key={backlink.nodeId}
-                  className="theme-card"
-                  onClick={() => onOpenBacklink(backlink.nodeId)}
-                  type="button"
-                >
-                  <strong>{backlink.sceneTitle}</strong>
-                  <span>{backlink.chapterTitle}</span>
-                  <span>{backlink.label}</span>
-                </button>
+            <div className="theme-stack" aria-label="relations groups">
+              {chapterGroups.map((group) => (
+                <section key={group.label} className="timeline-band">
+                  <div className="timeline-band-head">
+                    <strong>{group.label}</strong>
+                    <span>{group.items.length} scenes</span>
+                  </div>
+                  <div className="theme-stack">
+                    {group.items.map((backlink) => (
+                      <button
+                        key={backlink.nodeId}
+                        className="theme-card"
+                        onClick={() => onOpenBacklink(backlink.nodeId)}
+                        type="button"
+                      >
+                        <strong>{backlink.sceneTitle}</strong>
+                        <span>{backlink.chapterTitle}</span>
+                        <span>{backlink.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           ) : (
@@ -72,4 +87,20 @@ export function RelationsLens({
       )}
     </section>
   );
+}
+
+function buildChapterGroups(backlinks: EntityBacklink[]) {
+  const bucket = new Map<string, EntityBacklink[]>();
+
+  backlinks.forEach((backlink) => {
+    const label = backlink.chapterTitle ?? 'Loose scenes';
+    const current = bucket.get(label) ?? [];
+    current.push(backlink);
+    bucket.set(label, current);
+  });
+
+  return [...bucket.entries()].map(([label, items]) => ({
+    label,
+    items
+  }));
 }

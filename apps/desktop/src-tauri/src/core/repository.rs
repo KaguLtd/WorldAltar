@@ -9,8 +9,8 @@ use super::{
   database,
   entity_model::{
     slugify, AutosaveEntityInput, CharacterFields, CreateEntityCommon, CreateEntityInput,
-    EntityCommon, EntityRecord, EntityType, EventFields, LocationFields, RegionFields,
-    RenameEntityInput,
+    EntityCommon, EntityRecord, EntityType, EventFields, ImportEntityMediaInput, LocationFields,
+    RegionFields, RenameEntityInput, UpdateEntityLinksInput, UpdateEntityMediaInput,
   },
   time_engine::is_visible_at_year,
 };
@@ -215,6 +215,121 @@ impl EntityRepository {
 
     finalize_autosave(database_path, &payload, &updated)?;
     Ok(updated)
+  }
+
+  pub fn update_media(&self, input: UpdateEntityMediaInput) -> Result<EntityRecord, String> {
+    let current = self
+      .get(&input.id)?
+      .ok_or_else(|| "entity not found".to_string())?;
+    let now = database::now_timestamp();
+
+    self.connection
+      .execute(
+        "UPDATE entities
+         SET cover_image_path = ?1, thumbnail_path = ?2, updated_at = ?3
+         WHERE id = ?4",
+        params![
+          input.cover_image_path,
+          input.thumbnail_path,
+          now,
+          input.id
+        ],
+      )
+      .map_err(|err| err.to_string())?;
+
+    let updated = self
+      .get(&current.common().id)?
+      .ok_or_else(|| "entity media update failed".to_string())?;
+    sync_search_index(&self.connection, &updated)?;
+    Ok(updated)
+  }
+
+  pub fn update_links(&self, input: UpdateEntityLinksInput) -> Result<EntityRecord, String> {
+    let current = self
+      .get(&input.id)?
+      .ok_or_else(|| "entity not found".to_string())?;
+    let now = database::now_timestamp();
+
+    let extra_json = match &current {
+      EntityRecord::Location { fields, .. } => serde_json::to_string(&LocationFields {
+        region_id: input.region_id,
+        location_kind: fields.location_kind.clone(),
+      }),
+      EntityRecord::Region { .. } => serde_json::to_string(&RegionFields {
+        parent_region_id: input.parent_region_id,
+      }),
+      EntityRecord::Event { .. } => serde_json::to_string(&EventFields {
+        location_id: input.location_id,
+      }),
+      EntityRecord::Character { fields, .. } => serde_json::to_string(fields),
+    }
+    .map_err(|err| err.to_string())?;
+
+    self.connection
+      .execute(
+        "UPDATE entities SET extra_json = ?1, updated_at = ?2 WHERE id = ?3",
+        params![extra_json, now, input.id],
+      )
+      .map_err(|err| err.to_string())?;
+
+    let updated = self
+      .get(&current.common().id)?
+      .ok_or_else(|| "entity link update failed".to_string())?;
+    sync_search_index(&self.connection, &updated)?;
+    Ok(updated)
+  }
+
+  pub fn import_media(
+    &self,
+    database_path: &Path,
+    input: ImportEntityMediaInput,
+  ) -> Result<EntityRecord, String> {
+    let current = self
+      .get(&input.id)?
+      .ok_or_else(|| "entity not found".to_string())?;
+    let source_path = PathBuf::from(input.source_path.trim());
+    if !source_path.exists() {
+      return Err("source asset not found".into());
+    }
+
+    let extension = source_path
+      .extension()
+      .and_then(|value| value.to_str())
+      .filter(|value| !value.is_empty())
+      .unwrap_or("png");
+    let file_name = match input.variant.as_str() {
+      "cover" => format!("cover.{extension}"),
+      "thumbnail" => format!("thumb.{extension}"),
+      _ => return Err("invalid media variant".into()),
+    };
+
+    let world_root = database_path
+      .parent()
+      .ok_or_else(|| "world root missing".to_string())?;
+    let asset_dir = world_root
+      .join("assets")
+      .join("entities")
+      .join(current.entity_type().as_str())
+      .join(&current.common().slug);
+    fs::create_dir_all(&asset_dir).map_err(|err| err.to_string())?;
+
+    let destination_path = asset_dir.join(file_name);
+    fs::copy(&source_path, &destination_path).map_err(|err| err.to_string())?;
+    let destination = destination_path.display().to_string();
+
+    self.update_media(UpdateEntityMediaInput {
+      id: input.id,
+      cover_image_path: if input.variant == "cover" {
+        Some(destination)
+      } else {
+        current.common().cover_image_path.clone()
+      },
+      thumbnail_path: if input.variant == "thumbnail" {
+        Some(destination_path.display().to_string())
+      } else {
+        current.common().thumbnail_path.clone()
+      },
+    })
   }
 
   pub fn delete(&self, id: &str) -> Result<(), String> {
@@ -712,7 +827,8 @@ mod tests {
 
   use super::*;
   use crate::core::entity_model::{
-    AutosaveEntityInput, CreateEntityCommon, CreateEntityInput, EventFields, LocationFields,
+    AutosaveEntityInput, CreateEntityCommon, CreateEntityInput, EventFields, ImportEntityMediaInput,
+    LocationFields, UpdateEntityLinksInput,
   };
 
   fn repo() -> EntityRepository {
@@ -851,6 +967,77 @@ mod tests {
     assert_eq!(renamed.common().title, "Alp Tunga");
     assert_eq!(fetched.common().title, "Alp Tunga");
     assert_ne!(renamed.common().slug, created.common().slug);
+  }
+
+  #[test]
+  fn update_links_rewrites_typed_relation_only() {
+    let mut repository = repo();
+    let location = repository
+      .create(CreateEntityInput::Location {
+        common: CreateEntityCommon {
+          title: "Camp".into(),
+          ..CreateEntityCommon::default()
+        },
+        fields: LocationFields {
+          region_id: Some("reg_001".into()),
+          location_kind: Some("camp".into()),
+        },
+      })
+      .unwrap();
+
+    let updated = repository
+      .update_links(UpdateEntityLinksInput {
+        id: location.common().id.clone(),
+        region_id: Some("reg_002".into()),
+        parent_region_id: None,
+        location_id: None,
+      })
+      .unwrap();
+
+    match updated {
+      EntityRecord::Location { fields, .. } => {
+        assert_eq!(fields.region_id.as_deref(), Some("reg_002"));
+        assert_eq!(fields.location_kind.as_deref(), Some("camp"));
+      }
+      _ => panic!("expected location"),
+    }
+  }
+
+  #[test]
+  fn import_media_copies_file_into_world_asset_dir() {
+    let database_path = autosave_test_dir();
+    let mut repository = file_repo(&database_path);
+    let created = repository
+      .create(CreateEntityInput::Event {
+        common: CreateEntityCommon {
+          title: "Battle of X".into(),
+          ..CreateEntityCommon::default()
+        },
+        fields: EventFields::default(),
+      })
+      .unwrap();
+    let source_path = database_path
+      .parent()
+      .unwrap()
+      .join("imports")
+      .join("battle.png");
+    std::fs::create_dir_all(source_path.parent().unwrap()).unwrap();
+    std::fs::write(&source_path, "png-bytes").unwrap();
+
+    let updated = repository
+      .import_media(
+        &database_path,
+        ImportEntityMediaInput {
+          id: created.common().id.clone(),
+          source_path: source_path.display().to_string(),
+          variant: "cover".into(),
+        },
+      )
+      .unwrap();
+
+    let imported = updated.common().cover_image_path.clone().unwrap();
+    assert!(imported.contains("assets"));
+    assert!(PathBuf::from(imported).exists());
   }
 
   #[test]

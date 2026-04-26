@@ -180,6 +180,31 @@ pub struct AutosaveEntityInput {
   pub body: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateEntityMediaInput {
+  pub id: String,
+  pub cover_image_path: Option<String>,
+  pub thumbnail_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateEntityLinksInput {
+  pub id: String,
+  pub region_id: Option<String>,
+  pub parent_region_id: Option<String>,
+  pub location_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportEntityMediaInput {
+  pub id: String,
+  pub source_path: String,
+  pub variant: String,
+}
+
 pub fn slugify(input: &str) -> String {
   let mut slug = String::new();
   let mut last_dash = false;

@@ -6,6 +6,9 @@ type CardGridProps = {
   selectedEntityId: string | null;
   setSelectedEntityId: (id: string) => void;
   setHoveredEntityId: (id: string | null) => void;
+  onQuickCreate: (
+    kind: 'event_from_location' | 'location_from_region' | 'region_from_region'
+  ) => void;
   typeLabels: Record<EntityType, string>;
   typeMonograms: Record<EntityType, string>;
 };
@@ -15,6 +18,7 @@ export function CardGrid({
   selectedEntityId,
   setSelectedEntityId,
   setHoveredEntityId,
+  onQuickCreate,
   typeLabels,
   typeMonograms
 }: CardGridProps) {
@@ -48,6 +52,37 @@ export function CardGrid({
               </dd>
             </div>
           </dl>
+          {selectedRecord.type === 'location' || selectedRecord.type === 'region' ? (
+            <div className="spotlight-actions" aria-label="spotlight actions">
+              {selectedRecord.type === 'location' ? (
+                <button
+                  className="button ghost-button"
+                  onClick={() => onQuickCreate('event_from_location')}
+                  type="button"
+                >
+                  New event here
+                </button>
+              ) : null}
+              {selectedRecord.type === 'region' ? (
+                <>
+                  <button
+                    className="button ghost-button"
+                    onClick={() => onQuickCreate('location_from_region')}
+                    type="button"
+                  >
+                    New location in region
+                  </button>
+                  <button
+                    className="button ghost-button"
+                    onClick={() => onQuickCreate('region_from_region')}
+                    type="button"
+                  >
+                    New child region
+                  </button>
+                </>
+              ) : null}
+            </div>
+          ) : null}
         </article>
       ) : null}
 

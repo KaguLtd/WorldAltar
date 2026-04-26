@@ -3,7 +3,10 @@
 mod core;
 
 use core::{
-  entity_model::{AutosaveEntityInput, CreateEntityInput, EntityRecord, RenameEntityInput},
+  entity_model::{
+    AutosaveEntityInput, CreateEntityInput, EntityRecord, RenameEntityInput,
+    ImportEntityMediaInput, UpdateEntityLinksInput, UpdateEntityMediaInput,
+  },
   export::{list_export_jobs, queue_export, ExportJob, ExportRequest},
   manuscript::{
     recover_manuscript_autosave, AutosaveSceneInput, CreateChapterInput, CreateSceneInput,
@@ -69,6 +72,24 @@ fn search_entities_command(
 fn autosave_entity_command(database_path: String, input: AutosaveEntityInput) -> Result<EntityRecord, String> {
   let mut repository = EntityRepository::open(Path::new(&database_path))?;
   repository.autosave(Path::new(&database_path), input)
+}
+
+#[tauri::command]
+fn update_entity_media_command(database_path: String, input: UpdateEntityMediaInput) -> Result<EntityRecord, String> {
+  let repository = EntityRepository::open(Path::new(&database_path))?;
+  repository.update_media(input)
+}
+
+#[tauri::command]
+fn update_entity_links_command(database_path: String, input: UpdateEntityLinksInput) -> Result<EntityRecord, String> {
+  let repository = EntityRepository::open(Path::new(&database_path))?;
+  repository.update_links(input)
+}
+
+#[tauri::command]
+fn import_entity_media_command(database_path: String, input: ImportEntityMediaInput) -> Result<EntityRecord, String> {
+  let repository = EntityRepository::open(Path::new(&database_path))?;
+  repository.import_media(Path::new(&database_path), input)
 }
 
 #[tauri::command]
@@ -142,6 +163,9 @@ fn main() {
       delete_entity_command,
       search_entities_command,
       autosave_entity_command,
+      update_entity_media_command,
+      update_entity_links_command,
+      import_entity_media_command,
       recover_autosave_command,
       list_manuscript_tree_command,
       get_manuscript_scene_command,

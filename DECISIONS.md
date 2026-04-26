@@ -418,3 +418,139 @@ Reason: tek buyuk frontend bundle warningini dusurmek ve build ciktisini daha st
 ### D-086 MapLibre chunk warning limit is intentional
 Vite `chunkSizeWarningLimit` 1200 oldu.
 Reason: offline map icin MapLibre chunk'i bilerek repoda tutuluyor; warning gurultusu gercek blocker degil.
+
+### D-087 Authoring velocity starts in wiki lens
+Create Entity Studio wiki lens icine type-first hizli create panel olarak gelir ve mevcut `create_entity_command` uzerinden yazar.
+Reason: Faz 2 hizli authoring once ayni canonical entity omurgasi uzerinde baslamali; yeni side-store acilmamali.
+
+### D-088 Detail authoring stays command-routed
+Detail panel location ve region secimlerinde hizli linked create butonlari verir; bunlar da yine ayni `create_entity_command` uzerinden yazar.
+Reason: authoring hizi artsin ama UI core kurali bypass etmesin.
+
+### D-089 Asset attach stays entity-routed
+Detail panel cover/thumbnail path alanlari ayni entity command boundary uzerinden kaydedilir.
+Reason: asset authoring hizlansin ama UI ikinci metadata kaynagi yaratmasin.
+
+### D-090 Quick relation entry stays typed
+Detail panel relation save location/region/event icin typed link alanlarini ayni entity command boundary uzerinden yazar.
+Reason: hizli relation authoring gelsin ama serbest-form yan metadata ya da ikinci relation store acilmasin.
+
+### D-091 Selected entity seeds studio presets
+Create Entity Studio secili region/location kartini soft context olarak kullanip hizli preset acabilir.
+Reason: authoring hizi artsin ama submit yine ayni canonical create command uzerinden gitsin.
+
+### D-092 Asset preset stays local and deterministic
+Detail panel secili entity slug/type bilgisinden canonical local asset path presetleri uretebilir.
+Reason: asset authoring hizi artsin ama picker zorunlulugu veya ikinci metadata mantigi acilmasin.
+
+### D-093 Asset import copies into world package
+Detail panel source asset pathini world icindeki `assets/entities/<type>/<slug>/...` agacina kopyalayip sonra entity media yolunu gunceller.
+Reason: asset attach portable olmali; source diski gecici olsa bile world paketi kendi kopyasini tasimali.
+
+### D-094 Map focus rail stays visible-set derived
+Map lens geocoded quick-focus rail ve overlay chip secimleri yalnizca mevcut visible setten turetilir.
+Reason: Faz 3 map derinligi artsin ama map kendi ayri search/index/state mantigini kurmasin.
+
+### D-095 Map summary strip stays count-only
+Map lens visible/geocoded/type summary strip yalnizca mevcut visible set sayimlari ve secili id'yi gosterir.
+Reason: mekansal lens daha okunur olsun ama yeni analytics/state katmani acilmasin.
+
+### D-096 Map popover jump stays id-routed
+Map hover popover yalnizca secili entity id'yi koruyup wiki veya timeline lensine ziplayabilir.
+Reason: Faz 3 lens gecisi hizlansin ama map ikinci detail/store/state omurgasi kurmasin.
+
+### D-097 Map detail shortcut stays selection-only
+Map hover popover `Show detail` ile yalnizca mevcut secili entity id'yi degistirir; ayri map-detail state acmaz.
+Reason: Faz 3 map authoring/reading hizi artsin ama detail panel ayni secim omurgasinda kalsin.
+
+### D-098 Map selected strip stays persistent and derived
+Map lens secili marker icin kalici strip gosterir; title/summary/coords ve lens jump aksiyonlari ayni selected entity state'ten turetilir.
+Reason: Faz 3 map daha urun gibi olsun ama ikinci overlay/detail store acilmasin.
+
+### D-099 Map type strip stays visible-set bound
+Map lens character/region/event/place chipleri yalnizca mevcut visible set sayimlarini gosterir ve varsa ilk kaydi yeniden secer.
+Reason: Faz 3 semantik filtre hissi gelsin ama map ayri filter state ya da secondary query katmani kurmasin.
+
+### D-100 Map legend stays derived
+Map lens renk/type/count legend'i yalnizca mevcut visible setten turetilir.
+Reason: marker anlami daha acik olsun ama ayri map registry ya da manual sync isi dogmasin.
+
+### D-101 Map overlay chips stay semantic-only
+Map overlay chipleri `Geo / R / E / P` gibi kisa sayi semantiklerini yalnizca mevcut visible setten uretir.
+Reason: Faz 3 map okumasi hizlansin ama chipler ayri filter/query state sahibi olmasin.
+
+### D-102 Map year copy stays presentation-only
+Map overlay ve selected strip mevcut yil bilgisini yalnizca gorunur micro-copy olarak tasiyabilir.
+Reason: Faz 3 zaman baglami daha acik olsun ama map tarafinda ikinci year state acilmasin.
+
+### D-103 Wiki spotlight stays command-routed
+Wiki spotlight secili location veya region icin linked create butonlari gosterebilir ama submit yine ayni create entity command yolundan gecer.
+Reason: kart authoring primitive olsun ama ikinci local create mantigi acilmasin.
+
+### D-104 Manuscript bridge stays selected-entity routed
+Manuscript lens secili entity'yi scene yuzeyine tasiyip mention insert ve wiki/timeline jump saglayabilir ama ayni selected entity omurgasini kullanir.
+Reason: writing ile worldbuilding baglansin ama ikinci entity-context ya da second scene bridge store acilmasin.
+
+### D-105 Manuscript mention picker stays visible-set bound
+Manuscript quick mention picker yalnizca mevcut visible entity setten okur ve mention staging icin ayni scene draft state'ini kullanir.
+Reason: hizli writing akisina yardim etsin ama ayri search/index/store acmasin.
+
+### D-106 Manuscript timeline context stays mention-derived
+Manuscript scene timeline context yalnizca mevcut mention id'lerini ayni entity spine uzerinden cozup timeline lensine geri acar.
+Reason: scene ve timeline baglansin ama ikinci scene-timeline cache ya da graph katmani acilmasin.
+
+### D-107 Manuscript mention insert stays caret-aware only
+Manuscript mention insert body icindeki mevcut caret/selection noktasini kullanabilir ama bu bilgi yalnizca gecici UI state'tir.
+Reason: writing hizi artsin ama ikinci draft modeli ya da editor engine acilmasin.
+
+### D-108 Wiki scene-context stays backlink-derived
+Wiki detail panel scene-context ozetini ayni backlink payload'inden kurar ve relations/manuscript gecisini oradan acar.
+Reason: worldbuilding ile writing baglansin ama ikinci scene summary cache acilmasin.
+
+### D-109 Relations grouping stays backlink-derived
+Relations lens backlink satirlarini chapter bazli gruplayabilir ama ayni backlink listesi disinda yeni graph/read model kurmaz.
+Reason: scene agi daha okunur olsun ama second relation cache acilmasin.
+
+### D-110 Export artifact grouping stays job-derived
+Export lens artifact spotlight ve kind grouping kurabilir ama ayni export jobs payload'i disinda ikinci artifact index kurmaz.
+Reason: artifact katmani daha okunur olsun ama queue truth source tek kalsin.
+
+### D-111 Manuscript export metadata stays job-derived
+Export lens manuscript artifact metadata gosterebilir ama bunu ayni export jobs payload'inden turetir.
+Reason: manuscript artifact durumu gorunur olsun ama ayri manuscript-export registry acilmasin.
+
+### D-112 Export package summary stays path-derived
+Export lens package root ve file/job ozetini ayni export jobs payload'indeki target/artifact path'lerden turetir.
+Reason: bundle hissi gorunsun ama ayri package registry ya da artifact index acilmasin.
+
+### D-113 Curated outputs stay job-derived
+Export lens curated output lane'lerini ayni export jobs payload'indeki latest kind kayitlarindan turetir.
+Reason: publish hissi artsin ama ayri publication index ya da sheet registry acilmasin.
+
+### D-114 Bundle readiness stays job-derived
+Export lens reusable bundle hazirlik durumunu ayni export jobs payload'indeki kind ve artifact varligindan turetir.
+Reason: package olgunlugu gorunsun ama ayri reusable-world registry acilmasin.
+
+### D-115 Reference sheets stay job-derived
+Export lens reference sheet satirlarini ayni export jobs payload'indeki target ve artifact path'lerden turetir.
+Reason: curated sheet hissi artsin ama ayri sheet cache ya da export-side registry acilmasin.
+
+### D-116 Export manifest digest stays job-derived
+Export lens asset manifest ozetini ayni export jobs payload'indeki artifact path uzantilarindan turetir.
+Reason: manifest hissi gorunsun ama ayri asset-manifest index acilmasin.
+
+### D-117 Export history stays job-derived
+Export lens lane history ozetini ayni export jobs payload'indeki createdAt ve status alanlarindan turetir.
+Reason: run gecmisi gorunsun ama ayri history store acilmasin.
+
+### D-118 Delivery checklist stays job-derived
+Export lens delivery checklist satirlarini ayni export jobs payload'indeki kind, status ve artifact varligindan turetir.
+Reason: publish hazirligi gorunsun ama ayri publish-state registry acilmasin.
+
+### D-119 Format readiness stays job-derived
+Export lens PDF ve ilerideki richer format hazirlik satirlarini ayni export jobs payload'indeki mevcut kind ve artifact varligindan turetir.
+Reason: ileriki format yolu gorunsun ama ayri format registry acilmasin.
+
+### D-120 Target roots stay job-derived
+Export lens hedef klasor koklerini ayni export jobs payload'indeki target path'lerden turetir.
+Reason: package/target dagilimi gorunsun ama ayri target-root registry acilmasin.

@@ -11,7 +11,15 @@ import { searchEntities } from './modules/search/api';
 import { useTimelineYear } from './modules/timeline/store';
 import { OfflineMap } from './modules/map/OfflineMap';
 import type { EntityRecord, EntityType } from './modules/entity-model/types';
-import { autosaveEntity, recoverAutosave } from './modules/entity-model/api';
+import {
+  autosaveEntity,
+  createEntity,
+  type CreateEntityInput,
+  importEntityMedia,
+  updateEntityLinks,
+  updateEntityMedia,
+  recoverAutosave
+} from './modules/entity-model/api';
 import {
   DEFERRED_LENS_KEYS,
   DEFERRED_LENS_FLAGS,
@@ -36,6 +44,7 @@ import { THEME_OPTIONS } from './modules/theme/contracts';
 import { useTheme } from './modules/theme/store';
 import { CardGrid } from './ui/CardGrid';
 import { CanvasLens } from './ui/CanvasLens';
+import { CreateEntityStudio } from './ui/CreateEntityStudio';
 import { EntityDetailPanel } from './ui/EntityDetailPanel';
 import { ExportLens } from './ui/ExportLens';
 import { LensRail } from './ui/LensRail';
@@ -123,6 +132,10 @@ export function App() {
   const [draftTitle, setDraftTitle] = useState('');
   const [draftSummary, setDraftSummary] = useState('');
   const [draftBody, setDraftBody] = useState('');
+  const [draftAssetSourcePath, setDraftAssetSourcePath] = useState('');
+  const [draftCoverImagePath, setDraftCoverImagePath] = useState('');
+  const [draftLinkTargetId, setDraftLinkTargetId] = useState('');
+  const [draftThumbnailPath, setDraftThumbnailPath] = useState('');
   const [dirty, setDirty] = useState(false);
   const [autosaveState, setAutosaveState] = useState('Idle');
   const [year, setYear] = useTimelineYear();
@@ -138,6 +151,12 @@ export function App() {
   const [draftSceneTitle, setDraftSceneTitle] = useState('');
   const [draftSceneSummary, setDraftSceneSummary] = useState('');
   const [draftSceneBody, setDraftSceneBody] = useState('');
+  const [draftSceneSelectionStart, setDraftSceneSelectionStart] = useState<
+    number | null
+  >(null);
+  const [draftSceneSelectionEnd, setDraftSceneSelectionEnd] = useState<
+    number | null
+  >(null);
   const [manuscriptDirty, setManuscriptDirty] = useState(false);
   const [manuscriptStatus, setManuscriptStatus] = useState('Deferred off');
   const [exportJobs, setExportJobs] = useState<ExportJob[]>([]);
@@ -329,6 +348,8 @@ export function App() {
       setDraftSceneTitle('');
       setDraftSceneSummary('');
       setDraftSceneBody('');
+      setDraftSceneSelectionStart(null);
+      setDraftSceneSelectionEnd(null);
       setManuscriptDirty(false);
       return;
     }
@@ -336,8 +357,15 @@ export function App() {
     setDraftSceneTitle(selectedScene.node.title);
     setDraftSceneSummary(selectedScene.node.summary);
     setDraftSceneBody(selectedScene.node.body);
+    setDraftSceneSelectionStart(null);
+    setDraftSceneSelectionEnd(null);
     setManuscriptDirty(false);
-  }, [selectedScene]);
+  }, [
+    selectedScene?.node.body,
+    selectedScene?.node.id,
+    selectedScene?.node.summary,
+    selectedScene?.node.title
+  ]);
 
   useEffect(() => {
     if (!selectedScene) {
@@ -456,10 +484,24 @@ export function App() {
       (left.common.startYear ?? year) - (right.common.startYear ?? year)
   );
   const searchRecords = query.trim() ? filteredRecords : [];
+  const mentionOptions = filteredRecords.slice(0, 4);
+  const timelineContext = selectedScene
+    ? [...new Set(selectedScene.mentions.map((mention) => mention.entityId))]
+        .map((entityId) =>
+          records.find((record) => record.common.id === entityId) ?? null
+        )
+        .filter((record): record is EntityRecord => record !== null)
+    : [];
   const hoveredEntity =
     filteredRecords.find((record) => record.common.id === hoveredEntityId) ??
     records.find((record) => record.common.id === hoveredEntityId) ??
     null;
+  const regionOptions = records.filter(
+    (record) =>
+      record.type === 'region' &&
+      record.common.id !== selectedEntity?.common.id
+  );
+  const locationOptions = records.filter((record) => record.type === 'location');
 
   useEffect(() => {
     if (!databasePath || !manuscriptEnabled || !selectedEntity) {
@@ -477,6 +519,10 @@ export function App() {
       setDraftTitle('');
       setDraftSummary('');
       setDraftBody('');
+      setDraftAssetSourcePath('');
+      setDraftCoverImagePath('');
+      setDraftLinkTargetId('');
+      setDraftThumbnailPath('');
       setDirty(false);
       return;
     }
@@ -484,6 +530,18 @@ export function App() {
     setDraftTitle(selectedEntity.common.title);
     setDraftSummary(selectedEntity.common.summary);
     setDraftBody(selectedEntity.common.body);
+    setDraftAssetSourcePath('');
+    setDraftCoverImagePath(selectedEntity.common.coverImagePath ?? '');
+    setDraftLinkTargetId(
+      selectedEntity.type === 'location'
+        ? selectedEntity.fields.regionId ?? ''
+        : selectedEntity.type === 'region'
+          ? selectedEntity.fields.parentRegionId ?? ''
+          : selectedEntity.type === 'event'
+            ? selectedEntity.fields.locationId ?? ''
+            : ''
+    );
+    setDraftThumbnailPath(selectedEntity.common.thumbnailPath ?? '');
     setDirty(false);
   }, [selectedEntity]);
 
@@ -581,13 +639,87 @@ export function App() {
     setSelectedSceneId(nodeId);
   }
 
+  function handleOpenSceneContext() {
+    if (relationsEnabled) {
+      setActiveLens('Relations');
+      return;
+    }
+
+    if (manuscriptEnabled && backlinks[0]) {
+      handleOpenBacklink(backlinks[0].nodeId);
+    }
+  }
+
   function handleMentionSelect(entityId: string) {
     setActiveLens('Wiki');
     setSelectedEntityId(entityId);
   }
 
+  function handleInsertSceneMention(entityId?: string) {
+    if (!selectedScene) {
+      return;
+    }
+
+    const mentionEntity = entityId
+      ? records.find((record) => record.common.id === entityId) ?? null
+      : selectedEntity;
+
+    if (!mentionEntity) {
+      return;
+    }
+
+    const label = mentionEntity.common.title;
+    const rawStart = draftSceneSelectionStart ?? draftSceneBody.length;
+    const rawEnd = draftSceneSelectionEnd ?? rawStart;
+    const selectionStart = Math.min(rawStart, rawEnd);
+    const selectionEnd = Math.max(rawStart, rawEnd);
+    const prefix = draftSceneBody.slice(0, selectionStart);
+    const suffix = draftSceneBody.slice(selectionEnd);
+    const leftSpacer =
+      prefix && !/\s$/.test(prefix) ? ' ' : '';
+    const rightSpacer =
+      suffix && !/^\s/.test(suffix) ? ' ' : '';
+    const insertion = `${leftSpacer}${label}${rightSpacer}`;
+    const nextBody = `${prefix}${insertion}${suffix}`;
+    const startOffset = selectionStart + leftSpacer.length;
+    const nextMentionCount =
+      selectedScene.mentions.filter(
+        (mention) => mention.entityId === mentionEntity.common.id
+      ).length + 1;
+
+    setDraftSceneBody(nextBody);
+    setSelectedScene((current) =>
+      current
+        ? {
+            ...current,
+            mentions: current.mentions.concat({
+              id: `draft_${mentionEntity.common.id}_${nextMentionCount}`,
+              nodeId: current.node.id,
+              entityId: mentionEntity.common.id,
+              label,
+              startOffset,
+              endOffset: startOffset + label.length
+            })
+          }
+        : current
+    );
+    setManuscriptStatus(`Mention staged ${label}`);
+    setDraftSceneSelectionStart(startOffset + label.length + rightSpacer.length);
+    setDraftSceneSelectionEnd(startOffset + label.length + rightSpacer.length);
+  }
+
   function handleQuickJump(lens: ActiveLens) {
     setActiveLens(lens);
+  }
+
+  function handleMapJump(lens: 'Wiki' | 'Timeline', entityId: string) {
+    setSelectedEntityId(entityId);
+    setActiveLens(lens);
+  }
+
+  function handleTimelineEntityJump(entityId: string) {
+    setSelectedEntityId(entityId);
+    setActiveLens('Timeline');
   }
 
   async function handleQueueExport(kind: ExportKind) {
@@ -604,6 +736,174 @@ export function App() {
     } catch (value) {
       setExportStatus('Export failed');
       setError(String(value));
+    }
+  }
+
+  async function handleCreateEntity(input: CreateEntityInput) {
+    if (!databasePath) {
+      return;
+    }
+
+    setBusy(true);
+    setError('');
+
+    try {
+      const created = await createEntity(databasePath, input);
+      setRecords((current) => [...current, created]);
+      setSelectedEntityId(created.common.id);
+      setTypeFilter('all');
+      setQuery('');
+    } catch (value) {
+      setError(String(value));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCreateLinkedEntity(
+    kind: 'event_from_location' | 'location_from_region' | 'region_from_region'
+  ) {
+    if (!databasePath || !selectedEntity) {
+      return;
+    }
+
+    if (kind === 'event_from_location' && selectedEntity.type === 'location') {
+      await handleCreateEntity({
+        type: 'event',
+        common: {
+          title: `New ${selectedEntity.common.title} event`,
+          summary: `Event linked to ${selectedEntity.common.title}`
+        },
+        fields: {
+          locationId: selectedEntity.common.id
+        }
+      });
+      return;
+    }
+
+    if (kind === 'location_from_region' && selectedEntity.type === 'region') {
+      await handleCreateEntity({
+        type: 'location',
+        common: {
+          title: `New ${selectedEntity.common.title} site`,
+          summary: `Location linked to ${selectedEntity.common.title}`
+        },
+        fields: {
+          regionId: selectedEntity.common.id,
+          locationKind: 'settlement'
+        }
+      });
+      return;
+    }
+
+    if (kind === 'region_from_region' && selectedEntity.type === 'region') {
+      await handleCreateEntity({
+        type: 'region',
+        common: {
+          title: `New ${selectedEntity.common.title} frontier`,
+          summary: `Region linked to ${selectedEntity.common.title}`
+        },
+        fields: {
+          parentRegionId: selectedEntity.common.id
+        }
+      });
+    }
+  }
+
+  async function handleSaveEntityMedia() {
+    if (!databasePath || !selectedEntity) {
+      return;
+    }
+
+    setBusy(true);
+    setError('');
+
+    try {
+      const updated = await updateEntityMedia(databasePath, {
+        id: selectedEntity.common.id,
+        coverImagePath: draftCoverImagePath.trim() || null,
+        thumbnailPath: draftThumbnailPath.trim() || null
+      });
+      setRecords((current) =>
+        current.map((record) =>
+          record.common.id === updated.common.id ? updated : record
+        )
+      );
+      setSelectedEntityId(updated.common.id);
+    } catch (value) {
+      setError(String(value));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handlePresetEntityMedia() {
+    if (!selectedEntity) {
+      return;
+    }
+
+    const base = `assets/entities/${selectedEntity.type}/${selectedEntity.common.slug}`;
+    setDraftCoverImagePath(`${base}/cover.png`);
+    setDraftThumbnailPath(`${base}/thumb.png`);
+  }
+
+  async function handleImportEntityMedia(variant: 'cover' | 'thumbnail') {
+    if (!databasePath || !selectedEntity || !draftAssetSourcePath.trim()) {
+      return;
+    }
+
+    setBusy(true);
+    setError('');
+
+    try {
+      const updated = await importEntityMedia(databasePath, {
+        id: selectedEntity.common.id,
+        sourcePath: draftAssetSourcePath.trim(),
+        variant
+      });
+      setRecords((current) =>
+        current.map((record) =>
+          record.common.id === updated.common.id ? updated : record
+        )
+      );
+      setSelectedEntityId(updated.common.id);
+      setDraftCoverImagePath(updated.common.coverImagePath ?? '');
+      setDraftThumbnailPath(updated.common.thumbnailPath ?? '');
+    } catch (value) {
+      setError(String(value));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSaveEntityLinks() {
+    if (!databasePath || !selectedEntity || selectedEntity.type === 'character') {
+      return;
+    }
+
+    setBusy(true);
+    setError('');
+
+    try {
+      const updated = await updateEntityLinks(databasePath, {
+        id: selectedEntity.common.id,
+        regionId:
+          selectedEntity.type === 'location' ? draftLinkTargetId || null : null,
+        parentRegionId:
+          selectedEntity.type === 'region' ? draftLinkTargetId || null : null,
+        locationId:
+          selectedEntity.type === 'event' ? draftLinkTargetId || null : null
+      });
+      setRecords((current) =>
+        current.map((record) =>
+          record.common.id === updated.common.id ? updated : record
+        )
+      );
+      setSelectedEntityId(updated.common.id);
+    } catch (value) {
+      setError(String(value));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -704,9 +1004,11 @@ export function App() {
                   {activeLens === 'Map' ? (
                     <div className="lens-frame">
                       <OfflineMap
+                        onJump={handleMapJump}
                         onSelect={setSelectedEntityId}
                         records={filteredRecords}
                         selectedEntityId={selectedEntityId}
+                        year={year}
                       />
                     </div>
                   ) : null}
@@ -722,19 +1024,29 @@ export function App() {
                   ) : null}
 
                   {activeLens === 'Wiki' ? (
-                    <CardGrid
-                      records={filteredRecords}
-                      selectedEntityId={selectedEntityId}
-                      setHoveredEntityId={setHoveredEntityId}
-                      setSelectedEntityId={setSelectedEntityId}
-                      typeLabels={TYPE_LABELS}
-                      typeMonograms={TYPE_MONOGRAMS}
-                    />
+                    <div className="wiki-stage">
+                      <CreateEntityStudio
+                        busy={busy}
+                        onCreate={handleCreateEntity}
+                        records={records}
+                        selectedEntity={selectedEntity}
+                      />
+                      <CardGrid
+                        onQuickCreate={handleCreateLinkedEntity}
+                        records={filteredRecords}
+                        selectedEntityId={selectedEntityId}
+                        setHoveredEntityId={setHoveredEntityId}
+                        setSelectedEntityId={setSelectedEntityId}
+                        typeLabels={TYPE_LABELS}
+                        typeMonograms={TYPE_MONOGRAMS}
+                      />
+                    </div>
                   ) : null}
 
                   {activeLens === 'Search' ? (
                     query.trim() ? (
                       <CardGrid
+                        onQuickCreate={handleCreateLinkedEntity}
                         records={searchRecords}
                         selectedEntityId={selectedEntityId}
                         setHoveredEntityId={setHoveredEntityId}
@@ -756,19 +1068,35 @@ export function App() {
 
                   {activeLens === 'Manuscript' && manuscriptEnabled ? (
                     <ManuscriptLens
+                      backlinkCount={backlinks.length}
                       draftBody={draftSceneBody}
                       draftSummary={draftSceneSummary}
                       draftTitle={draftSceneTitle}
                       dirty={manuscriptDirty}
+                      mentionOptions={mentionOptions}
+                      onInsertMention={handleInsertSceneMention}
                       onMentionSelect={handleMentionSelect}
+                      onOpenTimelineEntity={handleTimelineEntityJump}
+                      onOpenTimelineContext={() => handleQuickJump('Timeline')}
+                      onOpenWikiContext={() => handleQuickJump('Wiki')}
                       onDraftBodyChange={setDraftSceneBody}
+                      onDraftBodyCursorChange={(
+                        selectionStart,
+                        selectionEnd
+                      ) => {
+                        setDraftSceneSelectionStart(selectionStart);
+                        setDraftSceneSelectionEnd(selectionEnd);
+                      }}
                       onDraftSummaryChange={setDraftSceneSummary}
                       onDraftTitleChange={setDraftSceneTitle}
                       scene={selectedScene}
+                      selectedEntity={selectedEntity}
                       selectedSceneId={selectedSceneId}
                       setSelectedSceneId={setSelectedSceneId}
                       status={manuscriptStatus}
                       tree={manuscriptTree}
+                      timelineContext={timelineContext}
+                      year={year}
                     />
                   ) : null}
 
@@ -860,14 +1188,30 @@ export function App() {
                 <EntityDetailPanel
                   backlinks={backlinks}
                   currentThemeLabel={currentTheme.label}
+                  draftAssetSourcePath={draftAssetSourcePath}
                   draftBody={draftBody}
+                  draftCoverImagePath={draftCoverImagePath}
+                  draftLinkTargetId={draftLinkTargetId}
                   draftSummary={draftSummary}
+                  draftThumbnailPath={draftThumbnailPath}
                   draftTitle={draftTitle}
+                  locationOptions={locationOptions}
+                  onCreateLinkedEntity={handleCreateLinkedEntity}
+                  onImportMedia={handleImportEntityMedia}
                   onOpenBacklink={handleOpenBacklink}
+                  onOpenSceneContext={handleOpenSceneContext}
+                  onPresetMediaPaths={handlePresetEntityMedia}
+                  onSaveLinks={handleSaveEntityLinks}
+                  onSaveMedia={handleSaveEntityMedia}
+                  regionOptions={regionOptions}
                   selectedEntity={selectedEntity}
                   selectedVisual={selectedVisual}
                   setDraftBody={setDraftBody}
+                  setDraftAssetSourcePath={setDraftAssetSourcePath}
+                  setDraftCoverImagePath={setDraftCoverImagePath}
+                  setDraftLinkTargetId={setDraftLinkTargetId}
                   setDraftSummary={setDraftSummary}
+                  setDraftThumbnailPath={setDraftThumbnailPath}
                   setDraftTitle={setDraftTitle}
                   typeLabels={TYPE_LABELS}
                   typeMonograms={TYPE_MONOGRAMS}
