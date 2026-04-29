@@ -38,6 +38,11 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
   const manifestDigest = buildManifestDigest(filteredJobs, jobs);
   const laneHistory = buildLaneHistory(filteredJobs, jobs);
   const deliveryChecklist = buildDeliveryChecklist(filteredJobs, jobs);
+  const deliveryReceipt = buildDeliveryReceipt(filteredJobs, jobs);
+  const deliveryLanes = buildDeliveryLanes(filteredJobs, jobs);
+  const deliveryPulse = buildDeliveryPulse(filteredJobs, jobs);
+  const recentActivity = buildRecentActivity(filteredJobs, jobs);
+  const queueIntent = buildQueueIntent(kindFilter, filteredJobs, jobs);
   const formatReadiness = buildFormatReadiness(filteredJobs, jobs);
   const targetRoots = buildTargetRoots(filteredJobs, jobs);
   const bundleContents = buildBundleContents(filteredJobs, jobs);
@@ -113,6 +118,103 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
           <div className="timeline-summary">
             <span className="command-chip">{latestPackage.jobs} jobs</span>
             <span className="command-chip">{latestPackage.files} files</span>
+          </div>
+        </article>
+      ) : null}
+
+      {deliveryReceipt ? (
+        <article className="timeline-spotlight" aria-label="delivery receipt">
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Delivery receipt</p>
+            <strong>{deliveryReceipt.fileName}</strong>
+            <span>{deliveryReceipt.root}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">{deliveryReceipt.kind}</span>
+            <span className="command-chip">{deliveryReceipt.status}</span>
+            <span className="command-chip">{deliveryReceipt.artifacts} artifacts</span>
+          </div>
+        </article>
+      ) : null}
+
+      {deliveryLanes.length ? (
+        <section className="timeline-band" aria-label="delivery lanes">
+          <div className="timeline-band-head">
+            <strong>Delivery lanes</strong>
+            <span>{deliveryLanes.length} lanes</span>
+          </div>
+          <div className="theme-stack">
+            {deliveryLanes.map((lane) => (
+              <article key={lane.label} className="theme-card is-active">
+                <strong>{lane.label}</strong>
+                <span>{lane.latestFile}</span>
+                <span className="scene-card-meta">
+                  <span>Latest {lane.latestStatus}</span>
+                  <span>{lane.latestCreatedAt}</span>
+                </span>
+                <span className="scene-card-meta">
+                  <span>{lane.priorFile ? `Prior ${lane.priorFile}` : 'No prior delivery'}</span>
+                </span>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {deliveryPulse ? (
+        <article className="timeline-spotlight" aria-label="delivery pulse">
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Delivery pulse</p>
+            <strong>{deliveryPulse.summary}</strong>
+            <span>{deliveryPulse.note}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">Done {deliveryPulse.done}</span>
+            <span className="command-chip">Queued {deliveryPulse.queued}</span>
+            <span className="command-chip">Running {deliveryPulse.running}</span>
+            <span className="command-chip">Failed {deliveryPulse.failed}</span>
+          </div>
+        </article>
+      ) : null}
+
+      {recentActivity.length ? (
+        <section className="timeline-band" aria-label="recent activity">
+          <div className="timeline-band-head">
+            <strong>Recent activity</strong>
+            <span>{recentActivity.length} events</span>
+          </div>
+          <div className="theme-stack">
+            {recentActivity.map((item) => (
+              <article key={`${item.createdAt}-${item.fileName}`} className="theme-card is-active">
+                <strong>{item.fileName}</strong>
+                <span>{item.kind}</span>
+                <span className="scene-card-meta">
+                  <span>{item.status}</span>
+                  <span>{item.createdAt}</span>
+                </span>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {queueIntent ? (
+        <article className="timeline-spotlight" aria-label="queue intent">
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Queue intent</p>
+            <strong>{queueIntent.label}</strong>
+            <span>{queueIntent.note}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">{queueIntent.kind}</span>
+            <span className="command-chip">{queueIntent.state}</span>
+            <button
+              className="button ghost-button"
+              onClick={() => onQueue(queueIntent.kind)}
+              type="button"
+            >
+              Queue suggested lane
+            </button>
           </div>
         </article>
       ) : null}
@@ -640,6 +742,153 @@ function buildDeliveryChecklist(filteredJobs: ExportJob[], jobs: ExportJob[]) {
       note: hasArtifacts ? 'artifact files present' : 'artifact files missing'
     }
   ];
+}
+
+function buildDeliveryReceipt(filteredJobs: ExportJob[], jobs: ExportJob[]) {
+  const source = filteredJobs.length ? filteredJobs : jobs;
+  const latest = source[0] ?? null;
+
+  if (!latest) {
+    return null;
+  }
+
+  return {
+    kind: latest.kind,
+    status: latest.status,
+    fileName:
+      getPrimaryArtifactPath(latest)?.split('/').pop() ??
+      latest.targetPath.split('/').pop() ??
+      latest.targetPath,
+    root: dirname(latest.targetPath),
+    artifacts: listArtifactPaths(latest).length
+  };
+}
+
+function buildDeliveryLanes(filteredJobs: ExportJob[], jobs: ExportJob[]) {
+  const source = filteredJobs.length ? filteredJobs : jobs;
+  const bucket = new Map<
+    ExportKind,
+    {
+      label: string;
+      items: ExportJob[];
+    }
+  >();
+
+  source.forEach((job) => {
+    const current = bucket.get(job.kind) ?? {
+      label: job.kind === 'pdf_dossier' ? 'Dossier lane' : 'Manuscript lane',
+      items: []
+    };
+    current.items.push(job);
+    bucket.set(job.kind, current);
+  });
+
+  return [...bucket.values()].map((lane) => {
+    const ordered = [...lane.items].sort((left, right) =>
+      right.createdAt.localeCompare(left.createdAt)
+    );
+    const latest = ordered[0];
+    const prior = ordered[1] ?? null;
+
+    return {
+      label: lane.label,
+      latestFile:
+        getPrimaryArtifactPath(latest)?.split('/').pop() ??
+        latest.targetPath.split('/').pop() ??
+        latest.targetPath,
+      latestStatus: latest.status,
+      latestCreatedAt: latest.createdAt,
+      priorFile: prior
+        ? getPrimaryArtifactPath(prior)?.split('/').pop() ??
+          prior.targetPath.split('/').pop() ??
+          prior.targetPath
+        : null
+    };
+  });
+}
+
+function buildDeliveryPulse(filteredJobs: ExportJob[], jobs: ExportJob[]) {
+  const source = filteredJobs.length ? filteredJobs : jobs;
+
+  if (!source.length) {
+    return null;
+  }
+
+  const done = source.filter((job) => job.status === 'done').length;
+  const queued = source.filter((job) => job.status === 'queued').length;
+  const running = source.filter((job) => job.status === 'running').length;
+  const failed = source.filter((job) => job.status === 'failed').length;
+
+  return {
+    summary: `${source.length} tracked jobs`,
+    note: done === source.length ? 'all visible deliveries settled' : 'visible deliveries still moving',
+    done,
+    queued,
+    running,
+    failed
+  };
+}
+
+function buildRecentActivity(filteredJobs: ExportJob[], jobs: ExportJob[]) {
+  const source = filteredJobs.length ? filteredJobs : jobs;
+
+  return [...source]
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .slice(0, 4)
+    .map((job) => ({
+      fileName:
+        getPrimaryArtifactPath(job)?.split('/').pop() ??
+        job.targetPath.split('/').pop() ??
+        job.targetPath,
+      kind: job.kind,
+      status: job.status,
+      createdAt: job.createdAt
+    }));
+}
+
+function buildQueueIntent(
+  kindFilter: ExportKind | 'all',
+  filteredJobs: ExportJob[],
+  jobs: ExportJob[]
+) {
+  const source = filteredJobs.length ? filteredJobs : jobs;
+  const latest = source[0] ?? null;
+
+  if (!latest) {
+    return {
+      label: 'Seed first export lane',
+      note: 'no export history yet',
+      kind: kindFilter === 'all' ? 'pdf_dossier' : kindFilter,
+      state: 'idle'
+    };
+  }
+
+  if (kindFilter === 'all') {
+    const missingLane = !jobs.some((job) => job.kind === 'manuscript_pdf')
+      ? 'manuscript_pdf'
+      : !jobs.some((job) => job.kind === 'pdf_dossier')
+        ? 'pdf_dossier'
+        : latest.kind === 'pdf_dossier'
+          ? 'manuscript_pdf'
+          : 'pdf_dossier';
+
+    return {
+      label: missingLane === 'pdf_dossier' ? 'Queue dossier companion' : 'Queue manuscript companion',
+      note: `latest visible lane is ${latest.kind}`,
+      kind: missingLane,
+      state: latest.status
+    };
+  }
+
+  return {
+    label:
+      kindFilter === 'pdf_dossier'
+        ? 'Refresh dossier lane'
+        : 'Refresh manuscript lane',
+    note: `latest ${kindFilter} is ${latest.status}`,
+    kind: kindFilter,
+    state: latest.status
+  };
 }
 
 function buildFormatReadiness(filteredJobs: ExportJob[], jobs: ExportJob[]) {

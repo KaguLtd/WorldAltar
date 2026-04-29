@@ -557,3 +557,62 @@ export function buildRegionFocusRail(
     }))
   ];
 }
+
+export function buildRegionFocusDeck(
+  selectedRecord: EntityRecord | null,
+  records: EntityRecord[]
+) {
+  const focus = buildRegionFocus(selectedRecord, records);
+  const rail = buildRegionFocusRail(selectedRecord, records);
+  const chain = buildTerritoryChain(selectedRecord, records);
+  const pulse = buildTerritoryPulse(selectedRecord, records);
+  const route = buildTerritoryRoute(selectedRecord, records);
+
+  if (
+    !focus.length &&
+    !rail.length &&
+    !chain.length &&
+    !pulse.length &&
+    !route.length
+  ) {
+    return [];
+  }
+
+  return [
+    ...focus.map((entry) => ({
+      label: entry.label,
+      value: entry.value,
+      note: 'region focus',
+      targetId: null
+    })),
+    ...rail.map((entry) => ({
+      label: entry.label,
+      value: entry.value,
+      note: 'focus rail',
+      targetId: null
+    })),
+    ...chain.map((entry) => ({
+      label: entry.label,
+      value: entry.value,
+      note: 'territory chain',
+      targetId: entry.targetId ?? null
+    })),
+    ...pulse.map((entry) => ({
+      label: entry.label,
+      value: entry.value,
+      note: 'territory pulse',
+      targetId: null
+    })),
+    ...route.map((entry, index) => ({
+      label:
+        index === 0
+          ? 'Route root'
+          : index === route.length - 1
+            ? 'Route tip'
+            : 'Route next',
+      value: entry.label,
+      note: 'territory route',
+      targetId: entry.targetId
+    }))
+  ];
+}

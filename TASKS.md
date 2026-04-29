@@ -110,6 +110,15 @@
 - [x] Faz 4 manuscript closing-slot handoff pass
 - [x] Faz 4 manuscript opening-slot handoff pass
 - [x] Faz 4 manuscript handoff queue pass
+- [x] Faz 4 manuscript launch rhythm pass
+- [x] Faz 4 manuscript handoff commands pass
+- [x] Faz 4 manuscript handoff edit cues pass
+- [x] Faz 4 manuscript handoff summary cue pass
+- [x] Faz 4 manuscript handoff title cue pass
+- [x] Faz 4 manuscript handoff edit assist pass
+- [x] Faz 4 manuscript selected launch assist pass
+- [x] Faz 3 region focus deck pass
+- [x] Faz 3 selected strip region focus pass
 - [x] Faz 4 relations chapter grouping pass
 - [x] Faz 6 export artifact grouping pass
 - [x] Faz 6 manuscript export metadata pass
@@ -120,9 +129,16 @@
 - [x] Faz 6 export manifest digest pass
 - [x] Faz 6 export history pass
 - [x] Faz 6 delivery checklist pass
+- [x] Faz 6 delivery receipt pass
+- [x] Faz 6 delivery lanes pass
+- [x] Faz 6 delivery pulse pass
+- [x] Faz 6 recent activity pass
+- [x] Faz 6 queue intent pass
+- [x] Faz 6 queue intent action pass
 - [x] Faz 6 format readiness pass
 - [x] Faz 6 target roots pass
 - [x] Faz 6 bundle contents pass
 - [x] Faz 5 manuscript folio strip pass
 - [x] Faz 5 detail luxury strip pass
 - [x] Faz 5 hover preview strip pass
+- [x] Faz 5 shell folio strip pass

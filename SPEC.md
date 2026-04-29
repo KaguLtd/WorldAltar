@@ -77,6 +77,14 @@ UI reality on `main`:
 - manuscript detail: selected scene handoff may also queue a chapter closing slot into the same create form
 - manuscript detail: selected scene handoff may also queue a chapter opening slot into the same create form
 - manuscript detail: selected scene handoff may also expose a compact handoff queue for opening, next-slot, closing, and follow-up planning
+- manuscript create: launch bar may also restate selected scene handoff rhythm near submit
+- manuscript detail: selected scene handoff may also restate opening/next/closing/follow-up intent as compact command chips near scene detail actions
+- manuscript detail: selected scene handoff may also append compact handoff cues into the active scene editor body without a second edit model
+- manuscript detail: selected scene handoff may also append a compact handoff cue into the active scene summary for faster edit continuity
+- manuscript detail: selected scene handoff may also append a compact handoff cue into the active scene title for faster retitling continuity
+- manuscript detail: selected scene handoff may also group title/summary/body cues inside a compact edit-assist surface with one-click apply-all
+- manuscript launch receipt: may also expose compact launch edit cues and replay them into title/summary/body
+- map lens: territory desk may also collapse focus/rail/chain/pulse/route into a single region-first focus deck
 - manuscript tree: chapter and scene cards may expose backlink-derived continuity chips for the selected world context
 - manuscript studio: chapter count + scene meta + word/read stats
 - manuscript preview: local Draft / Split / Book switch with two-page preview shell
@@ -136,6 +144,13 @@ UI reality on `main`:
 - manuscript preview also exposes folio strip and page ribbon as presentation-only premium layer
 - detail panel also exposes luxury strip chips as presentation-only premium layer
 - hover preview also exposes premium strip chips as presentation-only premium layer
+- map selected strip may also surface a compact region-first focus deck for the active territory chain
+- export lens may also surface a compact delivery receipt for the latest visible lane
+- export lens may also surface lane-oriented latest/prior delivery summaries
+- export lens may also surface a compact delivery pulse for visible lane status
+- export lens may also surface recent export activity in reverse chronological order
+- export lens may also surface a compact queue-intent hint based on visible lanes
+- export lens may also let the user queue the suggested lane directly from queue intent
 
 Frontend contract export kural:
 - aktif lens contractlari `src/modules/mvp-lenses.ts`
@@ -174,3 +189,6 @@ Deferred lensler repoda calisabilir ama:
 - startup boot path bloklayamaz
 - explicit local flag ister
 - canonical DB, stable id ve time engine disina cikamaz
+
+Premium shell notu:
+- app shell, world/lens/focus/theme/deferred state icin kompakt bir folio strip gosterebilir

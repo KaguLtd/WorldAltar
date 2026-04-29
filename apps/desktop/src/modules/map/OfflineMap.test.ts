@@ -6,6 +6,7 @@ import {
   buildTerritoryFocus,
   buildTerritoryHorizon,
   buildTerritoryPulse,
+  buildRegionFocusDeck,
   buildRegionFocus,
   buildRegionFocusRail,
   buildTerritoryRoute,
@@ -426,5 +427,45 @@ describe('territory desk ingredients', () => {
         targetId: null
       }
     ]);
+  });
+});
+
+describe('buildRegionFocusDeck', () => {
+  it('consolidates region focus, rail, chain, pulse, and route into one deck', () => {
+    const result = buildRegionFocusDeck(event, [
+      region,
+      childRegion,
+      location,
+      event
+    ]);
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        {
+          label: 'Region focus',
+          value: 'Steppe Heartland',
+          note: 'region focus',
+          targetId: null
+        },
+        {
+          label: 'Pressure',
+          value: '2',
+          note: 'region focus',
+          targetId: null
+        },
+        {
+          label: 'Year anchor',
+          value: '1204',
+          note: 'focus rail',
+          targetId: null
+        },
+        {
+          label: 'Route tip',
+          value: 'Raid at Dawn',
+          note: 'territory route',
+          targetId: 'evt_001'
+        }
+      ])
+    );
   });
 });

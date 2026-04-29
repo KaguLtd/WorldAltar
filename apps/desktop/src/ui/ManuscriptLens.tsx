@@ -251,6 +251,35 @@ export function ManuscriptLens({
         activeSceneIndex > 0 ? activeSceneIndex + 1 : 1
       )
     : [];
+  const sceneHandoffCommands = buildSceneHandoffCommands(
+    activeChapter?.node.title ?? 'Loose scene',
+    scene?.node.title ?? 'Loose scene',
+    activeSceneIndex > 0 ? activeSceneIndex + 1 : 1
+  );
+  const sceneHandoffEditCue = buildSceneHandoffEditCue(
+    activeChapter?.node.title ?? 'Loose scene',
+    scene?.node.title ?? 'Loose scene',
+    activeSceneIndex > 0 ? activeSceneIndex + 1 : 1
+  );
+  const sceneHandoffSummaryCue = buildSceneHandoffSummaryCue(
+    activeChapter?.node.title ?? 'Loose scene',
+    scene?.node.title ?? 'Loose scene',
+    activeSceneIndex > 0 ? activeSceneIndex + 1 : 1
+  );
+  const sceneHandoffTitleCue = buildSceneHandoffTitleCue(
+    activeChapter?.node.title ?? 'Loose scene',
+    scene?.node.title ?? 'Loose scene',
+    activeSceneIndex > 0 ? activeSceneIndex + 1 : 1
+  );
+  const sceneHandoffEditAssist = buildSceneHandoffEditAssist(
+    sceneHandoffTitleCue,
+    sceneHandoffSummaryCue,
+    sceneHandoffEditCue
+  );
+  const selectedLaunchEditAssist = sceneLaunchReceipt
+    ? buildSelectedLaunchEditAssist(sceneLaunchReceipt)
+    : [];
+  const sceneHandoffLaunchBar = buildSceneHandoffLaunchBar(sceneHandoffQueue);
 
   const applyQueueChapterOpener = () => {
     if (!selectedEntity || !selectedCreateChapter) {
@@ -417,6 +446,73 @@ export function ManuscriptLens({
     );
     setSceneBody(
       `${openingAnchor}\n\nPrevious scene: ${currentSceneTitle}\nChapter opening: ${openingChapterTitle}\nOpening image:\nPressure introduced:\nWhy this chapter begins here:`
+    );
+  };
+  const appendSelectedSceneHandoffCues = () => {
+    if (!scene) {
+      return;
+    }
+
+    const nextBody = draftBody.trim().length
+      ? `${draftBody}\n\n${sceneHandoffEditCue}`
+      : sceneHandoffEditCue;
+
+    onDraftBodyChange(nextBody);
+  };
+  const appendSelectedSceneHandoffSummary = () => {
+    if (!scene) {
+      return;
+    }
+
+    const nextSummary = draftSummary.trim().length
+      ? `${draftSummary} ${sceneHandoffSummaryCue}`
+      : sceneHandoffSummaryCue;
+
+    onDraftSummaryChange(nextSummary);
+  };
+  const appendSelectedSceneHandoffTitle = () => {
+    if (!scene) {
+      return;
+    }
+
+    const nextTitle = draftTitle.trim().length
+      ? `${draftTitle} ${sceneHandoffTitleCue}`
+      : sceneHandoffTitleCue;
+
+    onDraftTitleChange(nextTitle);
+  };
+  const appendAllSelectedSceneHandoffCues = () => {
+    if (!scene) {
+      return;
+    }
+
+    appendSelectedSceneHandoffTitle();
+    appendSelectedSceneHandoffSummary();
+    appendSelectedSceneHandoffCues();
+  };
+  const appendSelectedLaunchEditCues = () => {
+    if (!sceneLaunchReceipt) {
+      return;
+    }
+
+    const titleCue = `Launch ${sceneLaunchReceipt.title}`;
+    const summaryCue = `Launch replay: ${sceneLaunchReceipt.chapterTitle} / ${sceneLaunchReceipt.mode}.`;
+    const bodyCue = [
+      'Launch replay cues:',
+      `- Title: ${sceneLaunchReceipt.title}`,
+      `- Chapter: ${sceneLaunchReceipt.chapterTitle}`,
+      `- Mode: ${sceneLaunchReceipt.mode}`,
+      `- Seed: ${sceneLaunchReceipt.seeded ? 'on' : 'off'}`
+    ].join('\n');
+
+    onDraftTitleChange(
+      draftTitle.trim().length ? `${draftTitle} ${titleCue}` : titleCue
+    );
+    onDraftSummaryChange(
+      draftSummary.trim().length ? `${draftSummary} ${summaryCue}` : summaryCue
+    );
+    onDraftBodyChange(
+      draftBody.trim().length ? `${draftBody}\n\n${bodyCue}` : bodyCue
     );
   };
 
@@ -1103,6 +1199,15 @@ export function ManuscriptLens({
               </span>
             ))}
           </div>
+          {sceneHandoffLaunchBar.length ? (
+            <div className="manuscript-meta" aria-label="manuscript scene launch rhythm">
+              {sceneHandoffLaunchBar.map((entry) => (
+                <span key={entry.label} className="command-chip">
+                  {entry.label} {entry.value}
+                </span>
+              ))}
+            </div>
+          ) : null}
           {sceneLaunchReceipt ? (
             <div aria-label="manuscript scene launch receipt">
               <div className="manuscript-meta">
@@ -1119,8 +1224,19 @@ export function ManuscriptLens({
                   Seed {sceneLaunchReceipt.seeded ? 'on' : 'off'}
                 </span>
               </div>
-              {launchedSceneMatch ? (
-                <div className="detail-authoring-actions">
+              <div
+                className="theme-stack"
+                aria-label="manuscript scene launch assist"
+              >
+                {selectedLaunchEditAssist.map((entry) => (
+                  <article key={entry.label} className="theme-card is-active">
+                    <strong>{entry.label}</strong>
+                    <span>{entry.value}</span>
+                  </article>
+                ))}
+              </div>
+              <div className="detail-authoring-actions">
+                {launchedSceneMatch ? (
                   <button
                     className="button ghost-button"
                     onClick={() => setSelectedSceneId(launchedSceneMatch.id)}
@@ -1128,8 +1244,15 @@ export function ManuscriptLens({
                   >
                     Focus launched scene
                   </button>
-                </div>
-              ) : null}
+                ) : null}
+                <button
+                  className="button ghost-button"
+                  onClick={appendSelectedLaunchEditCues}
+                  type="button"
+                >
+                  Append launch edit cues
+                </button>
+              </div>
             </div>
           ) : null}
           <button
@@ -1447,6 +1570,27 @@ export function ManuscriptLens({
                   </article>
                 ))}
               </div>
+              <div
+                className="manuscript-meta"
+                aria-label="manuscript scene handoff commands"
+              >
+                {sceneHandoffCommands.map((entry) => (
+                  <span key={entry.label} className="command-chip">
+                    {entry.label} {entry.value}
+                  </span>
+                ))}
+              </div>
+              <div
+                className="theme-stack"
+                aria-label="manuscript scene edit assist"
+              >
+                {sceneHandoffEditAssist.map((entry) => (
+                  <article key={entry.label} className="theme-card is-active">
+                    <strong>{entry.label}</strong>
+                    <span>{entry.value}</span>
+                  </article>
+                ))}
+              </div>
               <div className="detail-authoring-actions">
                 <button
                   className="button ghost-button"
@@ -1476,9 +1620,37 @@ export function ManuscriptLens({
                 >
                   Queue closing from scene
                 </button>
+                <button
+                  className="button ghost-button"
+                  onClick={appendSelectedSceneHandoffCues}
+                  type="button"
+                >
+                  Append handoff cues
+                </button>
+                <button
+                  className="button ghost-button"
+                  onClick={appendSelectedSceneHandoffSummary}
+                  type="button"
+                >
+                  Append summary cue
+                </button>
+                <button
+                  className="button ghost-button"
+                  onClick={appendSelectedSceneHandoffTitle}
+                  type="button"
+                >
+                  Append title cue
+                </button>
+                <button
+                  className="button ghost-button"
+                  onClick={appendAllSelectedSceneHandoffCues}
+                  type="button"
+                >
+                  Append all edit cues
+                </button>
               </div>
             </section>
-            {sceneLaunchReceipt && sceneLaunchReceipt.title === scene.title ? (
+            {sceneLaunchReceipt && sceneLaunchReceipt.title === scene.node.title ? (
               <section
                 className="manuscript-links"
                 aria-label="manuscript selected launch"
@@ -1498,6 +1670,17 @@ export function ManuscriptLens({
                     Seed {sceneLaunchReceipt.seeded ? 'on' : 'off'}
                   </span>
                 </div>
+                <div
+                  className="theme-stack"
+                  aria-label="manuscript selected launch assist"
+                >
+                  {selectedLaunchEditAssist.map((entry) => (
+                    <article key={entry.label} className="theme-card is-active">
+                      <strong>{entry.label}</strong>
+                      <span>{entry.value}</span>
+                    </article>
+                  ))}
+                </div>
                 <div className="detail-authoring-actions">
                   <button
                     className="button ghost-button"
@@ -1505,6 +1688,13 @@ export function ManuscriptLens({
                     type="button"
                   >
                     Reuse launch setup
+                  </button>
+                  <button
+                    className="button ghost-button"
+                    onClick={appendSelectedLaunchEditCues}
+                    type="button"
+                  >
+                    Append launch edit cues
                   </button>
                 </div>
               </section>
@@ -1895,6 +2085,121 @@ function buildSceneHandoffQueue(
     {
       label: 'Follow-up',
       text: `Continue directly after ${sceneTitle}.`
+    }
+  ];
+}
+
+function buildSceneHandoffLaunchBar(
+  queue: Array<{
+    label: string;
+    text: string;
+  }>
+) {
+  return queue.map((entry) => ({
+    label: entry.label,
+    value: entry.text
+  }));
+}
+
+function buildSceneHandoffCommands(
+  chapterTitle: string,
+  sceneTitle: string,
+  nextSlotNumber: number
+) {
+  return [
+    {
+      label: 'Open',
+      value: `${chapterTitle} from ${sceneTitle}`
+    },
+    {
+      label: 'Next',
+      value: `slot ${nextSlotNumber}`
+    },
+    {
+      label: 'Close',
+      value: `${chapterTitle} pressure`
+    },
+    {
+      label: 'Follow-up',
+      value: `after ${sceneTitle}`
+    }
+  ];
+}
+
+function buildSceneHandoffEditCue(
+  chapterTitle: string,
+  sceneTitle: string,
+  nextSlotNumber: number
+) {
+  return [
+    'Scene handoff cues:',
+    `- Opening: re-open ${chapterTitle} from ${sceneTitle}.`,
+    `- Next slot: carry ${sceneTitle} into slot ${nextSlotNumber}.`,
+    `- Closing: settle the pressure after ${sceneTitle}.`,
+    `- Follow-up: continue directly after ${sceneTitle}.`
+  ].join('\n');
+}
+
+function buildSceneHandoffSummaryCue(
+  chapterTitle: string,
+  sceneTitle: string,
+  nextSlotNumber: number
+) {
+  return `Handoff: re-open ${chapterTitle}, carry ${sceneTitle} into slot ${nextSlotNumber}, then settle the pressure.`;
+}
+
+function buildSceneHandoffTitleCue(
+  chapterTitle: string,
+  sceneTitle: string,
+  nextSlotNumber: number
+) {
+  return `${chapterTitle} after ${sceneTitle} slot ${nextSlotNumber}`;
+}
+
+function buildSceneHandoffEditAssist(
+  titleCue: string,
+  summaryCue: string,
+  bodyCue: string
+) {
+  const bodyPreview = bodyCue
+    .split('\n')
+    .slice(0, 2)
+    .join(' ');
+
+  return [
+    {
+      label: 'Title cue',
+      value: titleCue
+    },
+    {
+      label: 'Summary cue',
+      value: summaryCue
+    },
+    {
+      label: 'Body cues',
+      value: bodyPreview
+    }
+  ];
+}
+
+function buildSelectedLaunchEditAssist(receipt: {
+  chapterTitle: string;
+  mode: 'free' | 'opening' | 'continuation';
+  seeded: boolean;
+  title: string;
+}) {
+  return [
+    {
+      label: 'Launch title',
+      value: `Launch ${receipt.title}`
+    },
+    {
+      label: 'Launch summary',
+      value: `Launch replay: ${receipt.chapterTitle} / ${receipt.mode}.`
+    },
+    {
+      label: 'Launch body',
+      value: `Title ${receipt.title} / Seed ${receipt.seeded ? 'on' : 'off'}`
     }
   ];
 }

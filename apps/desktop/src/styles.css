@@ -211,6 +211,19 @@ body {
   border-color: rgba(111, 156, 150, 0.26);
 }
 
+.shell-folio-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 10px 4px;
+}
+
+.shell-folio-strip .command-chip {
+  background:
+    linear-gradient(180deg, rgba(200, 155, 101, 0.12), rgba(21, 29, 37, 0.72)),
+    rgba(21, 29, 37, 0.72);
+}
+
 .workspace:hover,
 .detail-panel:hover,
 .rail-block:hover {

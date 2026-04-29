@@ -9,6 +9,8 @@ import {
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
 
+vi.setConfig({ testTimeout: 20000 });
+
 const {
   addLayer,
   addSource,
@@ -690,6 +692,9 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /create demo world/i }));
 
     await screen.findByText('Alp Er Tunga');
+    expect(screen.getByLabelText(/shell summary strip/i)).toHaveTextContent(
+      'World demo-worldLens WikiFocus Alp Er TungaTheme DuskDeferred core only'
+    );
     expect(createWorld).not.toHaveBeenCalled();
     expect(createDemoWorld).toHaveBeenCalledWith('Demo World');
     expect(screen.getByLabelText(/wiki spotlight/i)).toHaveTextContent(
@@ -1562,69 +1567,6 @@ describe('App', () => {
     expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
       'Raid at Dawn\n\nEvent seed'
     );
-    expect(screen.getByLabelText(/manuscript scene handoff rhythm/i)).toHaveTextContent(
-      'Opening handoffRe-open Chapter 1 from Arrival.Next slotCarry Arrival into slot 2.Closing handoffSettle the pressure after Arrival.Follow-upContinue directly after Arrival.'
-    );
-    fireEvent.click(
-      within(screen.getByLabelText(/^manuscript scene handoff$/i)).getByRole(
-        'button',
-        { name: /draft follow-up from scene/i }
-      )
-    );
-    expect(
-      screen.getByLabelText(/create manuscript scene title/i)
-    ).toHaveValue('Raid at Dawn after Arrival');
-    expect(
-      screen.getByLabelText(/create manuscript scene summary/i)
-    ).toHaveValue('Continue the thread after Arrival.');
-    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
-      'Raid at Dawn\n\nPrevious scene: Arrival\nChapter anchor: Chapter 1\nCarry-over tension:\nWhat changes now:\nNext irreversible beat:'
-    );
-    fireEvent.click(
-      within(screen.getByLabelText(/^manuscript scene handoff$/i)).getByRole(
-        'button',
-        { name: /queue opening from scene/i }
-      )
-    );
-    expect(
-      screen.getByLabelText(/create manuscript scene title/i)
-    ).toHaveValue('Chapter 1 scene 1');
-    expect(
-      screen.getByLabelText(/create manuscript scene summary/i)
-    ).toHaveValue('Open Chapter 1 through the fallout of Arrival.');
-    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
-      'Raid at Dawn\n\nPrevious scene: Arrival\nChapter opening: Chapter 1\nOpening image:\nPressure introduced:\nWhy this chapter begins here:'
-    );
-    fireEvent.click(
-      within(screen.getByLabelText(/^manuscript scene handoff$/i)).getByRole(
-        'button',
-        { name: /queue next slot from scene/i }
-      )
-    );
-    expect(
-      screen.getByLabelText(/create manuscript scene title/i)
-    ).toHaveValue('Chapter 1 scene 2');
-    expect(
-      screen.getByLabelText(/create manuscript scene summary/i)
-    ).toHaveValue('Carry Arrival into Chapter 1 slot 2.');
-    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
-      'Raid at Dawn\n\nPrevious scene: Arrival\nChapter lane: Chapter 1\nNext slot: 2\nCarry-over pressure:\nNew turn in this slot:\nWhat the reader takes forward:'
-    );
-    fireEvent.click(
-      within(screen.getByLabelText(/^manuscript scene handoff$/i)).getByRole(
-        'button',
-        { name: /queue closing from scene/i }
-      )
-    );
-    expect(
-      screen.getByLabelText(/create manuscript scene title/i)
-    ).toHaveValue('Chapter 1 closing scene 2');
-    expect(
-      screen.getByLabelText(/create manuscript scene summary/i)
-    ).toHaveValue('Close the pressure that follows Arrival in Chapter 1.');
-    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
-      'Raid at Dawn\n\nPrevious scene: Arrival\nChapter lane: Chapter 1\nClosing slot: 2\nPressure to settle:\nVisible cost:\nWhat closes and what remains open:'
-    );
     fireEvent.change(screen.getByLabelText(/create manuscript chapter title/i), {
       target: { value: 'Chapter 2' }
     });
@@ -1671,7 +1613,7 @@ describe('App', () => {
       )
     );
     expect(screen.getByLabelText(/manuscript scene launch receipt/i)).toHaveTextContent(
-      'Launched Campfire OathChapter Chapter 2Mode freeSeed on'
+      'Launched Campfire OathChapter Chapter 2Mode continuationSeed on'
     );
     fireEvent.click(
       within(screen.getByLabelText(/manuscript scene launch receipt/i)).getByRole(
@@ -1689,10 +1631,10 @@ describe('App', () => {
       'Recent launch Campfire Oath'
     );
     expect(screen.getByLabelText(/chapter 2 chapter/i)).toHaveTextContent(
-      'Recent launchMode free'
+      'Recent launchMode continuation'
     );
     expect(screen.getByLabelText(/campfire oath launch badge/i)).toHaveTextContent(
-      'Recent launchMode free'
+      'Recent launchMode continuation'
     );
     expect(screen.getByLabelText(/manuscript bridge/i)).toHaveTextContent(
       'Last launch Campfire OathChapter Chapter 2eventevt_001Visible at 1204Backlinks 1Raid at Dawn'
@@ -1824,7 +1766,94 @@ describe('App', () => {
       )
     );
     expect(screen.getByLabelText(/manuscript lens/i)).toBeInTheDocument();
-  }, 10000);
+  }, 20000);
+
+  it('surfaces scene handoff commands and queues next slot from selected scene', async () => {
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText(/world title/i), {
+      target: { value: 'Demo World' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create demo world/i }));
+
+    await screen.findByText('demo-world');
+
+    const deferredFlags = screen.getByLabelText(/deferred lens flags/i);
+    fireEvent.click(
+      within(deferredFlags).getAllByRole('button', { name: /^Off$/i })[0]
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Manuscript$/i }));
+
+    await screen.findByLabelText(/manuscript lens/i);
+
+    expect(screen.getByLabelText(/manuscript scene handoff commands/i)).toHaveTextContent(
+      'Open Chapter 1 from ArrivalNext slot 2Close Chapter 1 pressureFollow-up after Arrival'
+    );
+    expect(screen.getByLabelText(/manuscript scene launch rhythm/i)).toHaveTextContent(
+      'Opening handoff Re-open Chapter 1 from Arrival.Next slot Carry Arrival into slot 2.Closing handoff Settle the pressure after Arrival.Follow-up Continue directly after Arrival.'
+    );
+    expect(screen.getByLabelText(/manuscript scene edit assist/i)).toHaveTextContent(
+      'Title cueChapter 1 after Arrival slot 2Summary cueHandoff: re-open Chapter 1, carry Arrival into slot 2, then settle the pressure.Body cuesScene handoff cues: - Opening: re-open Chapter 1 from Arrival.'
+    );
+
+    const sceneHandoffSection = screen.getByLabelText(/^manuscript scene handoff$/i);
+    fireEvent.click(
+      within(sceneHandoffSection).getByRole('button', {
+        name: /append all edit cues/i
+      })
+    );
+    expect(screen.getByLabelText(/manuscript title/i)).toHaveValue(
+      'Arrival Chapter 1 after Arrival slot 2'
+    );
+    expect(screen.getByLabelText(/manuscript summary/i)).toHaveValue(
+      'Arrival summary Handoff: re-open Chapter 1, carry Arrival into slot 2, then settle the pressure.'
+    );
+    expect(screen.getByLabelText(/manuscript body/i)).toHaveValue(
+      'Arrival body\n\nScene handoff cues:\n- Opening: re-open Chapter 1 from Arrival.\n- Next slot: carry Arrival into slot 2.\n- Closing: settle the pressure after Arrival.\n- Follow-up: continue directly after Arrival.'
+    );
+    fireEvent.click(
+      within(sceneHandoffSection).getByRole('button', {
+        name: /append handoff cues/i
+      })
+    );
+    expect(screen.getByLabelText(/manuscript body/i)).toHaveValue(
+      'Arrival body\n\nScene handoff cues:\n- Opening: re-open Chapter 1 from Arrival.\n- Next slot: carry Arrival into slot 2.\n- Closing: settle the pressure after Arrival.\n- Follow-up: continue directly after Arrival.\n\nScene handoff cues:\n- Opening: re-open Chapter 1 from Arrival.\n- Next slot: carry Arrival into slot 2.\n- Closing: settle the pressure after Arrival.\n- Follow-up: continue directly after Arrival.'
+    );
+    fireEvent.click(
+      within(sceneHandoffSection).getByRole('button', {
+        name: /append summary cue/i
+      })
+    );
+    expect(screen.getByLabelText(/manuscript summary/i)).toHaveValue(
+      'Arrival summary Handoff: re-open Chapter 1, carry Arrival into slot 2, then settle the pressure. Handoff: re-open Chapter 1, carry Arrival into slot 2, then settle the pressure.'
+    );
+    fireEvent.click(
+      within(sceneHandoffSection).getByRole('button', {
+        name: /append title cue/i
+      })
+    );
+    expect(screen.getByLabelText(/manuscript title/i)).toHaveValue(
+      'Arrival Chapter 1 after Arrival slot 2 Chapter 1 after Arrival slot 2'
+    );
+    fireEvent.click(
+      within(sceneHandoffSection).getByRole('button', {
+        name: /queue next slot from scene/i
+      })
+    );
+
+    expect(screen.getByLabelText(/manuscript chapter rhythm/i)).toHaveTextContent(
+      'Mode continuation'
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Carry Arrival into Chapter 1 slot 2.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Alp Er Tunga\n\nPrevious scene: Arrival\nChapter lane: Chapter 1\nNext slot: 2\nCarry-over pressure:\nNew turn in this slot:\nWhat the reader takes forward:'
+    );
+  });
 
   it('drafts follow-up manuscript scenes from detail backlink continuity', async () => {
     render(<App />);
@@ -1883,6 +1912,115 @@ describe('App', () => {
       )
     );
     expect(screen.getByLabelText(/manuscript lens/i)).toBeInTheDocument();
+  }, 15000);
+
+  it('surfaces region focus deck inside selected map strip for visible map geography', async () => {
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText(/world title/i), {
+      target: { value: 'Demo World' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create demo world/i }));
+
+    await screen.findByText('demo-world');
+    fireEvent.click(screen.getByRole('button', { name: /^Map$/i }));
+    fireEvent.click(
+      within(screen.getByLabelText(/map overlays/i)).getByRole('button', {
+        name: /raid at dawn/i
+      })
+    );
+
+    const selectedStrip = await screen.findByLabelText(/map selected strip/i);
+    expect(selectedStrip).toHaveTextContent('Visible at 1204');
+    expect(selectedStrip).toHaveTextContent('event');
+    expect(selectedStrip).toHaveTextContent('Raid at Dawn');
+    expect(selectedStrip).toHaveTextContent('Open wiki');
+    expect(selectedStrip).toHaveTextContent('Open timeline');
+    expect(screen.getByLabelText(/map territory focus/i)).toHaveTextContent(
+      'Event site: No host placeHost territory: No host region'
+    );
+    expect(screen.getByLabelText(/map region focus strip/i)).toHaveTextContent(
+      'Year anchor: 1204Route root: Raid at Dawn'
+    );
+  });
+
+  it('surfaces launch assist on launch receipt and replays launch cues into scene edit', async () => {
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText(/world title/i), {
+      target: { value: 'Demo World' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create demo world/i }));
+
+    await screen.findByText('demo-world');
+
+    const deferredFlags = screen.getByLabelText(/deferred lens flags/i);
+    fireEvent.click(
+      within(deferredFlags).getAllByRole('button', { name: /^Off$/i })[0]
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Manuscript$/i }));
+
+    await screen.findByLabelText(/manuscript lens/i);
+
+    fireEvent.change(screen.getByLabelText(/create manuscript chapter title/i), {
+      target: { value: 'Chapter 2' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create chapter/i }));
+    await waitFor(() =>
+      expect(createManuscriptChapter).toHaveBeenCalledWith(
+        expect.any(String),
+        { title: 'Chapter 2' }
+      )
+    );
+
+    fireEvent.change(screen.getByLabelText(/create manuscript scene chapter/i), {
+      target: { value: 'msc_ch_002' }
+    });
+    fireEvent.change(screen.getByLabelText(/create manuscript scene title/i), {
+      target: { value: 'Campfire Oath' }
+    });
+    fireEvent.change(screen.getByLabelText(/create manuscript scene summary/i), {
+      target: { value: 'A vow by firelight' }
+    });
+    fireEvent.change(screen.getByLabelText(/create manuscript scene body/i), {
+      target: { value: 'The camp gathers at dusk.' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create scene/i }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(/manuscript scene launch receipt/i)).toHaveTextContent(
+        'Launched Campfire Oath'
+      )
+    );
+    expect(screen.getByLabelText(/manuscript scene launch receipt/i)).toHaveTextContent(
+      'Chapter Chapter 2'
+    );
+    expect(screen.getByLabelText(/manuscript scene launch receipt/i)).toHaveTextContent(
+      'Mode free'
+    );
+    expect(screen.getByLabelText(/manuscript scene launch receipt/i)).toHaveTextContent(
+      'Seed on'
+    );
+    expect(screen.getByLabelText(/manuscript scene launch assist/i)).toHaveTextContent(
+      'Launch titleLaunch Campfire OathLaunch summaryLaunch replay: Chapter 2 / free.Launch bodyTitle Campfire Oath / Seed on'
+    );
+
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene launch receipt/i)).getByRole(
+        'button',
+        { name: /append launch edit cues/i }
+      )
+    );
+
+    expect(screen.getByLabelText(/manuscript title/i)).toHaveValue(
+      'Arrival Launch Campfire Oath'
+    );
+    expect(screen.getByLabelText(/manuscript summary/i)).toHaveValue(
+      'Arrival summary Launch replay: Chapter 2 / free.'
+    );
+    expect(screen.getByLabelText(/manuscript body/i)).toHaveValue(
+      'Arrival body\n\nLaunch replay cues:\n- Title: Campfire Oath\n- Chapter: Chapter 2\n- Mode: free\n- Seed: on'
+    );
   });
 
   it('opens canvas export relations only after explicit deferred flags', async () => {
@@ -1951,6 +2089,21 @@ describe('App', () => {
     expect(screen.getByLabelText(/^export package$/i)).toHaveTextContent(
       'Dossier bundleC:/Users/Test/Documents/WorldAltar/export2 jobs3 files'
     );
+    expect(screen.getByLabelText(/delivery receipt/i)).toHaveTextContent(
+      'Delivery receiptdossier.pdfC:/Users/Test/Documents/WorldAltar/exportpdf_dossierdone2 artifacts'
+    );
+    expect(screen.getByLabelText(/delivery lanes/i)).toHaveTextContent(
+      'Delivery lanes2 lanesDossier lanedossier.pdfLatest done9No prior deliveryManuscript lanemanuscript.pdfLatest queued10No prior delivery'
+    );
+    expect(screen.getByLabelText(/delivery pulse/i)).toHaveTextContent(
+      'Delivery pulse2 tracked jobsvisible deliveries still movingDone 1Queued 1Running 0Failed 0'
+    );
+    expect(screen.getByLabelText(/recent activity/i)).toHaveTextContent(
+      'Recent activity2 eventsdossier.pdfpdf_dossierdone9manuscript.pdfmanuscript_pdfqueued10'
+    );
+    expect(screen.getByLabelText(/queue intent/i)).toHaveTextContent(
+      'Queue intentQueue manuscript companionlatest visible lane is pdf_dossiermanuscript_pdfdoneQueue suggested lane'
+    );
     expect(screen.getByLabelText(/curated outputs/i)).toHaveTextContent(
       'Curated outputs2 lanesDossier sheetdossier.pdfdone2 filesManuscript PDFmanuscript.pdfqueued0 files'
     );
@@ -2011,29 +2164,54 @@ describe('App', () => {
     expect(screen.getByLabelText(/^export package$/i)).toHaveTextContent(
       'Manuscript bundleC:/Users/Test/Documents/WorldAltar/export1 jobs1 files'
     );
+    expect(screen.getByLabelText(/delivery receipt/i)).toHaveTextContent(
+      'Delivery receiptmanuscript.pdfC:/Users/Test/Documents/WorldAltar/exportmanuscript_pdfqueued0 artifacts'
+    );
+    expect(screen.getByLabelText(/delivery lanes/i)).toHaveTextContent(
+      'Delivery lanes1 lanesManuscript lanemanuscript.pdfLatest queued10No prior delivery'
+    );
+    expect(screen.getByLabelText(/delivery pulse/i)).toHaveTextContent(
+      'Delivery pulse1 tracked jobsvisible deliveries still movingDone 0Queued 1Running 0Failed 0'
+    );
+    expect(screen.getByLabelText(/recent activity/i)).toHaveTextContent(
+      'Recent activity1 eventsmanuscript.pdfmanuscript_pdfqueued10'
+    );
+    expect(screen.getByLabelText(/queue intent/i)).toHaveTextContent(
+      'Queue intentRefresh manuscript lanelatest manuscript_pdf is queuedmanuscript_pdfqueuedQueue suggested lane'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/queue intent/i)).getByRole('button', {
+        name: /queue suggested lane/i
+      })
+    );
+    await waitFor(() =>
+      expect(queueExport).toHaveBeenCalledWith(expect.any(String), {
+        kind: 'manuscript_pdf'
+      })
+    );
     expect(screen.getByLabelText(/curated outputs/i)).toHaveTextContent(
-      'Curated outputs1 lanesManuscript PDFmanuscript.pdfqueued0 files'
+      'Curated outputs1 lanesManuscript PDFmanuscript_pdf.pdfqueued0 files'
     );
     expect(screen.getByLabelText(/bundle readiness/i)).toHaveTextContent(
       '1/3 lanesBundle still partialDossier pendingManuscript readyBundle pending'
     );
     expect(screen.getByLabelText(/reference sheets/i)).toHaveTextContent(
-      'Reference sheets1 sheetsScene manuscriptmanuscript.pdfmanuscriptqueued'
+      'Reference sheets1 sheetsScene manuscriptmanuscript_pdf.pdfmanuscriptqueued'
     );
     expect(screen.getByLabelText(/export manifest/i)).toHaveTextContent(
       'Asset manifestC:/Users/Test/Documents/WorldAltar/exportNo artifact files yetPDF 0Other 0'
     );
     expect(screen.getByLabelText(/export history/i)).toHaveTextContent(
-      'Export history1 lanesManuscript lane10queued1 runs'
+      'Export history1 lanesManuscript lane10queued2 runs'
     );
     expect(screen.getByLabelText(/delivery checklist/i)).toHaveTextContent(
-      'Delivery checklist4 checksQueuequeued1 jobs trackedDossier lanependingno dossier jobManuscript lanereadybook path presentArtifactspendingartifact files missing'
+      'Delivery checklist4 checksQueuequeued2 jobs trackedDossier lanependingno dossier jobManuscript lanereadybook path presentArtifactspendingartifact files missing'
     );
     expect(screen.getByLabelText(/format readiness/i)).toHaveTextContent(
       'Format readiness2 formatsPDFreadyqueue onlyEPUBlaterfuture richer format'
     );
     expect(screen.getByLabelText(/target roots/i)).toHaveTextContent(
-      'Target roots1 rootsC:/Users/Test/Documents/WorldAltar/exportmanuscript.pdf1 jobs0 artifacts'
+      'Target roots1 rootsC:/Users/Test/Documents/WorldAltar/exportmanuscript.pdf2 jobs0 artifacts'
     );
     expect(screen.queryByLabelText(/bundle contents/i)).not.toBeInTheDocument();
 

@@ -798,3 +798,67 @@ Reason: Faz 4 chapter opening ritmi selected scene uzerinden de hizlansin ama ay
 ### D-181 Manuscript handoff queue stays local and scene-derived
 Manuscript selected scene detail, opening/next-slot/closing/follow-up niyetlerini kisa bir handoff queue olarak da gosterebilir; bu queue yalnizca mevcut scene detail ve active chapter sirasindan turetilir.
 Reason: Faz 4 scene-to-scene planning tek bakista da okunabilsin ama ayri queue persistence'i, ikinci planning store'u ya da yeni sequencing seam'i acilmasin.
+
+### D-182 Manuscript launch rhythm stays local and handoff-derived
+Manuscript create scene launch bar, selected scene handoff queue varsa ayni niyetleri submit noktasina yakin kompakt chip'ler olarak da gosterebilir; bu yalnizca mevcut handoff queue'dan turetilir.
+Reason: Faz 4 handoff niyeti create kararina yakin da gorunsun ama ayri launch-planner persistence'i, ikinci launch queue modeli ya da yeni seam acilmasin.
+
+### D-183 Manuscript handoff commands stay local and scene-derived
+Manuscript selected scene detail, handoff queue'daki opening/next-slot/closing/follow-up niyetlerini ayni yerde daha kisa command chip'ler olarak da gosterebilir; bu chip'ler yalnizca mevcut scene detail ve handoff queue'dan turetilir.
+Reason: Faz 4 selected scene detail daha operasyonel bir planning desk gibi hissedilsin ama ayri command persistence'i, ikinci scene-control modeli ya da yeni seam acilmasin.
+
+### D-184 Manuscript handoff edit cues stay local and scene-derived
+Manuscript selected scene detail, ayni handoff niyetlerini aktif scene editor govdesine kisa cue bloklari olarak da ekleyebilir; bu aksiyon yalnizca mevcut scene detail, mevcut draft body state'i ve mevcut setter seam'ini kullanir.
+Reason: Faz 4 create planning ile edit ritmi daha yakin dursun ama ayri edit-assist persistence'i, ikinci manuscript editor modeli ya da yeni seam acilmasin.
+
+### D-185 Manuscript handoff summary cue stays local and scene-derived
+Manuscript selected scene detail, ayni handoff niyetlerini aktif scene summary alanina tek satirlik bir cue olarak da ekleyebilir; bu aksiyon yalnizca mevcut scene detail, mevcut draft summary state'i ve mevcut setter seam'ini kullanir.
+Reason: Faz 4 selected scene edit ritmi summary seviyesinde de hizlansin ama ayri summary-assist persistence'i, ikinci edit modeli ya da yeni seam acilmasin.
+
+### D-186 Manuscript handoff title cue stays local and scene-derived
+Manuscript selected scene detail, ayni handoff niyetlerini aktif scene title alanina kisa bir retitling cue olarak da ekleyebilir; bu aksiyon yalnizca mevcut scene detail, mevcut draft title state'i ve mevcut setter seam'ini kullanir.
+Reason: Faz 4 selected scene edit ritmi title seviyesinde de hizlansin ama ayri title-assist persistence'i, ikinci edit modeli ya da yeni seam acilmasin.
+
+### D-187 Manuscript handoff edit assist stays local and scene-derived
+Manuscript selected scene detail, title/summary/body handoff cue'larini kompakt bir edit-assist yuzeyinde birlikte gosterebilir ve tek tikla hepsini mevcut draft alanlarina uygulayabilir; bu yalnizca mevcut local draft state'leri ve mevcut setter seam'larini kullanir.
+Reason: Faz 4 selected scene authoring daha hizli ve daha tek masada hissedilsin ama ayri assist persistence'i, ikinci editor modeli ya da yeni seam acilmasin.
+
+### D-188 Manuscript launch assist stays local and receipt-derived
+Manuscript launch receipt ve uygun oldugunda selected launch bolumu, ayni receipt'ten turetilen title/summary/body cue'larini kompakt bir assist yuzeyinde gosterebilir ve tek tikla aktif scene editor alanlarina geri uygulayabilir; bu yalnizca mevcut local receipt state'i ve mevcut draft setter seam'larini kullanir.
+Reason: Faz 4 launch followthrough sadece create formuna degil scene edit ritmine de geri aksin ama ayri launch-assist persistence'i, ikinci receipt modeli ya da yeni seam acilmasin.
+
+### D-189 Map region focus deck stays typed-link derived
+Map territory desk, mevcut focus/rail/chain/pulse/route turevlerini tek bir region-first focus deck icinde de toplayabilir; bu deck yalnizca mevcut typed link turevlerinden hesaplanir.
+Reason: Faz 3 kapanisa giderken harita reasoning katmanlari daha toparli gorunsun ama ayri map-planner persistence'i, yeni territory schema'si ya da ikinci relation store'u acilmasin.
+
+### D-190 Map selected strip can replay the region focus deck
+Map selected strip, ayni region-first focus deck'i secili kayit akisinda da kompakt chip'ler olarak gosterebilir; bu replay yalnizca mevcut focus deck'ten turetilir.
+Reason: Faz 3 map reasoning sadece alt bantta degil secili kayit akisinda da merkez hissedilsin ama ayri selected-map planner persistence'i, yeni UI store'u ya da ikinci territory seam'i acilmasin.
+
+### D-191 Export delivery receipt stays latest-job derived
+Export lens, latest visible job icin hedef root, primary artifact ve artifact sayisini kompakt bir delivery receipt olarak da gosterebilir; bu receipt yalnizca mevcut export job listesinden turetilir.
+Reason: Faz 6 artifact hatti daha teslimata yakin hissedilsin ama ayri delivery persistence'i, yeni publish store'u ya da ikinci export planner modeli acilmasin.
+
+### D-192 Export delivery lanes stay history-derived
+Export lens, lane history uzerinden her export kind icin latest/prior teslimat ozetini de gosterebilir; bu lanes yalnizca mevcut export job listesi ve zaman sirasindan turetilir.
+Reason: Faz 6 teslimat gecmisi daha okunur olsun ama ayri release timeline persistence'i, yeni shipment modeli ya da ikinci export history store'u acilmasin.
+
+### D-193 Export delivery pulse stays status-derived
+Export lens, gorunen export job seti icin done/queued/running/failed dagilimini kompakt bir delivery pulse olarak da gosterebilir; bu pulse yalnizca mevcut job status alanlarindan turetilir.
+Reason: Faz 6 teslimat ekrani daha operasyonel hissedilsin ama ayri queue monitor persistence'i, yeni runtime dashboard modeli ya da ikinci export state store'u acilmasin.
+
+### D-194 Export recent activity stays job-list derived
+Export lens, gorunen export job setinin en son hareketlerini ters kronolojik bir activity listesi olarak da gosterebilir; bu liste yalnizca mevcut export job zaman sirasi ve artifact/target alanlarindan turetilir.
+Reason: Faz 6 teslimat akisi daha yasayan bir queue hissi versin ama ayri activity log persistence'i, yeni audit modeli ya da ikinci export event store'u acilmasin.
+
+### D-195 Export queue intent stays filter-and-history derived
+Export lens, aktif filter ve gorunen lane history uzerinden bir sonraki mantikli queue yonunu kompakt bir intent olarak da gosterebilir; bu intent yalnizca mevcut filter state'i ve export job listesinden turetilir.
+Reason: Faz 6 queue eylemi daha yonlendirici hissedilsin ama ayri recommendation persistence'i, yeni planner modeli ya da ikinci export control store'u acilmasin.
+
+### D-196 Export queue intent can trigger the suggested lane
+Export lens, queue intent yuzeyinden ayni onerilen lane'i dogrudan queue edebilir; bu aksiyon yalnizca mevcut `onQueue` seam'ini kullanir.
+Reason: Faz 6 export ekraninda onerilen sonraki adim daha dogrudan uygulanabilsin ama ayri intent workflow persistence'i, yeni action store'u ya da ikinci queue seam'i acilmasin.
+
+### D-197 Shell folio strip stays app-state derived
+App shell, world slug, aktif lens, secili fokus, tema ve deferred durumunu kompakt bir folio strip olarak da gosterebilir; bu strip yalnizca mevcut app state'ten turetilir.
+Reason: Faz 5 premium shell hissi daha erken gelsin ama ayri shell-presentation persistence'i, yeni layout store'u ya da ikinci command seam'i acilmasin.

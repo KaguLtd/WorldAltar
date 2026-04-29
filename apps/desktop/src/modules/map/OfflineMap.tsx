@@ -17,6 +17,7 @@ import {
   buildTerritoryFocus,
   buildTerritoryHorizon,
   buildTerritoryPulse,
+  buildRegionFocusDeck,
   buildRegionFocus,
   buildRegionFocusRail,
   buildTerritoryRoute,
@@ -230,6 +231,10 @@ export function OfflineMap({
   );
   const regionFocusRail = useMemo(
     () => buildRegionFocusRail(selectedRecord, records),
+    [records, selectedRecord]
+  );
+  const regionFocusDeck = useMemo(
+    () => buildRegionFocusDeck(selectedRecord, records),
     [records, selectedRecord]
   );
 
@@ -537,6 +542,37 @@ export function OfflineMap({
           </div>
         </section>
       ) : null}
+      {regionFocusDeck.length ? (
+        <section className="timeline-band" aria-label="map region focus deck">
+          <div className="timeline-band-head">
+            <strong>Region focus deck</strong>
+            <span>{selectedRecord?.common.id ?? 'none'}</span>
+          </div>
+          <div className="theme-stack">
+            {regionFocusDeck.map((entry) => (
+              <article
+                key={`${entry.label}-${entry.value}-${entry.note}`}
+                className="theme-card is-active"
+              >
+                <strong>{entry.label}</strong>
+                <span>{entry.value}</span>
+                <span className="scene-card-meta">
+                  <span>{entry.note}</span>
+                </span>
+                {entry.targetId ? (
+                  <button
+                    className="button ghost-button"
+                    onClick={() => onSelect(entry.targetId as string)}
+                    type="button"
+                  >
+                    Open focus
+                  </button>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <section className="map-type-strip" aria-label="map type strip">
         {typeStrip.map((entry) => (
           <button
@@ -727,6 +763,29 @@ export function OfflineMap({
                   {entry.label}: {entry.value}
                 </button>
               ))}
+            </div>
+          ) : null}
+          {regionFocusDeck.length ? (
+            <div className="map-overlay-stack" aria-label="map region focus strip">
+              {regionFocusDeck.map((entry) =>
+                entry.targetId ? (
+                  <button
+                    key={`${entry.label}-${entry.value}-${entry.note}`}
+                    className="map-overlay-chip is-active"
+                    onClick={() => onSelect(entry.targetId as string)}
+                    type="button"
+                  >
+                    {entry.label}: {entry.value}
+                  </button>
+                ) : (
+                  <span
+                    key={`${entry.label}-${entry.value}-${entry.note}`}
+                    className="map-overlay-chip"
+                  >
+                    {entry.label}: {entry.value}
+                  </span>
+                )
+              )}
             </div>
           ) : null}
           {territoryStatus.length ? (

@@ -481,6 +481,15 @@ export function App() {
     : null;
   const currentTheme =
     THEME_OPTIONS.find((option) => option.id === theme) ?? THEME_OPTIONS[0];
+  const shellFolio = [
+    `World ${project?.slug ?? 'none'}`,
+    `Lens ${activeLens}`,
+    `Focus ${selectedEntity?.common.title ?? 'none'}`,
+    `Theme ${currentTheme.label}`,
+    enabledDeferredLabels.length
+      ? `Deferred ${enabledDeferredLabels.length}`
+      : 'Deferred core only'
+  ];
   const timelineRecords = [...filteredRecords].sort(
     (left, right) =>
       (left.common.startYear ?? year) - (right.common.startYear ?? year)
@@ -1062,6 +1071,13 @@ export function App() {
             </span>
           </div>
         </header>
+        <div className="shell-folio-strip" aria-label="shell summary strip">
+          {shellFolio.map((entry) => (
+            <span key={entry} className="command-chip">
+              {entry}
+            </span>
+          ))}
+        </div>
 
         <section className="shell-grid">
           <LensRail
