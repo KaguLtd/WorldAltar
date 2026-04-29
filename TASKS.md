@@ -53,12 +53,63 @@
 - [x] Faz 3 map legend pass
 - [x] Faz 3 map overlay semantic count pass
 - [x] Faz 3 map year micro-copy pass
+- [x] Faz 3 map year shift pass
+- [x] Faz 3 map spatial ledger pass
+- [x] Faz 3 map relation ledger pass
+- [x] Faz 3 map territory bands pass
+- [x] Faz 3 map territory focus pass
+- [x] Faz 3 map territory horizon pass
+- [x] Faz 3 map territory status pass
+- [x] Faz 3 map territory route pass
+- [x] Faz 3 map territory chain pass
+- [x] Faz 3 map territory pulse pass
+- [x] Faz 3 map region focus pass
+- [x] Faz 3 map region focus rail pass
+- [x] Faz 3 map territory desk pass
 - [x] Faz 2 spotlight authoring pass
+- [x] Faz 2 detail draft assist pass
 - [x] Faz 4 manuscript bridge pass
 - [x] Faz 4 manuscript mention picker pass
 - [x] Faz 4 manuscript timeline context pass
 - [x] Faz 4 caret-aware mention insert pass
 - [x] Faz 4 wiki scene-context pass
+- [x] Faz 4 detail-to-manuscript scene draft pass
+- [x] Faz 4 manuscript scene prefill pass
+- [x] Faz 4 manuscript scene scaffold pass
+- [x] Faz 4 manuscript scene continuity pass
+- [x] Faz 4 detail follow-up draft pass
+- [x] Faz 4 manuscript tree continuity pass
+- [x] Faz 4 manuscript chapter affinity pass
+- [x] Faz 4 manuscript chapter rhythm pass
+- [x] Faz 4 manuscript composition mode pass
+- [x] Faz 4 manuscript composition guide pass
+- [x] Faz 4 manuscript composition deck pass
+- [x] Faz 4 manuscript composition ledger pass
+- [x] Faz 4 manuscript composition beats pass
+- [x] Faz 4 manuscript composition blocks pass
+- [x] Faz 4 manuscript composition queue pass
+- [x] Faz 4 manuscript reserve slot pass
+- [x] Faz 4 manuscript chapter ordering pass
+- [x] Faz 4 manuscript scene lanes pass
+- [x] Faz 4 manuscript scene sequence pass
+- [x] Faz 4 manuscript scene outline pass
+- [x] Faz 4 manuscript scene storyboard pass
+- [x] Faz 4 manuscript scene planning strip pass
+- [x] Faz 4 manuscript scene planning desk pass
+- [x] Faz 4 manuscript scene planning HUD pass
+- [x] Faz 4 manuscript scene planning commands pass
+- [x] Faz 4 manuscript scene launch bar pass
+- [x] Faz 4 manuscript scene launch receipt pass
+- [x] Faz 4 manuscript launch followthrough pass
+- [x] Faz 4 manuscript launch badge pass
+- [x] Faz 4 manuscript selected launch pass
+- [x] Faz 4 manuscript launch reuse pass
+- [x] Faz 4 manuscript launch focus pass
+- [x] Faz 4 manuscript scene handoff pass
+- [x] Faz 4 manuscript next-slot handoff pass
+- [x] Faz 4 manuscript closing-slot handoff pass
+- [x] Faz 4 manuscript opening-slot handoff pass
+- [x] Faz 4 manuscript handoff queue pass
 - [x] Faz 4 relations chapter grouping pass
 - [x] Faz 6 export artifact grouping pass
 - [x] Faz 6 manuscript export metadata pass

@@ -38,6 +38,8 @@ pub struct ExportJob {
   pub kind: ExportKind,
   pub status: String,
   pub target_path: String,
+  #[serde(default)]
+  pub primary_artifact_path: Option<String>,
   pub artifact_paths: Vec<String>,
   pub created_at: String,
 }
@@ -106,13 +108,18 @@ pub fn queue_export(database_path: &Path, request: ExportRequest) -> Result<Expo
   };
 
   fs::write(&target_path, pdf_bytes).map_err(|err| err.to_string())?;
+  let primary_artifact_path = target_path.display().to_string();
 
   let job = ExportJob {
     id: format!("exp_{now}"),
     kind: request.kind,
     status: "done".into(),
-    target_path: target_path.display().to_string(),
-    artifact_paths: vec![asset_manifest_path.display().to_string()],
+    target_path: primary_artifact_path.clone(),
+    primary_artifact_path: Some(primary_artifact_path),
+    artifact_paths: vec![
+      target_path.display().to_string(),
+      asset_manifest_path.display().to_string(),
+    ],
     created_at: now,
   };
 

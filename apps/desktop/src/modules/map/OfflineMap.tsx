@@ -11,6 +11,17 @@ import {
   OFFLINE_MAP_PACKAGE,
   type OfflineMapPackage
 } from './contracts';
+import {
+  buildTerritoryBands,
+  buildTerritoryChain,
+  buildTerritoryFocus,
+  buildTerritoryHorizon,
+  buildTerritoryPulse,
+  buildRegionFocus,
+  buildRegionFocusRail,
+  buildTerritoryRoute,
+  buildTerritoryStatus
+} from './territory';
 
 type OfflineMapProps = {
   records: EntityRecord[];
@@ -19,6 +30,8 @@ type OfflineMapProps = {
   onSelect: (id: string) => void;
   onJump: (lens: 'Wiki' | 'Timeline', id: string) => void;
 };
+
+type MapScope = 'all' | EntityRecord['type'];
 
 const GEOJSON_SOURCE_ID = 'worldaltar-markers';
 const CIRCLE_LAYER_ID = 'worldaltar-markers-circle';
@@ -34,46 +47,59 @@ export function OfflineMap({
   const mapRef = useRef<MapLibreMap | null>(null);
   const loadedRef = useRef(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [scope, setScope] = useState<MapScope>('all');
   const [mapPackage, setMapPackage] =
     useState<OfflineMapPackage>(OFFLINE_MAP_PACKAGE);
   const [mapPackageSource, setMapPackageSource] = useState<
     'manifest' | 'fallback'
   >('fallback');
+  const scopedRecords = useMemo(
+    () =>
+      scope === 'all'
+        ? records
+        : records.filter((record) => record.type === scope),
+    [records, scope]
+  );
   const markers = useMemo(
-    () => buildMarkerGeoJson(records, selectedEntityId),
-    [records, selectedEntityId]
+    () => buildMarkerGeoJson(scopedRecords, selectedEntityId),
+    [scopedRecords, selectedEntityId]
   );
   const focus =
     markers.features.find((feature) => feature.properties.selected) ??
     markers.features[0] ??
     null;
-  const geocodedRecords = records.filter(
+  const geocodedRecords = scopedRecords.filter(
     (record) =>
       record.common.latitude !== null && record.common.longitude !== null
   );
   const hoveredRecord =
-    records.find((record) => record.common.id === hoveredId) ??
+    scopedRecords.find((record) => record.common.id === hoveredId) ??
+    scopedRecords.find((record) => record.common.id === selectedEntityId) ??
     records.find((record) => record.common.id === selectedEntityId) ??
     null;
   const overlays = useMemo(
     () => ({
-      regions: records.filter((record) => record.type === 'region').slice(0, 3),
-      events: records.filter((record) => record.type === 'event').slice(0, 3),
-      locations: records
+      regions: scopedRecords
+        .filter((record) => record.type === 'region')
+        .slice(0, 3),
+      events: scopedRecords.filter((record) => record.type === 'event').slice(0, 3),
+      locations: scopedRecords
         .filter((record) => record.type === 'location')
         .slice(0, 3)
     }),
-    [records]
+    [scopedRecords]
   );
   const selectedRecord =
-    records.find((record) => record.common.id === selectedEntityId) ?? null;
+    scopedRecords.find((record) => record.common.id === selectedEntityId) ??
+    records.find((record) => record.common.id === selectedEntityId) ??
+    null;
   const overlayCounts = useMemo(
     () => ({
-      regions: records.filter((record) => record.type === 'region').length,
-      events: records.filter((record) => record.type === 'event').length,
-      locations: records.filter((record) => record.type === 'location').length
+      regions: scopedRecords.filter((record) => record.type === 'region').length,
+      events: scopedRecords.filter((record) => record.type === 'event').length,
+      locations: scopedRecords.filter((record) => record.type === 'location').length
     }),
-    [records]
+    [scopedRecords]
   );
   const typeStrip = useMemo(
     () => [
@@ -99,6 +125,112 @@ export function OfflineMap({
       }
     ],
     [records]
+  );
+  const yearResonance = useMemo(() => {
+    const typedCounts = {
+      character: scopedRecords.filter((record) => record.type === 'character')
+        .length,
+      region: scopedRecords.filter((record) => record.type === 'region').length,
+      event: scopedRecords.filter((record) => record.type === 'event').length,
+      location: scopedRecords.filter((record) => record.type === 'location')
+        .length
+    };
+    const dominant = (Object.entries(typedCounts) as Array<
+      [EntityRecord['type'], number]
+    >).sort((left, right) => right[1] - left[1])[0];
+    const ongoingCount = scopedRecords.filter((record) => record.common.isOngoing)
+      .length;
+
+    return {
+      dominantLabel:
+        dominant && dominant[1] > 0
+          ? `${dominant[0]} focus`
+          : 'No dominant layer',
+      dominantCount: dominant?.[1] ?? 0,
+      ongoingCount
+    };
+  }, [scopedRecords]);
+  const yearShift = useMemo(() => {
+    const openingCount = scopedRecords.filter(
+      (record) => record.common.startYear === year
+    ).length;
+    const closingCount = scopedRecords.filter(
+      (record) => record.common.endYear === year
+    ).length;
+    const anchoredCount = scopedRecords.filter(
+      (record) => record.common.startYear !== null || record.common.endYear !== null
+    ).length;
+
+    return {
+      openingCount,
+      closingCount,
+      anchoredCount
+    };
+  }, [scopedRecords, year]);
+  const spatialLedger = useMemo(
+    () => [
+      {
+        label: 'Regions',
+        count: scopedRecords.filter((record) => record.type === 'region').length,
+        note: 'territory memory'
+      },
+      {
+        label: 'Events',
+        count: scopedRecords.filter((record) => record.type === 'event').length,
+        note: 'geography pressure'
+      },
+      {
+        label: 'Places',
+        count: scopedRecords.filter((record) => record.type === 'location').length,
+        note: 'travel anchors'
+      },
+      {
+        label: 'Geocoded',
+        count: geocodedRecords.length,
+        note: 'marker surface'
+      }
+    ],
+    [geocodedRecords.length, scopedRecords]
+  );
+  const relationLedger = useMemo(
+    () => buildRelationLedger(selectedRecord, records),
+    [records, selectedRecord]
+  );
+  const territoryBands = useMemo(
+    () => buildTerritoryBands(scopedRecords, records, selectedRecord),
+    [records, scopedRecords, selectedRecord]
+  );
+  const territoryFocus = useMemo(
+    () => buildTerritoryFocus(selectedRecord, records),
+    [records, selectedRecord]
+  );
+  const territoryHorizon = useMemo(
+    () => buildTerritoryHorizon(selectedRecord, records),
+    [records, selectedRecord]
+  );
+  const territoryStatus = useMemo(
+    () => buildTerritoryStatus(selectedRecord, records),
+    [records, selectedRecord]
+  );
+  const territoryRoute = useMemo(
+    () => buildTerritoryRoute(selectedRecord, records),
+    [records, selectedRecord]
+  );
+  const territoryChain = useMemo(
+    () => buildTerritoryChain(selectedRecord, records),
+    [records, selectedRecord]
+  );
+  const territoryPulse = useMemo(
+    () => buildTerritoryPulse(selectedRecord, records),
+    [records, selectedRecord]
+  );
+  const regionFocus = useMemo(
+    () => buildRegionFocus(selectedRecord, records),
+    [records, selectedRecord]
+  );
+  const regionFocusRail = useMemo(
+    () => buildRegionFocusRail(selectedRecord, records),
+    [records, selectedRecord]
   );
 
   useEffect(() => {
@@ -199,7 +331,7 @@ export function OfflineMap({
       <section className="map-summary" aria-label="map summary">
         <div className="map-summary-card">
           <span>Visible</span>
-          <strong>{records.length}</strong>
+          <strong>{scopedRecords.length}</strong>
         </div>
         <div className="map-summary-card">
           <span>Geocoded</span>
@@ -207,12 +339,12 @@ export function OfflineMap({
         </div>
         <div className="map-summary-card">
           <span>Events</span>
-          <strong>{records.filter((record) => record.type === 'event').length}</strong>
+          <strong>{scopedRecords.filter((record) => record.type === 'event').length}</strong>
         </div>
         <div className="map-summary-card">
           <span>Places</span>
           <strong>
-            {records.filter((record) => record.type === 'location').length}
+            {scopedRecords.filter((record) => record.type === 'location').length}
           </strong>
         </div>
         <div className="map-summary-card">
@@ -220,6 +352,191 @@ export function OfflineMap({
           <strong>{selectedRecord?.common.id ?? 'none'}</strong>
         </div>
       </section>
+      <section className="map-type-strip" aria-label="map scope strip">
+        <button
+          className={`map-type-chip${scope === 'all' ? ' is-active' : ''}`}
+          onClick={() => setScope('all')}
+          type="button"
+        >
+          <span>All layers</span>
+          <strong>{records.length}</strong>
+        </button>
+        <button
+          className={`map-type-chip${scope === 'character' ? ' is-active' : ''}`}
+          onClick={() => setScope('character')}
+          type="button"
+        >
+          <span>Characters</span>
+          <strong>{records.filter((record) => record.type === 'character').length}</strong>
+        </button>
+        <button
+          className={`map-type-chip${scope === 'region' ? ' is-active' : ''}`}
+          onClick={() => setScope('region')}
+          type="button"
+        >
+          <span>Regions</span>
+          <strong>{records.filter((record) => record.type === 'region').length}</strong>
+        </button>
+        <button
+          className={`map-type-chip${scope === 'event' ? ' is-active' : ''}`}
+          onClick={() => setScope('event')}
+          type="button"
+        >
+          <span>Events</span>
+          <strong>{records.filter((record) => record.type === 'event').length}</strong>
+        </button>
+        <button
+          className={`map-type-chip${scope === 'location' ? ' is-active' : ''}`}
+          onClick={() => setScope('location')}
+          type="button"
+        >
+          <span>Places</span>
+          <strong>{records.filter((record) => record.type === 'location').length}</strong>
+        </button>
+      </section>
+      <article className="timeline-spotlight" aria-label="map year resonance">
+        <div className="timeline-spotlight-copy">
+          <p className="eyebrow">Year resonance</p>
+          <strong>{yearResonance.dominantLabel}</strong>
+          <span>
+            Scope {scope === 'all' ? 'all layers' : scope} at {year}
+          </span>
+        </div>
+        <div className="timeline-summary">
+          <span className="command-chip">{yearResonance.dominantCount} in layer</span>
+          <span className="command-chip">{yearResonance.ongoingCount} ongoing</span>
+        </div>
+      </article>
+      <section className="timeline-band" aria-label="map year shift">
+        <div className="timeline-band-head">
+          <strong>Year shift</strong>
+          <span>{year}</span>
+        </div>
+        <div className="theme-stack">
+          <article className="theme-card is-active">
+            <strong>Opening</strong>
+            <span>{yearShift.openingCount} begin this year</span>
+          </article>
+          <article className="theme-card is-active">
+            <strong>Closing</strong>
+            <span>{yearShift.closingCount} end this year</span>
+          </article>
+          <article className="theme-card is-active">
+            <strong>Anchored</strong>
+            <span>{yearShift.anchoredCount} carry dated span</span>
+          </article>
+        </div>
+      </section>
+      <section className="timeline-band" aria-label="map spatial ledger">
+        <div className="timeline-band-head">
+          <strong>Spatial ledger</strong>
+          <span>{scope === 'all' ? 'all layers' : scope}</span>
+        </div>
+        <div className="theme-stack">
+          {spatialLedger.map((entry) => (
+            <article key={entry.label} className="theme-card is-active">
+              <strong>{entry.label}</strong>
+              <span>{entry.count}</span>
+              <span className="scene-card-meta">
+                <span>{entry.note}</span>
+              </span>
+            </article>
+          ))}
+        </div>
+      </section>
+      {territoryBands.length ? (
+        <section className="timeline-band" aria-label="map territory bands">
+          <div className="timeline-band-head">
+            <strong>Territory bands</strong>
+            <span>{selectedRecord?.common.id ?? scope}</span>
+          </div>
+          <div className="theme-stack">
+            {territoryBands.map((entry) => (
+              <article key={entry.label} className="theme-card is-active">
+                <strong>{entry.label}</strong>
+                <span>{entry.value}</span>
+                <span className="scene-card-meta">
+                  <span>{entry.note}</span>
+                </span>
+                {entry.targetId ? (
+                  <button
+                    className="button ghost-button"
+                    onClick={() => onSelect(entry.targetId as string)}
+                    type="button"
+                  >
+                    Open band
+                  </button>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+      {relationLedger.length ? (
+        <section className="timeline-band" aria-label="map relation ledger">
+          <div className="timeline-band-head">
+            <strong>Relation ledger</strong>
+            <span>{selectedRecord?.common.id ?? 'none'}</span>
+          </div>
+          <div className="theme-stack">
+            {relationLedger.map((entry) => (
+              <article key={entry.label} className="theme-card is-active">
+                <strong>{entry.label}</strong>
+                <span>{entry.value}</span>
+                <span className="scene-card-meta">
+                  <span>{entry.note}</span>
+                </span>
+                {entry.targetId ? (
+                  <button
+                    className="button ghost-button"
+                    onClick={() => onSelect(entry.targetId as string)}
+                    type="button"
+                  >
+                    Open link
+                  </button>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+      {regionFocusRail.length || territoryChain.length ? (
+        <section className="timeline-band" aria-label="map territory desk">
+          <div className="timeline-band-head">
+            <strong>Territory desk</strong>
+            <span>{selectedRecord?.common.id ?? 'none'}</span>
+          </div>
+          <div className="theme-stack">
+            {regionFocusRail.map((entry) => (
+              <article
+                key={`${entry.label}-${entry.value}`}
+                className="theme-card is-active"
+              >
+                <strong>{entry.label}</strong>
+                <span>{entry.value}</span>
+              </article>
+            ))}
+            {territoryChain.map((entry) => (
+              <article
+                key={`${entry.label}-${entry.value}`}
+                className="theme-card is-active"
+              >
+                <strong>{entry.label}</strong>
+                <span>{entry.value}</span>
+                {entry.targetId ? (
+                  <button
+                    className="button ghost-button"
+                    onClick={() => onSelect(entry.targetId as string)}
+                    type="button"
+                  >
+                    Open chain
+                  </button>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <section className="map-type-strip" aria-label="map type strip">
         {typeStrip.map((entry) => (
           <button
@@ -336,6 +653,16 @@ export function OfflineMap({
               P:{overlayCounts.locations} {record.common.title}
             </button>
           ))}
+          {territoryHorizon.map((entry) => (
+            <button
+              key={`${entry.label}-${entry.value}`}
+              className={`map-overlay-chip${entry.targetId ? ' is-active' : ''}`}
+              onClick={() => entry.targetId && onSelect(entry.targetId)}
+              type="button"
+            >
+              {entry.label}:{entry.value}
+            </button>
+          ))}
         </div>
       </div>
       <section className="map-focus-rail" aria-label="map focus rail">
@@ -388,6 +715,102 @@ export function OfflineMap({
               Open timeline
             </button>
           </div>
+          {territoryFocus.length ? (
+            <div className="map-overlay-stack" aria-label="map territory focus">
+              {territoryFocus.map((entry) => (
+                <button
+                  key={entry.label}
+                  className={`map-overlay-chip${entry.targetId ? ' is-active' : ''}`}
+                  onClick={() => entry.targetId && onSelect(entry.targetId)}
+                  type="button"
+                >
+                  {entry.label}: {entry.value}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {territoryStatus.length ? (
+            <div className="map-overlay-stack" aria-label="map territory status">
+              {territoryStatus.map((entry) => (
+                <span key={`${entry.label}-${entry.value}`} className="map-overlay-chip">
+                  {entry.label}: {entry.value}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {territoryRoute.length > 1 ? (
+            <div className="hover-actions" aria-label="map territory route">
+              {territoryRoute.map((entry) => (
+                <button
+                  key={`${entry.label}-${entry.targetId}`}
+                  className="button ghost-button"
+                  onClick={() => onSelect(entry.targetId)}
+                  type="button"
+                >
+                  {entry.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {territoryChain.length ? (
+            <div className="map-overlay-stack" aria-label="map territory chain">
+              {territoryChain.map((entry) =>
+                entry.targetId ? (
+                  <button
+                    key={`${entry.label}-${entry.value}`}
+                    className="map-overlay-chip is-active"
+                    onClick={() => onSelect(entry.targetId as string)}
+                    type="button"
+                  >
+                    {entry.label}: {entry.value}
+                  </button>
+                ) : (
+                  <span
+                    key={`${entry.label}-${entry.value}`}
+                    className="map-overlay-chip"
+                  >
+                    {entry.label}: {entry.value}
+                  </span>
+                )
+              )}
+            </div>
+          ) : null}
+          {territoryPulse.length ? (
+            <div className="map-overlay-stack" aria-label="map territory pulse">
+              {territoryPulse.map((entry) => (
+                <span
+                  key={`${entry.label}-${entry.value}`}
+                  className="map-overlay-chip"
+                >
+                  {entry.label}: {entry.value}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {regionFocus.length ? (
+            <div className="map-overlay-stack" aria-label="map region focus">
+              {regionFocus.map((entry) => (
+                <span
+                  key={`${entry.label}-${entry.value}`}
+                  className="map-overlay-chip"
+                >
+                  {entry.label}: {entry.value}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {regionFocusRail.length ? (
+            <div className="map-overlay-stack" aria-label="map region focus rail">
+              {regionFocusRail.map((entry) => (
+                <span
+                  key={`${entry.label}-${entry.value}`}
+                  className="map-overlay-chip"
+                >
+                  {entry.label}: {entry.value}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </section>
       ) : null}
       <p className="map-focus">
@@ -511,4 +934,153 @@ function focusMap(
     duration: 420,
     essential: true
   });
+}
+
+function buildRelationLedger(
+  selectedRecord: EntityRecord | null,
+  records: EntityRecord[]
+) {
+  if (!selectedRecord) {
+    return [];
+  }
+
+  if (selectedRecord.type === 'region') {
+    const parent =
+      selectedRecord.fields.parentRegionId
+        ? records.find(
+            (record) => record.common.id === selectedRecord.fields.parentRegionId
+          ) ?? null
+        : null;
+    const childRegions = records.filter(
+      (record) =>
+        record.type === 'region' &&
+        record.fields.parentRegionId === selectedRecord.common.id
+    );
+    const places = records.filter(
+      (record) =>
+        record.type === 'location' &&
+        record.fields.regionId === selectedRecord.common.id
+    );
+
+    return [
+      {
+        label: 'Parent region',
+        value: parent?.common.title ?? 'No parent region',
+        note: 'territory chain',
+        targetId: parent?.common.id ?? null
+      },
+      {
+        label: 'Child regions',
+        value: String(childRegions.length),
+        note: 'nested geography',
+        targetId: childRegions[0]?.common.id ?? null
+      },
+      {
+        label: 'Mapped places',
+        value: String(places.length),
+        note: 'settlement spread',
+        targetId: places[0]?.common.id ?? null
+      }
+    ];
+  }
+
+  if (selectedRecord.type === 'location') {
+    const region =
+      selectedRecord.fields.regionId
+        ? records.find((record) => record.common.id === selectedRecord.fields.regionId) ??
+          null
+        : null;
+    const events = records.filter(
+      (record) =>
+        record.type === 'event' &&
+        record.fields.locationId === selectedRecord.common.id
+    );
+
+    return [
+      {
+        label: 'Host region',
+        value: region?.common.title ?? 'No host region',
+        note: 'territory anchor',
+        targetId: region?.common.id ?? null
+      },
+      {
+        label: 'Anchored events',
+        value: String(events.length),
+        note: 'story pressure',
+        targetId: events[0]?.common.id ?? null
+      },
+      {
+        label: 'Location kind',
+        value: selectedRecord.fields.locationKind ?? 'unspecified',
+        note: 'place identity',
+        targetId: null
+      }
+    ];
+  }
+
+  if (selectedRecord.type === 'event') {
+    const location =
+      selectedRecord.fields.locationId
+        ? records.find(
+            (record) => record.common.id === selectedRecord.fields.locationId
+          ) ?? null
+        : null;
+    const region =
+      location && location.type === 'location' && location.fields.regionId
+        ? records.find((record) => record.common.id === location.fields.regionId) ??
+          null
+        : null;
+
+    return [
+      {
+        label: 'Event site',
+        value: location?.common.title ?? 'No linked place',
+        note: 'story geography',
+        targetId: location?.common.id ?? null
+      },
+      {
+        label: 'Host region',
+        value: region?.common.title ?? 'No host region',
+        note: 'territory context',
+        targetId: region?.common.id ?? null
+      },
+      {
+        label: 'Time anchor',
+        value:
+          selectedRecord.common.startYear !== null
+            ? String(selectedRecord.common.startYear)
+            : 'open',
+        note: 'event year seam',
+        targetId: null
+      }
+    ];
+  }
+
+  return [
+    {
+      label: 'Map anchor',
+      value:
+        selectedRecord.common.latitude !== null &&
+        selectedRecord.common.longitude !== null
+          ? 'Geocoded'
+          : 'No coordinates',
+      note: 'character surface',
+      targetId: null
+    },
+    {
+      label: 'Time span',
+      value:
+        selectedRecord.common.startYear !== null
+          ? `${selectedRecord.common.startYear} - ${selectedRecord.common.endYear ?? 'open'}`
+          : 'open',
+      note: 'timeline bridge',
+      targetId: null
+    },
+    {
+      label: 'Spatial ties',
+      value: 'No typed territory link',
+      note: 'world link can grow later',
+      targetId: null
+    }
+  ];
 }

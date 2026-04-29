@@ -10,6 +10,7 @@ export type ExportJob = {
   kind: ExportKind;
   status: 'idle' | 'queued' | 'running' | 'done' | 'failed';
   targetPath: string;
+  primaryArtifactPath?: string | null;
   artifactPaths: string[];
   createdAt: string;
 };

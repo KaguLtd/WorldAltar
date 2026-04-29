@@ -39,6 +39,12 @@ export function CreateEntityStudio({
     () => records.filter((record) => record.type === 'location'),
     [records]
   );
+  const selectedContextCopy = selectedEntity
+    ? `${selectedEntity.common.title} [${selectedEntity.common.id}]`
+    : 'No selected entity';
+  const selectedContextYears = selectedEntity
+    ? `${selectedEntity.common.startYear ?? 'open'} - ${selectedEntity.common.endYear ?? 'open'}`
+    : 'open';
 
   function applySelectedPreset(kind: 'location_from_region' | 'region_from_region' | 'event_from_location') {
     if (!selectedEntity) {
@@ -48,19 +54,99 @@ export function CreateEntityStudio({
     if (kind === 'location_from_region' && selectedEntity.type === 'region') {
       setEntityType('location');
       setRegionId(selectedEntity.common.id);
+      setTitle(`New ${selectedEntity.common.title} site`);
+      setSummary(`Location linked to ${selectedEntity.common.title}`);
+      setBody(
+        `A new location seeded from ${selectedEntity.common.title}. Record local geography, factions, and practical notes here.`
+      );
+      setStartYear(
+        selectedEntity.common.startYear !== null
+          ? String(selectedEntity.common.startYear)
+          : ''
+      );
+      setEndYear(
+        selectedEntity.common.endYear !== null
+          ? String(selectedEntity.common.endYear)
+          : ''
+      );
       return;
     }
 
     if (kind === 'region_from_region' && selectedEntity.type === 'region') {
       setEntityType('region');
       setParentRegionId(selectedEntity.common.id);
+      setTitle(`New ${selectedEntity.common.title} frontier`);
+      setSummary(`Region linked to ${selectedEntity.common.title}`);
+      setBody(
+        `A child region derived from ${selectedEntity.common.title}. Capture borders, pressure lines, and governing identity here.`
+      );
+      setStartYear(
+        selectedEntity.common.startYear !== null
+          ? String(selectedEntity.common.startYear)
+          : ''
+      );
+      setEndYear(
+        selectedEntity.common.endYear !== null
+          ? String(selectedEntity.common.endYear)
+          : ''
+      );
       return;
     }
 
     if (kind === 'event_from_location' && selectedEntity.type === 'location') {
       setEntityType('event');
       setLocationId(selectedEntity.common.id);
+      setTitle(`New ${selectedEntity.common.title} event`);
+      setSummary(`Event linked to ${selectedEntity.common.title}`);
+      setBody(
+        `An event centered on ${selectedEntity.common.title}. Capture stakes, participants, and aftermath here.`
+      );
+      setStartYear(
+        selectedEntity.common.startYear !== null
+          ? String(selectedEntity.common.startYear)
+          : ''
+      );
+      setEndYear(
+        selectedEntity.common.endYear !== null
+          ? String(selectedEntity.common.endYear)
+          : ''
+      );
     }
+  }
+
+  function applyTypeTemplate(kind: EntityType) {
+    if (kind === 'character') {
+      setSummary((current) => current || 'Core role, pressure, and presence.');
+      setBody((current) =>
+        current ||
+        'Identity:\nVoice:\nGoal:\nFear:\nKey ties:\nPublic legend:'
+      );
+      return;
+    }
+
+    if (kind === 'location') {
+      setSummary((current) => current || 'Spatial anchor, daily use, and mood.');
+      setBody((current) =>
+        current ||
+        'Purpose:\nTerrain:\nPeople:\nThreat:\nSensory details:\nTravel notes:'
+      );
+      return;
+    }
+
+    if (kind === 'region') {
+      setSummary((current) => current || 'Large-scale identity and pressure lines.');
+      setBody((current) =>
+        current ||
+        'Borders:\nPower centers:\nCultures:\nConflict lines:\nClimate:\nStrategic value:'
+      );
+      return;
+    }
+
+    setSummary((current) => current || 'A change point in the world timeline.');
+    setBody((current) =>
+      current ||
+      'Trigger:\nParticipants:\nLocation:\nEscalation:\nOutcome:\nLong tail:'
+    );
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -149,6 +235,17 @@ export function CreateEntityStudio({
         <span className="command-chip">{entityType}</span>
       </div>
 
+      <div className="detail-section" aria-label="create context">
+        <p className="eyebrow">Selected context</p>
+        <strong>{selectedContextCopy}</strong>
+        <div className="manuscript-meta">
+          <span className="command-chip">
+            {selectedEntity ? selectedEntity.type : 'none'}
+          </span>
+          <span className="command-chip">{selectedContextYears}</span>
+        </div>
+      </div>
+
       {selectedEntity ? (
         <div className="create-actions" aria-label="create presets">
           {selectedEntity.type === 'region' ? (
@@ -180,6 +277,16 @@ export function CreateEntityStudio({
           ) : null}
         </div>
       ) : null}
+
+      <div className="create-actions" aria-label="create templates">
+        <button
+          className="button ghost-button"
+          onClick={() => applyTypeTemplate(entityType)}
+          type="button"
+        >
+          Fill {entityType} template
+        </button>
+      </div>
 
       <form className="create-grid" onSubmit={handleSubmit}>
         <select

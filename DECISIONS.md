@@ -570,3 +570,231 @@ Reason: detail panel daha zengin hissetsin ama ikinci entity summary modeli acil
 ### D-124 Hover preview strip stays presentation-only
 Hover preview id/year/cover chiplerini premium strip olarak gosterebilir ama mevcut hovered entity verisini yalnizca sunum icin kullanir.
 Reason: hover preview daha zengin hissetsin ama ikinci hover modeli ya da cache acilmasin.
+
+### D-125 Manuscript authoring reopens with real create flow
+Deferred manuscript lens chapter ve scene create akislarini ayni manuscript repository boundary uzerinden geri acti.
+Reason: writing lensi sadece seeded demo okuma yuzeyi olarak kalmamali; gercek authoring'e tekrar yaklasmali.
+
+### D-126 Export job artifact truth is explicit
+Export job payload'i primary deliverable artifact'i acik alan olarak tasir; companion artifact listesi bunu tamamlar.
+Reason: target path, ana deliverable ve manifest gibi yan artifact'lar ayni alanda anlamsal olarak birbirine karismamali.
+
+### D-127 Create studio templates stay local and type-bound
+Create Entity Studio summary/body scaffold butonlari secili entity baglamini veya secili type'i kullanarak yalnizca local draft alanlarini doldurur.
+Reason: authoring hizi artsin ama yeni draft store, second create path veya canonical command boundary disi state acilmasin.
+
+### D-128 Map scope strip stays local and visible-set bound
+Map lens `All / Character / Region / Event / Place` scope strip'i yalnizca mevcut visible set uzerinde lokal filtre uygular.
+Reason: Faz 3 mekansal okuma derinlessin ama map ayri repository query, ikinci lens state'i ya da yeni canonical filter seam'i acmasin.
+
+### D-129 Map year resonance stays derived
+Map lens dominant layer ve ongoing count ozetini yalnizca mevcut scoped visible set ve aktif yil bilgisinden turetir.
+Reason: yil baglamli mekansal his artsin ama ayri analytics cache, ikinci timeline state'i ya da exportable metric modeli acilmasin.
+
+### D-130 Manuscript scene create may seed selected context
+Deferred manuscript lens yeni scene create ederken secili entity'yi istege bagli ilk mention olarak ayni create scene command payload'ine tasiyabilir.
+Reason: writing ve worldbuilding arasindaki kopru hizlansin ama ikinci scene-context store'u, ayri create path'i ya da canonical mention seam disi metadata acilmasin.
+
+### D-131 Export UI artifact truth stays normalized
+Export lens artifact sayimlari, bundle satirlari ve manifest ozetleri `primaryArtifactPath` ile companion `artifactPaths` listesini birlikte normalize ederek turetir.
+Reason: done ve queued export job'larinda deliverable truth tek hatta kalsin; UI eski `artifactPaths` varsayimi yuzunden yanlis file count veya eksik bundle gorunumu uretmesin.
+
+### D-132 Detail draft assists stay local and type-derived
+Detail panel local draft assist butonlari secili entity type'i ve mevcut backlink baglamini kullanarak summary/body alanlarini doldurur veya genisletir.
+Reason: Faz 2 authoring hizi artsin ama UI ikinci entity editor modeli, ayri draft store'u ya da canonical entity command boundary disi yazma yolu acmasin.
+
+### D-133 Map year shift stays derived
+Map lens opening/closing/anchored year strip'ini yalnizca mevcut scoped visible set ve aktif yil bilgisinden turetir.
+Reason: Faz 3 yil degisimi haritada anlamsal fark yaratsin ama ayri timeline cache'i, ikinci year engine'i ya da exportable analytics modeli acilmasin.
+
+### D-134 Map spatial ledger stays count-semantic
+Map lens spatial ledger satirlari region, event, place ve geocoded marker basincini yalnizca mevcut scoped visible set sayimlarindan uretir.
+Reason: mekansal okuma derinlessin ama territory editoru, ikinci relation store'u ya da yeni geometry schema erken acilmasin.
+
+### D-135 Map relation ledger stays typed-link derived
+Map lens selected entity relation ledger'ini mevcut typed link alanlarindan (`regionId`, `parentRegionId`, `locationId`) ve canonical visible/entity set'ten turetir.
+Reason: Faz 3 mekansal baglar okunur olsun ama ayri map graph store'u, ikinci territory registry'si ya da yeni spatial persistence modeli acilmasin.
+
+### D-146 Map territory bands stay typed-link derived
+Map lens territory bands satirlari region, location ve event typed link'lerinden territory pressure ozetleri uretebilir; secili region varsa onun cekirdegi, yoksa visible set icinde en yuklu region bantlari gosterilir.
+Reason: Faz 3 overlay/territory hissi artsin ama ayri geometry layer'i, territory cache'i ya da yeni spatial persistence seam'i acilmasin.
+
+### D-147 Map territory focus stays selected-strip derived
+Map lens selected strip location ve event secimlerinde host place/region context'ini territory focus chip'leri olarak gosterebilir; bunlar mevcut typed link alanlarindan turetilir.
+Reason: Faz 3 territory okumasi secili kayit uzerinde de netlessin ama ayri territory sidebar modeli, ikinci selected-state cache'i ya da yeni persistence seam'i acilmasin.
+
+### D-148 Map territory horizon stays overlay-derived
+Map lens overlay stack secili kayit icin territory context'ini kisa horizon chip'lerine sikistirabilir; bunlar territory focus bilgisinin ayni typed-link derive hattindan gelir.
+Reason: Faz 3 territory hissi dogrudan map yuzeyine tasinsin ama ayri overlay registry'si, ikinci map cache'i ya da yeni spatial metadata seam'i acilmasin.
+
+### D-149 Map territory status stays selected-strip derived
+Map lens selected strip location ve event secimlerinde territory path anlatisini ve gerekirse pressure seat bilgisini gosterebilir; bunlar ayni typed-link derive hattindan gelir.
+Reason: Faz 3 mekansal baglam sadece chip seviyesinde kalmasin ama ayri territory-detail modeli, ikinci strip cache'i ya da yeni persistence seam'i acilmasin.
+
+### D-150 Map territory route stays selected-strip derived
+Map lens selected strip location ve event secimlerinde territory route butonlari gosterebilir; bunlar host region/place zincirini ayni typed-link derive hattindan cikarir ve mevcut `onSelect` seam'i ile ziplatir.
+Reason: Faz 3 territory baglami aksiyona donussun ama ayri route persistence'i, ikinci map navigation modeli ya da yeni command seam'i acilmasin.
+
+### D-151 Map territory chain stays selected-strip derived
+Map lens region secimlerinde parent/core/child/spread baglamini territory chain chip'leri olarak gosterebilir; bunlar ayni typed-link derive hattindan gelir ve varsa region secimine geri ziplatabilir.
+Reason: Faz 3 territory okuması region seviyesinde daha yapisal olsun ama ayri territory tree modeli, ikinci region cache'i ya da yeni persistence seam'i acilmasin.
+
+### D-152 Map territory pulse stays selected-strip derived
+Map lens selected strip region/location/event secimlerinde territory pulse metrikleri gosterebilir; bunlar ayni typed-link derive hattindan place/event/year sayisi olarak uretilir.
+Reason: Faz 3 territory okuması daha nicel hissetsin ama ayri analytics layer'i, ikinci strip cache'i ya da yeni persistence seam'i acilmasin.
+
+### D-153 Map region focus stays selected-strip derived
+Map lens selected strip region/location/event secimlerinde compact region focus ozeti gosterebilir; bu ozet territory host zincirinden region cekirdegi ve pressure/spread sayilarini turetir.
+Reason: Faz 3 territory bilgisi daha birlesik hissedilsin ama ayri region-summary modeli, ikinci map cache'i ya da yeni persistence seam'i acilmasin.
+
+### D-154 Map region focus rail stays selected-strip derived
+Map lens selected strip region-first focus rail gosterebilir; bu rail region focus, territory route ve territory pulse bilgisini ayni typed-link derive hattindan sıkıştırır.
+Reason: Faz 3 region-first okuma daha tek bakista gelsin ama ayri focus-rail modeli, ikinci map summary cache'i ya da yeni persistence seam'i acilmasin.
+
+### D-155 Map territory desk stays derived
+Map lens territory desk bolumu region focus rail ve territory chain satirlarini ayni typed-link derive hattindan birlestirebilir.
+Reason: Faz 3 map reasoning daha masaustu hissi versin ama ayri territory workspace modeli, ikinci desk cache'i ya da yeni persistence seam'i acilmasin.
+
+### D-136 Detail-to-manuscript scene draft stays command-routed
+Wiki detail panel secili entity'den yeni scene draft baslatabilir ama bunu ayni manuscript chapter/scene command boundary uzerinden ve canonical mention seam'i ile yapar.
+Reason: Faz 4 worldbuilding-to-writing koprusu merkezilessin ama ikinci scene draft modeli, ayri scene queue'su ya da UI-yalniz manuscript store'u acilmasin.
+
+### D-137 Manuscript scene prefill stays selected-entity derived
+Manuscript create scene yuzeyi secili entity'den title/summary/body icin local draft iskeleti doldurabilir, fakat create aninda yine ayni canonical scene command yolunu kullanir.
+Reason: scene authoring hizi artsin ama ayri precompose store'u, ikinci manuscript editor modeli ya da command disi persistence acilmasin.
+
+### D-138 Manuscript scene scaffolds stay local and selected-context derived
+Manuscript create scene yuzeyi secili entity ve varsa en son backlink baglamindan reusable scene scaffold ve linked-thread continuation cue'lari uretebilir, fakat bunlar yalnizca local draft alanlarini doldurur.
+Reason: Faz 4 worldbuilding-to-writing akisi hizlansin ama ayri scene-planning modeli, ikinci manuscript draft store'u ya da command disi persistence seam'i acilmasin.
+
+### D-139 Manuscript continuity picks stay backlink-derived
+Manuscript create scene yuzeyi explicit backlink satirlarindan secilebilir continuity butonlari gosterebilir ve secilen scene/chapter baglamindan follow-up draft doldurabilir.
+Reason: writing koprusu daha somut olsun ama ayri continuity registry'si, scene-outline persistence'i ya da second planning model'i acilmasin.
+
+### D-140 Detail follow-up drafting stays command-routed and backlink-derived
+Wiki detail panel explicit backlink continuity butonlari gosterebilir ve secilen backlink sahnesinden follow-up scene draft'ini ayni manuscript create command boundary uzerinden baslatabilir.
+Reason: Faz 4 koprusu detail tarafinda da iki yonlu hissetsin ama ayri detail-to-scene planner modeli, ek queue ya da command disi manuscript state acilmasin.
+
+### D-141 Manuscript tree continuity chips stay backlink-derived
+Manuscript tree chapter ve scene kartlari secili entity icin backlink-derived continuity chip'leri gosterebilir; chapter bazinda linked count, scene bazinda linked scene etiketi ayni backlink payload'inden turetilir.
+Reason: writing desk daha okunur olsun ama ayri tree annotation store'u, ikinci manuscript cache'i ya da scene metadata persistence'i acilmasin.
+
+### D-142 Manuscript chapter affinity picks stay backlink-derived
+Manuscript create scene yuzeyi secili entity'nin backlink baglamindan chapter affinity butonlari gosterebilir ve scene create chapter secimini oradan hizlandirabilir.
+Reason: Faz 4 authoring ritmi hizlansin ama ayri chapter-recommendation modeli, ikinci manuscript planner cache'i ya da command disi state acilmasin.
+
+### D-143 Manuscript chapter rhythm stays tree-derived
+Manuscript create scene yuzeyi secili chapter icin next-scene slot, linked count ve chapter-beat scaffold'u ayni manuscript tree ve backlink baglamindan turetebilir.
+Reason: Faz 4 scene authoring daha ritimli olsun ama ayri chapter-outline modeli, ikinci planning store'u ya da command disi persistence acilmasin.
+
+### D-144 Manuscript composition mode stays local
+Manuscript create scene yuzeyi `free`, `opening` ve `continuation` composition mode'larini local UI state olarak gosterebilir; bu modlar mevcut scaffold secimlerinden turetilir ve create payload'ine yeni metadata yazmaz.
+Reason: Faz 4 authoring niyeti daha okunur olsun ama ayri composition registry'si, ikinci manuscript mode store'u ya da persistence seam'i acilmasin.
+
+### D-145 Manuscript composition guides stay prompt-only
+Manuscript create scene yuzeyi aktif composition mode'a gore kisa writing guide kartlari gosterebilir; bu kartlar secili entity ve chapter baglamindan turetilir ama yeni persistence ya da planner modeli acmaz.
+Reason: Faz 4 drafting yonlendirmesi artsin ama ayri outlining sistemi, second prompt cache'i ya da command disi manuscript metadata'si dogmasin.
+
+### D-156 Manuscript composition deck stays local and applyable
+Manuscript create scene yuzeyi `free`, `opening` ve `continuation` niyetleri icin applyable composition deck butonlari gosterebilir; bunlar yalnizca local form alanlarini doldurur ve create payload'ine yeni metadata yazmaz.
+Reason: Faz 4 authoring niyeti daha eyleme donuk olsun ama ayri composition workflow store'u, ikinci planner modeli ya da persistence seam'i acilmasin.
+
+### D-157 Manuscript composition ledger stays local
+Manuscript create scene yuzeyi aktif composition mode, secili chapter, continuation anchor ve secili entity icin compact bir composition ledger gosterebilir; bu yalnizca mevcut local state'i okur.
+Reason: Faz 4 authoring karari daha okunur olsun ama ayri ledger persistence'i, ikinci composition cache'i ya da yeni metadata seam'i acilmasin.
+
+### D-158 Manuscript composition blocks stay local and scaffold-derived
+Manuscript create scene yuzeyi aktif composition mode icin ready/pending scaffold block kartlari gosterebilir; bu kartlar ayni local draft body uzerinde eksik satirlari append eder ve create payload'ine yeni metadata yazmaz.
+Reason: Faz 4 authoring yapisi daha gorunur olsun ama ayri outline persistence'i, ikinci scaffold store'u ya da planner seam'i acilmasin.
+
+### D-159 Manuscript composition queue stays local and chapter-derived
+Manuscript create scene yuzeyi secili chapter, next-scene slot, backlink anchor ve linked load bilgisinden local bir composition queue gosterebilir; queue aksiyonlari ayni draft formunu opener veya follow-up niyetiyle doldurur.
+Reason: Faz 4 create karari daha ritimli ve chapter-aware olsun ama ayri scheduling modeli, ikinci queue store'u ya da persistence seam'i acilmasin.
+
+### D-160 Manuscript reserve slot stays local and queue-derived
+Manuscript composition queue chapter icinde reserve slot lane'i gosterebilir ve bunu free-mode draft olarak ayni local create formuna doldurabilir.
+Reason: Faz 4 scene backlog hissi artsin ama ayri backlog persistence'i, ikinci planning board'u ya da yeni command seam'i acilmasin.
+
+### D-161 Manuscript chapter ordering stays local and queue-derived
+Manuscript composition queue current slot, closing pressure ve after-slot ordering kartlari gosterebilir; closing-beat aksiyonu da ayni local draft formunu doldurur.
+Reason: Faz 4 chapter sequencing daha okunur olsun ama ayri ordering persistence'i, ikinci outline modeli ya da yeni planner seam'i acilmasin.
+
+### D-162 Manuscript scene lanes stay local and queue-mirrored
+Manuscript create scene yuzeyi opening, reserve, closing ve follow-up lane kartlari gosterebilir; bu kartlar composition queue ile ayni local prefill aksiyonlarini tekrar kullanir.
+Reason: Faz 4 chapter-flow kararlarini daha dogrudan okunur kilalim ama ayri lane persistence'i, ikinci storyboard modeli ya da yeni command seam'i acilmasin.
+
+### D-163 Manuscript scene sequence stays local and chapter-derived
+Manuscript create scene yuzeyi chapter icindeki latest scene ve sonraki slotlardan local bir scene sequence gosterebilir; next, closing ve aftermath kartlari ayni local prefill aksiyonlarini tetikler.
+Reason: Faz 4 sequence hissi artsin ama ayri outline persistence'i, ikinci sequence store'u ya da yeni planner seam'i acilmasin.
+
+### D-164 Manuscript scene outline stays local and chapter-derived
+Manuscript create scene yuzeyi previous, next ve aftermath outline kartlari gosterebilir; bunlar mevcut chapter scene listesi ve backlink anchor'larindan turetilir ve ayni local prefill aksiyonlarini kullanir.
+Reason: Faz 4 chapter akisi daha net okunsun ama ayri outline persistence'i, ikinci scene-board modeli ya da yeni planner seam'i acilmasin.
+
+### D-165 Manuscript scene storyboard stays local and outline-mirrored
+Manuscript create scene yuzeyi previous/current/aftermath storyboard kartlari gosterebilir; bunlar outline ve sequence baglamini sIkistirir ve ayni local prefill aksiyonlarini tekrar kullanir.
+Reason: Faz 4 authoring ritmi daha tek bakista gorunsun ama ayri storyboard persistence'i, ikinci planning board'u ya da yeni command seam'i acilmasin.
+
+### D-166 Manuscript scene planning strip stays local and storyboard-derived
+Manuscript create scene yuzeyi previous/current/aftermath planning strip'i gosterebilir; bu strip storyboard baglamini daha kompakt bir command row'a sikistirir ve ayni local prefill aksiyonlarini kullanir.
+Reason: Faz 4 chapter planlamasi tek satirda da okunabilsin ama ayri strip persistence'i, ikinci quick-planner modeli ya da yeni command seam'i acilmasin.
+
+### D-167 Manuscript scene planning desk stays local and strip-derived
+Manuscript create scene yuzeyi previous/current/aftermath planning desk kartlari gosterebilir; bu kartlar planning strip baglamini biraz daha okunur lane kartlarina tasir ve ayni local prefill aksiyonlarini kullanir.
+Reason: Faz 4 planning hissi daha masaustu gibi olsun ama ayri planning persistence'i, ikinci desk modeli ya da yeni command seam'i acilmasin.
+
+### D-168 Manuscript scene planning HUD stays local and desk-derived
+Manuscript create scene yuzeyi previous/current/after planning HUD gosterebilir; bu HUD planning desk baglamini daha da kompakt bir command row'a indirir ve ayni local prefill aksiyonlarini kullanir.
+Reason: Faz 4 scene planlamasi tek bakista da okunabilsin ama ayri HUD persistence'i, ikinci quick-command modeli ya da yeni command seam'i acilmasin.
+
+### D-169 Manuscript scene planning commands stay local and HUD-derived
+Manuscript create scene yuzeyi opener/reserve/close/after komutlarini en kompakt satirda gosterebilir; bu komutlar ayni local prefill aksiyonlarini tekrar kullanir.
+Reason: Faz 4 authoring aksiyonlari tek bakista calistirilabilsin ama ayri command persistence'i, ikinci quick-action modeli ya da yeni seam acilmasin.
+
+### D-170 Manuscript scene launch bar stays local and form-derived
+Manuscript create scene yuzeyi chapter/title/summary/body readiness, mode ve seed durumunu create butonuna yakin bir launch bar olarak gosterebilir; bu yalnizca mevcut local form state'ini okur.
+Reason: Faz 4 create karari submit noktasinda daha okunur olsun ama ayri validation persistence'i, ikinci launch modeli ya da yeni command seam'i acilmasin.
+
+### D-171 Manuscript scene launch receipt stays local and submit-derived
+Manuscript create scene yuzeyi son submit edilen scene icin title/chapter/mode/seed bilgisini local bir launch receipt olarak gosterebilir; bu yalnizca basarili create aninda mevcut form state'inden uretilir.
+Reason: Faz 4 submit sonrasi gorunurluk artsin ama ayri job persistence'i, ikinci receipt store'u ya da yeni event seam'i acilmasin.
+
+### D-172 Manuscript launch followthrough stays local and receipt-derived
+Manuscript son launch receipt bilgisini chapter header ve world-link bridge yuzeyinde de gosterebilir; bu yalnizca mevcut local receipt state'ini tekrar kullanir.
+Reason: Faz 4 create sonrasi baglam tek noktada kaybolmasin ama ayri submit-history modeli, ikinci followthrough store'u ya da yeni event seam'i acilmasin.
+
+### D-173 Manuscript launch badge stays local and receipt-derived
+Manuscript tree son launch receipt ile eslesen scene kartini inline bir launch badge ile isaretleyebilir; bu yalnizca mevcut local receipt state'ini tekrar kullanir.
+Reason: Faz 4 create sonrasi yeni sahne tree icinde hemen ayirt edilebilsin ama ayri badge persistence'i, ikinci scene-status modeli ya da yeni event seam'i acilmasin.
+
+### D-174 Manuscript selected launch stays local and receipt-derived
+Manuscript detail panel secili scene son launch receipt ile eslesiyorsa ayni receipt bilgisini local olarak gosterebilir; bu yalnizca mevcut local receipt state'ini tekrar kullanir.
+Reason: Faz 4 create sonrasi baglam detail okumada da korunabilsin ama ayri detail-history modeli, ikinci receipt store'u ya da yeni event seam'i acilmasin.
+
+### D-175 Manuscript launch reuse stays local and receipt-derived
+Manuscript detail panel secili scene son launch receipt ile eslesiyorsa bu receipt create formunu yeniden seed eden bir reuse aksiyonu da sunabilir; bu aksiyon yalnizca mevcut local receipt state'i ve mevcut create form state setter'larini kullanir.
+Reason: Faz 4 create sonrasi authoring akisina hizli geri donus olsun ama ayri launch-template persistence'i, ikinci queue modeli ya da yeni submit-history seam'i acilmasin.
+
+### D-176 Manuscript launch focus stays local and receipt-derived
+Manuscript launch receipt, olusturulan scene tree icinde bulunabiliyorsa onu yeniden secen bir focus aksiyonu da sunabilir; bu aksiyon yalnizca mevcut local receipt state'i ile mevcut tree/secili-scene seam'ini kullanir.
+Reason: Faz 4 create sonrasi kullanici yeni sahneye tek tikla geri donebilsin ama ayri scene-history modeli, ikinci navigation store'u ya da yeni routing seam'i acilmasin.
+
+### D-177 Manuscript scene handoff stays local and scene-derived
+Manuscript selected scene detail, mevcut scene ve aktif chapter baglamindan continuation draft'i ayni create formuna handoff edebilir; bu aksiyon yalnizca mevcut scene detail, selected entity ve mevcut create form state setter'larini kullanir.
+Reason: Faz 4 writing koprusu sadece world->scene degil scene->next scene ritmini de hizlandirsin ama ayri handoff persistence'i, ikinci planner modeli ya da yeni authoring seam'i acilmasin.
+
+### D-178 Manuscript next-slot handoff stays local and scene-derived
+Manuscript selected scene detail, mevcut scene ve aktif chapter sirasindan bir sonraki sahne slotunu da ayni create formuna queue edebilir; bu aksiyon yalnizca mevcut scene detail, active chapter order ve mevcut create form state setter'larini kullanir.
+Reason: Faz 4 chapter ritmi selected scene uzerinden de hizlansin ama ayri chapter-queue persistence'i, ikinci slot planner'i ya da yeni sequencing seam'i acilmasin.
+
+### D-179 Manuscript closing-slot handoff stays local and scene-derived
+Manuscript selected scene detail, mevcut scene ve aktif chapter sirasindan bir closing slot draft'ini da ayni create formuna queue edebilir; bu aksiyon yalnizca mevcut scene detail, active chapter order ve mevcut create form state setter'larini kullanir.
+Reason: Faz 4 chapter kapanis ritmi selected scene uzerinden de hizlansin ama ayri closing-planner persistence'i, ikinci sequence modeli ya da yeni seam acilmasin.
+
+### D-180 Manuscript opening-slot handoff stays local and scene-derived
+Manuscript selected scene detail, mevcut scene baglamindan chapter opening draft'ini da ayni create formuna queue edebilir; bu aksiyon yalnizca mevcut scene detail, active chapter baglami ve mevcut create form state setter'larini kullanir.
+Reason: Faz 4 chapter opening ritmi selected scene uzerinden de hizlansin ama ayri opener-planner persistence'i, ikinci sequencing modeli ya da yeni seam acilmasin.
+
+### D-181 Manuscript handoff queue stays local and scene-derived
+Manuscript selected scene detail, opening/next-slot/closing/follow-up niyetlerini kisa bir handoff queue olarak da gosterebilir; bu queue yalnizca mevcut scene detail ve active chapter sirasindan turetilir.
+Reason: Faz 4 scene-to-scene planning tek bakista da okunabilsin ama ayri queue persistence'i, ikinci planning store'u ya da yeni sequencing seam'i acilmasin.

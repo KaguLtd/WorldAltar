@@ -19,10 +19,12 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
   const latestJob = jobs[0] ?? null;
   const visibleLatestJob = filteredJobs[0] ?? latestJob;
   const totalArtifacts = filteredJobs.reduce(
-    (count, job) => count + job.artifactPaths.length,
+    (count, job) => count + listArtifactPaths(job).length,
     0
   );
-  const latestArtifact = visibleLatestJob?.artifactPaths[0] ?? null;
+  const latestArtifact = visibleLatestJob
+    ? getPrimaryArtifactPath(visibleLatestJob)
+    : null;
   const kindGroups = buildKindGroups(filteredJobs);
   const latestManuscriptJob =
     filteredJobs.find((job) => job.kind === 'manuscript_pdf') ??
@@ -87,15 +89,15 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
             <p className="eyebrow">Manuscript artifact</p>
             <strong>{latestManuscriptJob.targetPath.split('/').pop()}</strong>
             <span>
-              {latestManuscriptJob.artifactPaths.length
-                ? latestManuscriptJob.artifactPaths[0].split('/').pop()
+              {getPrimaryArtifactPath(latestManuscriptJob)
+                ? getPrimaryArtifactPath(latestManuscriptJob)?.split('/').pop()
                 : 'No artifact yet'}
             </span>
           </div>
           <div className="timeline-summary">
             <span className="command-chip">{latestManuscriptJob.status}</span>
             <span className="command-chip">
-              {latestManuscriptJob.artifactPaths.length} files
+              {listArtifactPaths(latestManuscriptJob).length} files
             </span>
           </div>
         </article>
@@ -349,14 +351,14 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
                     <span>{job.targetPath}</span>
                     <span className="scene-card-meta">
                       <span>{job.createdAt}</span>
-                      <span>{job.artifactPaths.length} files</span>
+                      <span>{listArtifactPaths(job).length} files</span>
                     </span>
-                    {job.artifactPaths.length ? (
+                    {listArtifactPaths(job).length ? (
                       <ul
                         className="asset-manifest"
                         aria-label={`artifacts ${job.id}`}
                       >
-                        {job.artifactPaths.map((artifactPath) => (
+                        {listArtifactPaths(job).map((artifactPath) => (
                           <li key={artifactPath}>
                             <span>Artifact</span>
                             <strong>{artifactPath.split('/').pop()}</strong>
@@ -436,7 +438,7 @@ function buildPackageSummary(jobs: ExportJob[]) {
       files: 0
     };
     current.jobs += 1;
-    current.files += Math.max(job.artifactPaths.length, 1);
+    current.files += Math.max(listArtifactPaths(job).length, 1);
     bucket.set(root, current);
   });
 
@@ -469,7 +471,7 @@ function buildCuratedOutputs(filteredJobs: ExportJob[], jobs: ExportJob[]) {
         label: lane.label,
         fileName: job.targetPath.split('/').pop() ?? job.targetPath,
         status: job.status,
-        files: job.artifactPaths.length
+        files: listArtifactPaths(job).length
       };
     })
     .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -493,7 +495,7 @@ function buildBundleReadiness(filteredJobs: ExportJob[], jobs: ExportJob[]) {
     },
     {
       label: 'Bundle',
-      ready: source.some((job) => job.artifactPaths.length > 0)
+      ready: source.some((job) => listArtifactPaths(job).length > 0)
     }
   ];
   const readyCount = lanes.filter((lane) => lane.ready).length;
@@ -511,7 +513,7 @@ function buildReferenceSheets(filteredJobs: ExportJob[], jobs: ExportJob[]) {
   return source
     .map((job) => {
       const fileName =
-        job.artifactPaths[0]?.split('/').pop() ??
+        getPrimaryArtifactPath(job)?.split('/').pop() ??
         job.targetPath.split('/').pop() ??
         job.targetPath;
 
@@ -536,7 +538,7 @@ function buildManifestDigest(filteredJobs: ExportJob[], jobs: ExportJob[]) {
   }
 
   const rootLabel = dirname(source[0].targetPath);
-  const artifactPaths = source.flatMap((job) => job.artifactPaths);
+  const artifactPaths = source.flatMap((job) => listArtifactPaths(job));
 
   if (!artifactPaths.length) {
     return {
@@ -613,7 +615,7 @@ function buildDeliveryChecklist(filteredJobs: ExportJob[], jobs: ExportJob[]) {
 
   const hasDossier = source.some((job) => job.kind === 'pdf_dossier');
   const hasManuscript = source.some((job) => job.kind === 'manuscript_pdf');
-  const hasArtifacts = source.some((job) => job.artifactPaths.length > 0);
+  const hasArtifacts = source.some((job) => listArtifactPaths(job).length > 0);
   const latest = source[0];
 
   return [
@@ -651,7 +653,7 @@ function buildFormatReadiness(filteredJobs: ExportJob[], jobs: ExportJob[]) {
     (job) => job.kind === 'pdf_dossier' || job.kind === 'manuscript_pdf'
   );
   const hasArtifactPdf = source.some((job) =>
-    job.artifactPaths.some((path) => extensionOf(path) === 'pdf')
+    listArtifactPaths(job).some((path) => extensionOf(path) === 'pdf')
   );
 
   return [
@@ -689,7 +691,7 @@ function buildTargetRoots(filteredJobs: ExportJob[], jobs: ExportJob[]) {
       artifacts: 0
     };
     current.jobs += 1;
-    current.artifacts += job.artifactPaths.length;
+    current.artifacts += listArtifactPaths(job).length;
     current.lastFile = job.targetPath.split('/').pop() ?? job.targetPath;
     bucket.set(root, current);
   });
@@ -700,7 +702,7 @@ function buildTargetRoots(filteredJobs: ExportJob[], jobs: ExportJob[]) {
 function buildBundleContents(filteredJobs: ExportJob[], jobs: ExportJob[]) {
   const source = filteredJobs.length ? filteredJobs : jobs;
   const artifactRows = source.flatMap((job) =>
-    job.artifactPaths.map((artifactPath) => ({
+    listArtifactPaths(job).map((artifactPath) => ({
       fileName: artifactPath.split('/').pop() ?? artifactPath,
       root: dirname(artifactPath),
       kind: job.kind === 'pdf_dossier' ? 'Dossier' : 'Manuscript'
@@ -713,5 +715,24 @@ function buildBundleContents(filteredJobs: ExportJob[], jobs: ExportJob[]) {
         (current) =>
           current.fileName === item.fileName && current.root === item.root
       ) === index
+  );
+}
+
+function getPrimaryArtifactPath(job: ExportJob) {
+  return (
+    listArtifactPaths(job).find((path) => extensionOf(path) === 'pdf') ??
+    listArtifactPaths(job)[0] ??
+    job.targetPath
+  );
+}
+
+function listArtifactPaths(job: ExportJob) {
+  const paths = [
+    job.primaryArtifactPath?.trim() || null,
+    ...job.artifactPaths
+  ].filter((path): path is string => Boolean(path?.trim()));
+
+  return paths.filter(
+    (path, index, items) => items.findIndex((entry) => entry === path) === index
   );
 }

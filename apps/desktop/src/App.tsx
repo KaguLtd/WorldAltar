@@ -27,6 +27,8 @@ import {
 } from './modules/features';
 import {
   autosaveManuscriptScene,
+  createManuscriptChapter,
+  createManuscriptScene,
   getManuscriptScene,
   listManuscriptBacklinks,
   listManuscriptTree,
@@ -650,6 +652,58 @@ export function App() {
     }
   }
 
+  async function handleCreateSceneFromEntity(backlinkNodeId?: string) {
+    if (!databasePath || !manuscriptEnabled || !selectedEntity) {
+      return;
+    }
+
+    const continuityBacklink = backlinkNodeId
+      ? backlinks.find((backlink) => backlink.nodeId === backlinkNodeId) ?? null
+      : null;
+
+    let chapterId =
+      (continuityBacklink
+        ? manuscriptTree.find(
+            (chapter) => chapter.node.id === continuityBacklink.chapterId
+          )?.node.id
+        : null) ??
+      manuscriptTree.find((chapter) =>
+        chapter.children.some((sceneNode) => sceneNode.id === selectedSceneId)
+      )?.node.id ??
+      manuscriptTree[0]?.node.id ??
+      null;
+
+    setBusy(true);
+    setError('');
+
+    try {
+      if (!chapterId) {
+        const chapter = await createManuscriptChapter(databasePath, {
+          title: 'World notes'
+        });
+        setManuscriptTree((current) => [...current, { node: chapter, children: [] }]);
+        chapterId = chapter.id;
+      }
+
+      await handleCreateManuscriptScene({
+        chapterId,
+        title: continuityBacklink
+          ? `${selectedEntity.common.title} after ${continuityBacklink.sceneTitle}`
+          : `${selectedEntity.common.title} note`,
+        summary: continuityBacklink
+          ? `Continue the thread after ${continuityBacklink.sceneTitle}.`
+          : `Scene seeded from ${selectedEntity.common.title}`,
+        body: continuityBacklink
+          ? `${selectedEntity.common.title}\n\nPrevious scene: ${continuityBacklink.sceneTitle}\nChapter anchor: ${continuityBacklink.chapterTitle}\nCarry-over tension:\nWhat changes now:\nNext irreversible beat:`
+          : `${selectedEntity.common.title}\n\nWrite the immediate scene pressure here.`,
+        seedEntityId: selectedEntity.common.id
+      });
+      setActiveLens('Manuscript');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function handleMentionSelect(entityId: string) {
     setActiveLens('Wiki');
     setSelectedEntityId(entityId);
@@ -736,6 +790,80 @@ export function App() {
     } catch (value) {
       setExportStatus('Export failed');
       setError(String(value));
+    }
+  }
+
+  async function handleCreateManuscriptChapter(title: string) {
+    if (!databasePath || !manuscriptEnabled) {
+      return;
+    }
+
+    setBusy(true);
+    setError('');
+
+    try {
+      const chapter = await createManuscriptChapter(databasePath, { title });
+      setManuscriptTree((current) => [...current, { node: chapter, children: [] }]);
+      setSelectedSceneId(null);
+      setManuscriptStatus('Chapter created');
+    } catch (value) {
+      setManuscriptStatus('Chapter create failed');
+      setError(String(value));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCreateManuscriptScene(input: {
+    chapterId: string;
+    title: string;
+    summary?: string;
+    body?: string;
+    seedEntityId?: string;
+  }) {
+    if (!databasePath || !manuscriptEnabled) {
+      return;
+    }
+
+    setBusy(true);
+    setError('');
+
+    try {
+      const seedMention =
+        input.seedEntityId
+          ? records.find((record) => record.common.id === input.seedEntityId) ?? null
+          : null;
+      const scene = await createManuscriptScene(databasePath, {
+        chapterId: input.chapterId,
+        title: input.title,
+        summary: input.summary,
+        body: input.body,
+        mentions: seedMention
+          ? [
+              {
+                entityId: seedMention.common.id,
+                label: seedMention.common.title,
+                startOffset: 0,
+                endOffset: seedMention.common.title.length
+              }
+            ]
+          : []
+      });
+      setManuscriptTree((current) =>
+        current.map((chapter) =>
+          chapter.node.id === input.chapterId
+            ? { ...chapter, children: [...chapter.children, scene.node] }
+            : chapter
+        )
+      );
+      setSelectedSceneId(scene.node.id);
+      setSelectedScene(scene);
+      setManuscriptStatus('Scene created');
+    } catch (value) {
+      setManuscriptStatus('Scene create failed');
+      setError(String(value));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -1073,7 +1201,10 @@ export function App() {
                       draftSummary={draftSceneSummary}
                       draftTitle={draftSceneTitle}
                       dirty={manuscriptDirty}
+                      latestBacklinkTitle={backlinks[0]?.sceneTitle ?? null}
                       mentionOptions={mentionOptions}
+                      onCreateChapter={handleCreateManuscriptChapter}
+                      onCreateScene={handleCreateManuscriptScene}
                       onInsertMention={handleInsertSceneMention}
                       onMentionSelect={handleMentionSelect}
                       onOpenTimelineEntity={handleTimelineEntityJump}
@@ -1090,6 +1221,7 @@ export function App() {
                       onDraftSummaryChange={setDraftSceneSummary}
                       onDraftTitleChange={setDraftSceneTitle}
                       scene={selectedScene}
+                      sceneContextBacklinks={backlinks}
                       selectedEntity={selectedEntity}
                       selectedSceneId={selectedSceneId}
                       setSelectedSceneId={setSelectedSceneId}
@@ -1213,6 +1345,7 @@ export function App() {
                   draftTitle={draftTitle}
                   locationOptions={locationOptions}
                   onCreateLinkedEntity={handleCreateLinkedEntity}
+                  onCreateSceneFromEntity={handleCreateSceneFromEntity}
                   onImportMedia={handleImportEntityMedia}
                   onOpenBacklink={handleOpenBacklink}
                   onOpenSceneContext={handleOpenSceneContext}

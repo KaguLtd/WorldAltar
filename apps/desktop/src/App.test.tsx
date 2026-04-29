@@ -18,6 +18,8 @@ const {
   remove,
   setData,
   autosaveManuscriptScene,
+  createManuscriptChapter,
+  createManuscriptScene,
   createWorld,
   createDemoWorld,
   getManuscriptScene,
@@ -43,6 +45,8 @@ const {
   remove: vi.fn(),
   setData: vi.fn(),
   autosaveManuscriptScene: vi.fn(),
+  createManuscriptChapter: vi.fn(),
+  createManuscriptScene: vi.fn(),
   createWorld: vi.fn(),
   createDemoWorld: vi.fn(),
   getManuscriptScene: vi.fn(),
@@ -90,6 +94,8 @@ vi.mock('./modules/entity-model/api', () => ({
 
 vi.mock('./modules/manuscript/api', () => ({
   autosaveManuscriptScene,
+  createManuscriptChapter,
+  createManuscriptScene,
   getManuscriptScene,
   listManuscriptBacklinks,
   listManuscriptTree,
@@ -276,8 +282,10 @@ describe('App', () => {
         kind: 'pdf_dossier',
         status: 'done',
         targetPath: 'C:/Users/Test/Documents/WorldAltar/export/dossier.pdf',
+        primaryArtifactPath:
+          'C:/Users/Test/Documents/WorldAltar/export/dossier.pdf',
         artifactPaths: [
-          'C:/Users/Test/Documents/WorldAltar/export/dossier.pdf'
+          'C:/Users/Test/Documents/WorldAltar/export/asset-manifest.json'
         ],
         createdAt: '9'
       },
@@ -286,6 +294,7 @@ describe('App', () => {
         kind: 'manuscript_pdf',
         status: 'queued',
         targetPath: 'C:/Users/Test/Documents/WorldAltar/export/manuscript.pdf',
+        primaryArtifactPath: null,
         artifactPaths: [],
         createdAt: '10'
       }
@@ -295,6 +304,7 @@ describe('App', () => {
       kind: request.kind,
       status: 'queued',
       targetPath: `C:/Users/Test/Documents/WorldAltar/export/${request.kind}.pdf`,
+      primaryArtifactPath: null,
       artifactPaths: [],
       createdAt: '10'
     }));
@@ -339,6 +349,56 @@ describe('App', () => {
         ).map((mention, index) => ({
           id: `mm_${index + 1}`,
           nodeId: input.id,
+          entityId: mention.entityId,
+          label: mention.label,
+          startOffset: mention.startOffset,
+          endOffset: mention.endOffset
+        }))
+      })
+    );
+    createManuscriptChapter.mockImplementation(async (_databasePath: string, input: { title: string }) => ({
+      id: 'msc_ch_002',
+      parentId: null,
+      kind: 'chapter',
+      slug: input.title.toLowerCase().replace(/\s+/g, '-'),
+      title: input.title,
+      body: '',
+      summary: '',
+      position: 2,
+      createdAt: '12',
+      updatedAt: '12'
+    }));
+    createManuscriptScene.mockImplementation(
+      async (
+        _databasePath: string,
+        input: {
+          chapterId: string;
+          title: string;
+          body?: string;
+          summary?: string;
+          mentions: Array<{
+            entityId: string;
+            label: string;
+            startOffset: number;
+            endOffset: number;
+          }>;
+        }
+      ) => ({
+        node: {
+          id: 'msc_sc_002',
+          parentId: input.chapterId,
+          kind: 'scene',
+          slug: input.title.toLowerCase().replace(/\s+/g, '-'),
+          title: input.title,
+          body: input.body ?? '',
+          summary: input.summary ?? '',
+          position: 2,
+          createdAt: '13',
+          updatedAt: '13'
+        },
+        mentions: input.mentions.map((mention, index) => ({
+          id: `mm_scene_create_${index + 1}`,
+          nodeId: 'msc_sc_002',
           entityId: mention.entityId,
           label: mention.label,
           startOffset: mention.startOffset,
@@ -641,11 +701,38 @@ describe('App', () => {
     expect(screen.getByLabelText(/detail luxury strip/i)).toHaveTextContent(
       'Character1200Fallback coverDusk'
     );
+    expect(
+      within(screen.getByLabelText(/detail draft assists/i)).getByRole('button', {
+        name: /use summary cue/i
+      })
+    ).toBeInTheDocument();
+    fireEvent.click(
+      within(screen.getByLabelText(/detail draft assists/i)).getByRole('button', {
+        name: /append character structure/i
+      })
+    );
+    expect(
+      within(screen.getByLabelText(/detail draft assists/i)).getByRole('button', {
+        name: /append character structure/i
+      })
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/asset manifest/i)).toHaveTextContent(
       'CoverfallbackLogologoMotifmotif'
     );
     expect(screen.getAllByText('Dusk')[0]).toBeInTheDocument();
     expect(screen.getByLabelText(/create entity studio/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/create context/i)).toHaveTextContent(
+      'Alp Er Tunga [char_001]'
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: /fill character template/i })
+    );
+    expect(screen.getByLabelText(/create entity summary/i)).toHaveValue(
+      'Core role, pressure, and presence.'
+    );
+    expect(screen.getByLabelText(/create entity body/i)).toHaveValue(
+      'Identity:\nVoice:\nGoal:\nFear:\nKey ties:\nPublic legend:'
+    );
 
     fireEvent.change(screen.getByLabelText(/create entity type/i), {
       target: { value: 'location' }
@@ -673,7 +760,8 @@ describe('App', () => {
         common: {
           title: 'Winter Camp',
           summary: 'Cold base',
-          body: undefined,
+          body:
+            'Identity:\nVoice:\nGoal:\nFear:\nKey ties:\nPublic legend:',
           startYear: null,
           endYear: null,
           latitude: 42.1,
@@ -723,6 +811,12 @@ describe('App', () => {
     expect(screen.getByLabelText(/create entity type/i)).toHaveValue('event');
     expect(screen.getByLabelText(/create event location/i)).toHaveValue(
       'loc_002'
+    );
+    expect(screen.getByLabelText(/create entity title/i)).toHaveValue(
+      'New Winter Camp event'
+    );
+    expect(screen.getByLabelText(/create entity body/i)).toHaveValue(
+      'An event centered on Winter Camp. Capture stakes, participants, and aftermath here.'
     );
     expect(screen.getByLabelText(/detail authoring/i)).toHaveTextContent(
       'New event here'
@@ -842,8 +936,25 @@ describe('App', () => {
     expect(screen.getByLabelText(/map overlays/i)).toHaveTextContent(
       'Geo 1 @ 1204'
     );
+    expect(screen.getByLabelText(/map overlays/i)).not.toHaveTextContent('T:');
     expect(screen.getByLabelText(/map summary/i)).toHaveTextContent(
       'Visible1Geocoded1Events0Places0Selectedchar_001'
+    );
+    expect(screen.getByLabelText(/map scope strip/i)).toHaveTextContent(
+      'All layers1Characters1Regions0Events0Places0'
+    );
+    expect(screen.getByLabelText(/map year resonance/i)).toHaveTextContent(
+      'Year resonancecharacter focusScope all layers at 12041 in layer0 ongoing'
+    );
+    expect(screen.getByLabelText(/map year shift/i)).toHaveTextContent(
+      'Year shift1204Opening0 begin this yearClosing0 end this yearAnchored1 carry dated span'
+    );
+    expect(screen.getByLabelText(/map spatial ledger/i)).toHaveTextContent(
+      'Spatial ledgerall layersRegions0territory memoryEvents0geography pressurePlaces0travel anchorsGeocoded1marker surface'
+    );
+    expect(screen.queryByLabelText(/map territory bands/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/map relation ledger/i)).toHaveTextContent(
+      'Relation ledgerchar_001Map anchorGeocodedcharacter surfaceTime span1200 - opentimeline bridgeSpatial tiesNo typed territory linkworld link can grow later'
     );
     expect(screen.getByLabelText(/map type strip/i)).toHaveTextContent(
       'Characters1Regions0Events0Places0'
@@ -857,6 +968,13 @@ describe('App', () => {
     expect(screen.getByLabelText(/map selected strip/i)).toHaveTextContent(
       'Visible at 1204characterAlp Er TungaHero41, 69Open wikiOpen timeline'
     );
+    expect(screen.queryByLabelText(/map territory status/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/map territory route/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/map territory chain/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/map territory pulse/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/map region focus/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/map region focus rail/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/map territory desk/i)).not.toBeInTheDocument();
     await act(async () => {
       triggerMapEvent('mousemove', 'char_001');
       await Promise.resolve();
@@ -901,6 +1019,12 @@ describe('App', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: /^Map$/i }));
     fireEvent.click(screen.getByRole('button', { name: /geo 1/i }));
+    expect(screen.getByText(/Focus: Alp Er Tunga \(char_001\)/i)).toBeInTheDocument();
+    fireEvent.click(
+      within(screen.getByLabelText(/map scope strip/i)).getByRole('button', {
+        name: /characters 1/i
+      })
+    );
     expect(screen.getByText(/Focus: Alp Er Tunga \(char_001\)/i)).toBeInTheDocument();
     fireEvent.click(
       within(screen.getByLabelText(/map type strip/i)).getByRole('button', {
@@ -955,6 +1079,12 @@ describe('App', () => {
       'msc_sc_001'
     );
     expect(screen.getByDisplayValue('Arrival body')).toBeInTheDocument();
+    expect(screen.getByLabelText(/chapter 1 chapter/i)).toHaveTextContent(
+      '1 scenes1 linked'
+    );
+    expect(
+      screen.getByLabelText(/arrival continuity badge/i)
+    ).toHaveTextContent('Linked sceneAlp Er Tunga');
     expect(screen.getByLabelText(/manuscript facts/i)).toHaveTextContent(
       'msc_sc_001'
     );
@@ -964,8 +1094,608 @@ describe('App', () => {
     expect(screen.getByLabelText(/manuscript studio/i)).toHaveTextContent(
       'ChapterChapter 1Order1.1Words2Read1 minMentions1Summaryset'
     );
+    expect(
+      screen.getByLabelText(/create manuscript scene context/i)
+    ).toHaveTextContent('eventevt_001Seed scene draftSeed selected context on');
+    expect(
+      screen.getByLabelText(/manuscript scene scaffolds/i)
+    ).toHaveTextContent('Use scene scaffoldContinue linked thread');
+    expect(
+      screen.getByLabelText(/manuscript scene continuity/i)
+    ).toHaveTextContent('Arrival');
+    expect(
+      screen.getByLabelText(/manuscript chapter affinity/i)
+    ).toHaveTextContent('Chapter 1');
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript chapter affinity/i)).getByRole(
+        'button',
+        { name: /^chapter 1$/i }
+      )
+    );
+    expect(screen.getByLabelText(/create manuscript scene chapter/i)).toHaveValue(
+      'msc_ch_001'
+    );
+    expect(
+      screen.getByLabelText(/manuscript chapter rhythm/i)
+    ).toHaveTextContent('Chapter 1Next scene 21 linkedMode openingSeed chapter beat');
+    expect(
+      screen.getByLabelText(/manuscript composition queue/i)
+    ).toHaveTextContent(
+      'Composition queueOpening slotscene 2activeContinuation anchorArrivalreadyLinked load1 linked in Chapter 1watchOpening lanescene 2open Chapter 1 with a decisive beatreadyReserve lanescene 2hold a flexible slot inside Chapter 1floatingFollow-up laneArrivalcontinue fallout after ArrivalreadyCurrent slotscene 2next placement inside Chapter 1Closing pressureArrivalcan close fallout from ArrivalAfter slotscene 3leave one lane available after this beatOpening lane cardscene 2launch Chapter 1 in visible motionactiveUse laneReserve lane cardscene 2keep Chapter 1 flexible for discoveryfloatingUse laneClosing lane cardscene 2shape one cost before scene 3watchUse laneFollow-up lane cardArrivalcarry fallout from ArrivalreadyUse laneNext sequence slotscene 2Chapter 1 follows ArrivalUse sequenceClosing sequence slotscene 2close pressure before scene 3Use sequenceAftermath sequence slotArrivalcontinue from ArrivalUse sequencePrevious sceneArrivalalready anchors Chapter 1Use outlineNext scenescene 2Chapter 1 advances after ArrivalUse outlineAftermath sceneArrivalwrite the consequence after ArrivalUse outlinePrevious frameArrivalChapter 1 came through this beatlockedUse storyboardCurrent framescene 2open the next visible turn after ArrivalactiveUse storyboardAftermath frameArrivalcarry consequence from ArrivalreadyUse storyboardPrevious ArrivalCurrent Chapter 1 scene 2Aftermath ArrivalPrevious laneArrivalChapter 1 currently rests on this sceneUse deskCurrent lanescene 2advance Chapter 1 with the next visible turnUse deskAftermath laneArrivalcontinue consequence from ArrivalUse deskPrev ArrivalNow Chapter 1 2After ArrivalOpen Chapter 1Reserve slotClose pressureAfter ArrivalQueue chapter openerQueue reserve slotQueue closing beatQueue follow-up'
+    );
+    expect(
+      screen.getByLabelText(/manuscript queue lanes/i)
+    ).toHaveTextContent(
+      'Opening lanescene 2open Chapter 1 with a decisive beatreadyReserve lanescene 2hold a flexible slot inside Chapter 1floatingFollow-up laneArrivalcontinue fallout after Arrivalready'
+    );
+    expect(
+      screen.getByLabelText(/manuscript chapter ordering/i)
+    ).toHaveTextContent(
+      'Current slotscene 2next placement inside Chapter 1Closing pressureArrivalcan close fallout from ArrivalAfter slotscene 3leave one lane available after this beat'
+    );
+    expect(
+      screen.getByLabelText(/manuscript scene lanes/i)
+    ).toHaveTextContent(
+      'Opening lane cardscene 2launch Chapter 1 in visible motionactiveUse laneReserve lane cardscene 2keep Chapter 1 flexible for discoveryfloatingUse laneClosing lane cardscene 2shape one cost before scene 3watchUse laneFollow-up lane cardArrivalcarry fallout from ArrivalreadyUse lane'
+    );
+    expect(
+      screen.getByLabelText(/manuscript scene sequence/i)
+    ).toHaveTextContent(
+      'Next sequence slotscene 2Chapter 1 follows ArrivalUse sequenceClosing sequence slotscene 2close pressure before scene 3Use sequenceAftermath sequence slotArrivalcontinue from ArrivalUse sequence'
+    );
+    expect(
+      screen.getByLabelText(/manuscript scene outline/i)
+    ).toHaveTextContent(
+      'Previous sceneArrivalalready anchors Chapter 1Use outlineNext scenescene 2Chapter 1 advances after ArrivalUse outlineAftermath sceneArrivalwrite the consequence after ArrivalUse outline'
+    );
+    expect(
+      screen.getByLabelText(/manuscript scene storyboard/i)
+    ).toHaveTextContent(
+      'Previous frameArrivalChapter 1 came through this beatlockedUse storyboardCurrent framescene 2open the next visible turn after ArrivalactiveUse storyboardAftermath frameArrivalcarry consequence from ArrivalreadyUse storyboard'
+    );
+    expect(
+      screen.getByLabelText(/manuscript scene planning strip/i)
+    ).toHaveTextContent('Previous ArrivalCurrent Chapter 1 scene 2Aftermath Arrival');
+    expect(
+      screen.getByLabelText(/manuscript scene planning desk/i)
+    ).toHaveTextContent(
+      'Previous laneArrivalChapter 1 currently rests on this sceneUse deskCurrent lanescene 2advance Chapter 1 with the next visible turnUse deskAftermath laneArrivalcontinue consequence from ArrivalUse desk'
+    );
+    expect(
+      screen.getByLabelText(/manuscript scene planning hud/i)
+    ).toHaveTextContent('Prev ArrivalNow Chapter 1 2After Arrival');
+    expect(
+      screen.getByLabelText(/manuscript scene planning commands/i)
+    ).toHaveTextContent('Open Chapter 1Reserve slotClose pressureAfter Arrival');
+    expect(
+      screen.getByLabelText(/manuscript scene launch bar/i)
+    ).toHaveTextContent(
+      'Chapter Chapter 1Title missingSummary lightBody pendingMode openingSeed on'
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition guide/i)
+    ).toHaveTextContent(
+      'Opening guideEstablish the lane for Chapter 1.Introduce Raid at Dawn in active motion.Leave one unresolved pressure for the next scene.'
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition beats/i)
+    ).toHaveTextContent('Add opening imageAdd lane pressure');
+    expect(
+      screen.getByLabelText(/manuscript composition blocks/i)
+    ).toHaveTextContent(
+      'Chapter openingpendingAdd blockChapter thresholdpendingAdd blockPressure introducedpendingAdd block'
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition deck/i)
+    ).toHaveTextContent(
+      'Apply free sceneApply opening sceneApply continuation'
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition ledger/i)
+    ).toHaveTextContent(
+      'Mode openingChapter Chapter 1Anchor ArrivalEntity evt_001'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene sequence/i)).getAllByRole(
+        'button',
+        { name: /use sequence/i }
+      )[0]
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Open Chapter 1 with Raid at Dawn in motion.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nChapter lane: Chapter 1\nScene slot: 2\nOpening image:\nPressure introduced:\nWhy this slot matters now:'
+    );
+    expect(
+      screen.getByLabelText(/manuscript scene launch bar/i)
+    ).toHaveTextContent(
+      'Chapter Chapter 1Title readySummary readyBody readyMode openingSeed on'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene storyboard/i)).getAllByRole(
+        'button',
+        { name: /use storyboard/i }
+      )[1]
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Open Chapter 1 with Raid at Dawn in motion.');
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene planning strip/i)).getAllByRole(
+        'button'
+      )[1]
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Open Chapter 1 with Raid at Dawn in motion.');
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene planning desk/i)).getAllByRole(
+        'button',
+        { name: /use desk/i }
+      )[1]
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Open Chapter 1 with Raid at Dawn in motion.');
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene planning hud/i)).getAllByRole(
+        'button'
+      )[1]
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Open Chapter 1 with Raid at Dawn in motion.');
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene planning commands/i)).getByRole(
+        'button',
+        { name: /after arrival/i }
+      )
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Raid at Dawn after Arrival'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Follow the visible consequence after Arrival.');
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene outline/i)).getAllByRole(
+        'button',
+        { name: /use outline/i }
+      )[1]
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Open Chapter 1 with Raid at Dawn in motion.');
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript composition queue/i)).getByRole(
+        'button',
+        { name: /queue chapter opener/i }
+      )
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Open Chapter 1 with Raid at Dawn in motion.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nChapter lane: Chapter 1\nScene slot: 2\nOpening image:\nPressure introduced:\nWhy this slot matters now:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript composition queue/i)).getByRole(
+        'button',
+        { name: /queue reserve slot/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition ledger/i)
+    ).toHaveTextContent('Mode free');
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 reserve scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Hold a flexible slot inside Chapter 1.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nChapter lane: Chapter 1\nReserve slot: 2\nPressure frame:\nResponse beat:\nVisible change:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript composition queue/i)).getByRole(
+        'button',
+        { name: /queue closing beat/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition ledger/i)
+    ).toHaveTextContent('Mode free');
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 closing scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Close the active pressure inside Chapter 1.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nChapter lane: Chapter 1\nClosing slot: 2\nPressure to close:\nVisible cost:\nWhat settles and what remains open:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene lanes/i)).getAllByRole(
+        'button',
+        { name: /use lane/i }
+      )[3]
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition ledger/i)
+    ).toHaveTextContent('Mode continuation');
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Raid at Dawn after Arrival'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Follow the visible consequence after Arrival.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nPrior beat: Arrival\nCarry-over consequence:\nEscalation lane:\nNext scene slot after Arrival:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript chapter rhythm/i)).getByRole(
+        'button',
+        { name: /seed chapter beat/i }
+      )
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Place Raid at Dawn into Chapter 1.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nChapter lane: Chapter 1\nScene slot: 2\nOpening beat:\nPressure carried in:\nWhat changes by the end:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript composition deck/i)).getByRole(
+        'button',
+        { name: /apply free scene/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition beats/i)
+    ).toHaveTextContent('Add pressure beatAdd visible change');
+    expect(
+      screen.getByLabelText(/manuscript composition blocks/i)
+    ).toHaveTextContent(
+      'Pressure framereadyAdd blockResponse beatreadyAdd blockVisible changereadyAdd block'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript composition beats/i)).getByRole(
+        'button',
+        { name: /add pressure beat/i }
+      )
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript composition blocks/i)).getAllByRole(
+        'button',
+        { name: /add block/i }
+      )[2]
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition ledger/i)
+    ).toHaveTextContent('Mode free');
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Raid at Dawn scene'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Frame Raid at Dawn through one clear pressure.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nPressure frame:\nResponse beat:\nVisible change:\nPressure beat for Raid at Dawn:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript composition deck/i)).getByRole(
+        'button',
+        { name: /apply opening scene/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition beats/i)
+    ).toHaveTextContent('Add opening imageAdd lane pressure');
+    expect(
+      screen.getByLabelText(/manuscript composition blocks/i)
+    ).toHaveTextContent(
+      'Chapter openingreadyAdd blockChapter thresholdreadyAdd blockPressure introducedreadyAdd block'
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition ledger/i)
+    ).toHaveTextContent('Mode opening');
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Chapter 1 scene 2'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Open Chapter 1 through Raid at Dawn.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nChapter opening:\nFirst impression of Chapter 1:\nPressure introduced:\nWhat the reader should carry forward:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript composition deck/i)).getByRole(
+        'button',
+        { name: /apply continuation/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition beats/i)
+    ).toHaveTextContent('Add consequenceAdd irreversible turn');
+    expect(
+      screen.getByLabelText(/manuscript composition blocks/i)
+    ).toHaveTextContent(
+      'Prior beatreadyAdd blockCarry-over consequencereadyAdd blockIrreversible turnreadyAdd block'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript composition beats/i)).getByRole(
+        'button',
+        { name: /add consequence/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition ledger/i)
+    ).toHaveTextContent('Mode continuation');
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Raid at Dawn after Arrival'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Continue the fallout after Arrival.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nPrior beat: Arrival\nCarry-over consequence:\nEscalation:\nIrreversible turn:\nConsequence carried from Arrival:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript composition queue/i)).getByRole(
+        'button',
+        { name: /queue follow-up/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition ledger/i)
+    ).toHaveTextContent('Mode continuation');
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Raid at Dawn after Arrival'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Follow the visible consequence after Arrival.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nPrior beat: Arrival\nCarry-over consequence:\nEscalation lane:\nNext scene slot after Arrival:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene scaffolds/i)).getByRole(
+        'button',
+        { name: /use scene scaffold/i }
+      )
+    );
+    expect(screen.getByLabelText(/manuscript chapter rhythm/i)).toHaveTextContent(
+      'Mode free'
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition guide/i)
+    ).toHaveTextContent(
+      'Free scene guidePick the clearest lens on Raid at Dawn.Stage one pressure, one response, and one visible change.Keep the summary line specific enough to reuse later.'
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Raid at Dawn scene'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Follow the immediate fallout of Raid at Dawn.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nImmediate fallout:\nWho responds first:\nEscalation beat:\nWhat the world now knows:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene scaffolds/i)).getByRole(
+        'button',
+        { name: /continue linked thread/i }
+      )
+    );
+    expect(screen.getByLabelText(/manuscript chapter rhythm/i)).toHaveTextContent(
+      'Mode continuation'
+    );
+    expect(
+      screen.getByLabelText(/manuscript composition guide/i)
+    ).toHaveTextContent(
+      'Continuation guideCarry one concrete consequence from the prior scene.Escalate Raid at Dawn instead of reintroducing it.End with an irreversible turn.'
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Raid at Dawn aftermath'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Continue the thread after Arrival.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nPrevious scene: Arrival\nCarry-over tension:\nWhat has changed since then:\nNext irreversible beat:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene continuity/i)).getByRole(
+        'button',
+        { name: /^arrival$/i }
+      )
+    );
+    expect(screen.getByLabelText(/manuscript chapter rhythm/i)).toHaveTextContent(
+      'Mode continuation'
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Raid at Dawn after Arrival'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Continue the thread after Arrival.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nPrevious scene: Arrival\nChapter anchor: Chapter 1\nCarry-over tension:\nWhat changes now:\nNext irreversible beat:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/create manuscript scene context/i)).getByRole(
+        'button',
+        { name: /seed scene draft/i }
+      )
+    );
+    expect(screen.getByLabelText(/create manuscript scene title/i)).toHaveValue(
+      'Raid at Dawn scene'
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Event seed');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nEvent seed'
+    );
+    expect(screen.getByLabelText(/manuscript scene handoff rhythm/i)).toHaveTextContent(
+      'Opening handoffRe-open Chapter 1 from Arrival.Next slotCarry Arrival into slot 2.Closing handoffSettle the pressure after Arrival.Follow-upContinue directly after Arrival.'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/^manuscript scene handoff$/i)).getByRole(
+        'button',
+        { name: /draft follow-up from scene/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene title/i)
+    ).toHaveValue('Raid at Dawn after Arrival');
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Continue the thread after Arrival.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nPrevious scene: Arrival\nChapter anchor: Chapter 1\nCarry-over tension:\nWhat changes now:\nNext irreversible beat:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/^manuscript scene handoff$/i)).getByRole(
+        'button',
+        { name: /queue opening from scene/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene title/i)
+    ).toHaveValue('Chapter 1 scene 1');
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Open Chapter 1 through the fallout of Arrival.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nPrevious scene: Arrival\nChapter opening: Chapter 1\nOpening image:\nPressure introduced:\nWhy this chapter begins here:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/^manuscript scene handoff$/i)).getByRole(
+        'button',
+        { name: /queue next slot from scene/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene title/i)
+    ).toHaveValue('Chapter 1 scene 2');
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Carry Arrival into Chapter 1 slot 2.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nPrevious scene: Arrival\nChapter lane: Chapter 1\nNext slot: 2\nCarry-over pressure:\nNew turn in this slot:\nWhat the reader takes forward:'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/^manuscript scene handoff$/i)).getByRole(
+        'button',
+        { name: /queue closing from scene/i }
+      )
+    );
+    expect(
+      screen.getByLabelText(/create manuscript scene title/i)
+    ).toHaveValue('Chapter 1 closing scene 2');
+    expect(
+      screen.getByLabelText(/create manuscript scene summary/i)
+    ).toHaveValue('Close the pressure that follows Arrival in Chapter 1.');
+    expect(screen.getByLabelText(/create manuscript scene body/i)).toHaveValue(
+      'Raid at Dawn\n\nPrevious scene: Arrival\nChapter lane: Chapter 1\nClosing slot: 2\nPressure to settle:\nVisible cost:\nWhat closes and what remains open:'
+    );
+    fireEvent.change(screen.getByLabelText(/create manuscript chapter title/i), {
+      target: { value: 'Chapter 2' }
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: /create chapter/i })
+    );
+    await waitFor(() =>
+      expect(createManuscriptChapter).toHaveBeenCalledWith(
+        expect.any(String),
+        { title: 'Chapter 2' }
+      )
+    );
+    expect(screen.getByLabelText(/chapter 2 chapter/i)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/create manuscript scene chapter/i), {
+      target: { value: 'msc_ch_002' }
+    });
+    fireEvent.change(screen.getByLabelText(/create manuscript scene title/i), {
+      target: { value: 'Campfire Oath' }
+    });
+    fireEvent.change(screen.getByLabelText(/create manuscript scene summary/i), {
+      target: { value: 'A vow by firelight' }
+    });
+    fireEvent.change(screen.getByLabelText(/create manuscript scene body/i), {
+      target: { value: 'The camp gathers at dusk.' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create scene/i }));
+    await waitFor(() =>
+      expect(createManuscriptScene).toHaveBeenCalledWith(
+        expect.any(String),
+        {
+          chapterId: 'msc_ch_002',
+          title: 'Campfire Oath',
+          summary: 'A vow by firelight',
+          body: 'The camp gathers at dusk.',
+          mentions: [
+            {
+              entityId: 'evt_001',
+              label: 'Raid at Dawn',
+              startOffset: 0,
+              endOffset: 12
+            }
+          ]
+        }
+      )
+    );
+    expect(screen.getByLabelText(/manuscript scene launch receipt/i)).toHaveTextContent(
+      'Launched Campfire OathChapter Chapter 2Mode freeSeed on'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/manuscript scene launch receipt/i)).getByRole(
+        'button',
+        { name: /focus launched scene/i }
+      )
+    );
+    expect(
+      within(screen.getByLabelText(/manuscript scene launch receipt/i)).getByRole(
+        'button',
+        { name: /focus launched scene/i }
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/chapter 2 chapter/i)).toHaveTextContent(
+      'Recent launch Campfire Oath'
+    );
+    expect(screen.getByLabelText(/chapter 2 chapter/i)).toHaveTextContent(
+      'Recent launchMode free'
+    );
+    expect(screen.getByLabelText(/campfire oath launch badge/i)).toHaveTextContent(
+      'Recent launchMode free'
+    );
     expect(screen.getByLabelText(/manuscript bridge/i)).toHaveTextContent(
-      'eventevt_001Visible at 1204Backlinks 1Raid at Dawn'
+      'Last launch Campfire OathChapter Chapter 2eventevt_001Visible at 1204Backlinks 1Raid at Dawn'
     );
     expect(screen.getByLabelText(/manuscript mention picker/i)).toHaveTextContent(
       'Alp Er TungaRaid at Dawn'
@@ -973,7 +1703,7 @@ describe('App', () => {
     expect(
       screen.getByLabelText(/manuscript timeline context/i)
     ).toHaveTextContent('Alp Er Tunga @ 1200');
-    expect(screen.getByText(/1 scenes/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/1 scenes/i).length).toBeGreaterThan(0);
     const manuscriptBody = screen.getByLabelText(
       /manuscript body/i
     ) as HTMLTextAreaElement;
@@ -1021,7 +1751,7 @@ describe('App', () => {
       screen.getAllByLabelText(/book page|chapter break page/i).length
     ).toBe(2);
     expect(screen.getByLabelText(/folio strip/i)).toHaveTextContent(
-      'Folio DeskChapter 11 min read3 mentions'
+      'Folio DeskChapter 21 min read3 mentions'
     );
 
     fireEvent.click(screen.getByRole('button', { name: /book/i }));
@@ -1069,9 +1799,21 @@ describe('App', () => {
     expect(screen.getByLabelText(/detail scene context/i)).toHaveTextContent(
       '1 linked scenesChapter 11200 startOpen latest sceneOpen scene graph'
     );
+    fireEvent.click(
+      within(screen.getByLabelText(/detail draft assists/i)).getByRole('button', {
+        name: /append scene cues/i
+      })
+    );
+    expect(
+      (screen.getByLabelText(/^Body$/i) as HTMLTextAreaElement).value
+    ).toContain('Character appears in scene context:\n- Arrival');
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /arrival/i }));
+      fireEvent.click(
+        within(screen.getByLabelText(/detail backlinks/i)).getByRole('button', {
+          name: /^arrival$/i
+        })
+      );
       await Promise.resolve();
     });
     expect(screen.getByLabelText(/manuscript lens/i)).toBeInTheDocument();
@@ -1079,6 +1821,65 @@ describe('App', () => {
       within(screen.getByLabelText(/detail scene context/i)).getByRole(
         'button',
         { name: /open latest scene/i }
+      )
+    );
+    expect(screen.getByLabelText(/manuscript lens/i)).toBeInTheDocument();
+  }, 10000);
+
+  it('drafts follow-up manuscript scenes from detail backlink continuity', async () => {
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText(/world title/i), {
+      target: { value: 'Demo World' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create demo world/i }));
+
+    await screen.findByText('demo-world');
+    fireEvent.click(screen.getByText('Raid at Dawn'));
+
+    const deferredFlags = screen.getByLabelText(/deferred lens flags/i);
+    fireEvent.click(
+      within(deferredFlags).getAllByRole('button', { name: /^Off$/i })[0]
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Manuscript$/i }));
+
+    await screen.findByLabelText(/manuscript lens/i);
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getByLabelText(/manuscript mentions/i)).getAllByRole(
+          'button',
+          { name: /alp er tunga \[char_001\]/i }
+        )[0]
+      );
+      await Promise.resolve();
+    });
+
+    expect(screen.getByLabelText(/detail writing bridge/i)).toHaveTextContent(
+      'Scene draftingDraft scene from entityDraft after Arrival'
+    );
+    fireEvent.click(
+      within(screen.getByLabelText(/detail writing bridge/i)).getByRole(
+        'button',
+        { name: /draft after arrival/i }
+      )
+    );
+    await waitFor(() =>
+      expect(createManuscriptScene).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          chapterId: 'msc_ch_001',
+          title: 'Alp Er Tunga after Arrival',
+          summary: 'Continue the thread after Arrival.',
+          body: 'Alp Er Tunga\n\nPrevious scene: Arrival\nChapter anchor: Chapter 1\nCarry-over tension:\nWhat changes now:\nNext irreversible beat:',
+          mentions: [
+            {
+              entityId: 'char_001',
+              label: 'Alp Er Tunga',
+              startOffset: 0,
+              endOffset: 12
+            }
+          ]
+        })
       )
     );
     expect(screen.getByLabelText(/manuscript lens/i)).toBeInTheDocument();
@@ -1139,19 +1940,19 @@ describe('App', () => {
       'AllDossierManuscript'
     );
     expect(screen.getByLabelText(/export spotlight/i)).toHaveTextContent(
-      '2 jobs1 artifacts'
+      '2 jobs2 artifacts'
     );
     expect(screen.getByLabelText(/artifact spotlight/i)).toHaveTextContent(
       'dossier.pdfdossier.pdfpdf_dossierdone'
     );
     expect(
       screen.getByLabelText(/manuscript export metadata/i)
-    ).toHaveTextContent('manuscript.pdfNo artifact yetqueued0 files');
+    ).toHaveTextContent('manuscript.pdfmanuscript.pdfqueued0 files');
     expect(screen.getByLabelText(/^export package$/i)).toHaveTextContent(
-      'Dossier bundleC:/Users/Test/Documents/WorldAltar/export2 jobs2 files'
+      'Dossier bundleC:/Users/Test/Documents/WorldAltar/export2 jobs3 files'
     );
     expect(screen.getByLabelText(/curated outputs/i)).toHaveTextContent(
-      'Curated outputs2 lanesDossier sheetdossier.pdfdone1 filesManuscript PDFmanuscript.pdfqueued0 files'
+      'Curated outputs2 lanesDossier sheetdossier.pdfdone2 filesManuscript PDFmanuscript.pdfqueued0 files'
     );
     expect(screen.getByLabelText(/bundle readiness/i)).toHaveTextContent(
       '3/3 lanesReusable world bundle closeDossier readyManuscript readyBundle ready'
@@ -1160,7 +1961,7 @@ describe('App', () => {
       'Reference sheets2 sheetsWorld dossierdossier.pdfwiki/mapdoneScene manuscriptmanuscript.pdfmanuscriptqueued'
     );
     expect(screen.getByLabelText(/export manifest/i)).toHaveTextContent(
-      'Asset manifestC:/Users/Test/Documents/WorldAltar/export1 artifact filesPDF 1Other 0'
+      'Asset manifestC:/Users/Test/Documents/WorldAltar/export2 artifact filesPDF 1Other 1'
     );
     expect(screen.getByLabelText(/export history/i)).toHaveTextContent(
       'Export history2 lanesDossier lane9done1 runsManuscript lane10queued1 runs'
@@ -1172,10 +1973,10 @@ describe('App', () => {
       'Format readiness2 formatsPDFreadyartifact path presentEPUBlaterfuture richer format'
     );
     expect(screen.getByLabelText(/target roots/i)).toHaveTextContent(
-      'Target roots1 rootsC:/Users/Test/Documents/WorldAltar/exportmanuscript.pdf2 jobs1 artifacts'
+      'Target roots1 rootsC:/Users/Test/Documents/WorldAltar/exportmanuscript.pdf2 jobs2 artifacts'
     );
     expect(screen.getByLabelText(/bundle contents/i)).toHaveTextContent(
-      'Bundle contents1 filesdossier.pdfC:/Users/Test/Documents/WorldAltar/exportDossier'
+      'Bundle contents2 filesdossier.pdfC:/Users/Test/Documents/WorldAltar/exportDossierasset-manifest.jsonC:/Users/Test/Documents/WorldAltar/exportDossier'
     );
     expect(screen.getByLabelText(/export groups/i)).toHaveTextContent(
       'Dossier1 jobspdf_dossierdone'
@@ -1187,10 +1988,10 @@ describe('App', () => {
       'Manuscript1 jobsmanuscript_pdfqueued'
     );
     expect(screen.getByLabelText(/export packages/i)).toHaveTextContent(
-      'Packages1 rootsDossier bundleC:/Users/Test/Documents/WorldAltar/export2 jobs2 files'
+      'Packages1 rootsDossier bundleC:/Users/Test/Documents/WorldAltar/export2 jobs3 files'
     );
     expect(screen.getByLabelText(/artifacts job_001/i)).toHaveTextContent(
-      'dossier.pdf'
+      'Artifactdossier.pdfArtifactasset-manifest.json'
     );
 
     fireEvent.click(
@@ -1202,11 +2003,11 @@ describe('App', () => {
       'manuscript_pdfqueued1 jobs0 artifacts'
     );
     expect(screen.getByLabelText(/artifact spotlight/i)).toHaveTextContent(
-      'No artifact yetmanuscript.pdfmanuscript_pdfqueued'
+      'Latest artifactmanuscript.pdfmanuscript.pdfmanuscript_pdfqueued'
     );
     expect(
       screen.getByLabelText(/manuscript export metadata/i)
-    ).toHaveTextContent('manuscript.pdfNo artifact yetqueued0 files');
+    ).toHaveTextContent('manuscript.pdfmanuscript.pdfqueued0 files');
     expect(screen.getByLabelText(/^export package$/i)).toHaveTextContent(
       'Manuscript bundleC:/Users/Test/Documents/WorldAltar/export1 jobs1 files'
     );

@@ -23,6 +23,7 @@ type EntityDetailPanelProps = {
   onOpenBacklink: (nodeId: string) => void;
   onOpenSceneContext: () => void;
   onCreateLinkedEntity: (kind: 'event_from_location' | 'location_from_region' | 'region_from_region') => void;
+  onCreateSceneFromEntity: (backlinkNodeId?: string) => void;
   onImportMedia: (variant: 'cover' | 'thumbnail') => void;
   onPresetMediaPaths: () => void;
   onSaveLinks: () => void;
@@ -55,6 +56,7 @@ export function EntityDetailPanel({
   onOpenBacklink,
   onOpenSceneContext,
   onCreateLinkedEntity,
+  onCreateSceneFromEntity,
   onImportMedia,
   onPresetMediaPaths,
   onSaveLinks,
@@ -69,6 +71,10 @@ export function EntityDetailPanel({
   typeLabels,
   typeMonograms
 }: EntityDetailPanelProps) {
+  const detailAssist = selectedEntity
+    ? buildDetailAssist(selectedEntity, typeLabels[selectedEntity.type], backlinks)
+    : null;
+
   return (
     <section className="detail-panel">
       <p className="eyebrow">Detail Panel</p>
@@ -144,6 +150,54 @@ export function EntityDetailPanel({
               onChange={(event) => setDraftBody(event.target.value)}
               value={draftBody}
             />
+            {detailAssist ? (
+              <div
+                className="detail-authoring-actions"
+                aria-label="detail draft assists"
+              >
+                <button
+                  className="button ghost-button"
+                  onClick={() => setDraftSummary(detailAssist.summaryCue)}
+                  type="button"
+                >
+                  Use summary cue
+                </button>
+                <button
+                  className="button ghost-button"
+                  onClick={() => {
+                    if (draftBody.includes(detailAssist.bodySignature)) {
+                      return;
+                    }
+
+                    const nextBody = draftBody.trim()
+                      ? `${draftBody.trim()}\n\n${detailAssist.bodyTemplate}`
+                      : detailAssist.bodyTemplate;
+                    setDraftBody(nextBody);
+                  }}
+                  type="button"
+                >
+                  Append {selectedEntity ? typeLabels[selectedEntity.type] : 'entity'} structure
+                </button>
+                {detailAssist.sceneCue ? (
+                  <button
+                    className="button ghost-button"
+                    onClick={() => {
+                      if (draftBody.includes(detailAssist.sceneCue)) {
+                        return;
+                      }
+
+                      const nextBody = draftBody.trim()
+                        ? `${draftBody.trim()}\n\n${detailAssist.sceneCue}`
+                        : detailAssist.sceneCue;
+                      setDraftBody(nextBody);
+                    }}
+                    type="button"
+                  >
+                    Append scene cues
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </section>
           <section className="detail-section" aria-label="detail facts">
             <p className="eyebrow">Facts</p>
@@ -357,10 +411,73 @@ export function EntityDetailPanel({
               </div>
             </section>
           ) : null}
+          <section
+            className="detail-section manuscript-links"
+            aria-label="detail writing bridge"
+          >
+            <p className="eyebrow">Writing bridge</p>
+            <strong>Scene drafting</strong>
+            <div className="detail-authoring-actions">
+              <button
+                className="button ghost-button"
+                onClick={() => onCreateSceneFromEntity()}
+                type="button"
+              >
+                Draft scene from entity
+              </button>
+              {backlinks.slice(0, 2).map((backlink) => (
+                <button
+                  key={backlink.nodeId}
+                  className="button ghost-button"
+                  onClick={() => onCreateSceneFromEntity(backlink.nodeId)}
+                  type="button"
+                >
+                  Draft after {backlink.sceneTitle}
+                </button>
+              ))}
+            </div>
+          </section>
         </>
       ) : (
         <p className="empty">Select entity</p>
       )}
     </section>
   );
+}
+
+function buildDetailAssist(
+  entity: EntityRecord,
+  typeLabel: string,
+  backlinks: EntityBacklink[]
+) {
+  const summaryCue =
+    entity.type === 'character'
+      ? 'Core role, pressure, and presence.'
+      : entity.type === 'location'
+        ? 'Spatial anchor, daily use, and mood.'
+        : entity.type === 'region'
+          ? 'Large-scale identity and pressure lines.'
+          : 'A change point in the world timeline.';
+  const bodyTemplate =
+    entity.type === 'character'
+      ? 'Identity:\nVoice:\nGoal:\nFear:\nKey ties:\nPublic legend:'
+      : entity.type === 'location'
+        ? 'Purpose:\nTerrain:\nPeople:\nThreat:\nSensory details:\nTravel notes:'
+        : entity.type === 'region'
+          ? 'Borders:\nPower centers:\nCultures:\nConflict lines:\nClimate:\nStrategic value:'
+          : 'Trigger:\nParticipants:\nLocation:\nEscalation:\nOutcome:\nLong tail:';
+  const bodySignature = bodyTemplate.split('\n')[0];
+  const sceneCue = backlinks.length
+    ? [
+        `${typeLabel} appears in scene context:`,
+        ...backlinks.slice(0, 3).map((backlink) => `- ${backlink.sceneTitle}`)
+      ].join('\n')
+    : null;
+
+  return {
+    summaryCue,
+    bodyTemplate,
+    bodySignature,
+    sceneCue
+  };
 }
