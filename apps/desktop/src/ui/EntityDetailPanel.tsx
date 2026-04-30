@@ -182,13 +182,15 @@ export function EntityDetailPanel({
                   <button
                     className="button ghost-button"
                     onClick={() => {
-                      if (draftBody.includes(detailAssist.sceneCue)) {
+                      const sceneCue = detailAssist.sceneCue;
+
+                      if (!sceneCue || draftBody.includes(sceneCue)) {
                         return;
                       }
 
                       const nextBody = draftBody.trim()
-                        ? `${draftBody.trim()}\n\n${detailAssist.sceneCue}`
-                        : detailAssist.sceneCue;
+                        ? `${draftBody.trim()}\n\n${sceneCue}`
+                        : sceneCue;
                       setDraftBody(nextBody);
                     }}
                     type="button"

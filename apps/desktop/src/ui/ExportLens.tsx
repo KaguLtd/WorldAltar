@@ -43,9 +43,42 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
   const deliveryPulse = buildDeliveryPulse(filteredJobs, jobs);
   const recentActivity = buildRecentActivity(filteredJobs, jobs);
   const queueIntent = buildQueueIntent(kindFilter, filteredJobs, jobs);
+  const deliveryDigest = buildDeliveryDigest(
+    deliveryReceipt,
+    deliveryPulse,
+    queueIntent
+  );
+  const deliveryBoard = buildDeliveryBoard(deliveryLanes, recentActivity);
   const formatReadiness = buildFormatReadiness(filteredJobs, jobs);
   const targetRoots = buildTargetRoots(filteredJobs, jobs);
   const bundleContents = buildBundleContents(filteredJobs, jobs);
+  const publishingStrip = buildPublishingStrip(
+    deliveryReceipt,
+    totalArtifacts,
+    filteredJobs
+  );
+  const artifactLedger = buildArtifactLedger(manifestDigest, targetRoots);
+  const releaseCadence = buildReleaseCadence(
+    deliveryPulse,
+    targetRoots,
+    filteredJobs
+  );
+  const releaseDigest = buildReleaseDigest(
+    deliveryDigest,
+    publishingStrip,
+    artifactLedger,
+    releaseCadence
+  );
+  const releaseDesk = buildReleaseDesk(
+    queueIntent,
+    publishingStrip,
+    artifactLedger
+  );
+  const shipmentNote = buildShipmentNote(
+    deliveryReceipt,
+    queueIntent,
+    artifactLedger
+  );
 
   return (
     <section className="lens-frame" aria-label="export lens">
@@ -123,7 +156,10 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
       ) : null}
 
       {deliveryReceipt ? (
-        <article className="timeline-spotlight" aria-label="delivery receipt">
+      <article
+        className="timeline-spotlight export-summary-card"
+        aria-label="delivery receipt"
+      >
           <div className="timeline-spotlight-copy">
             <p className="eyebrow">Delivery receipt</p>
             <strong>{deliveryReceipt.fileName}</strong>
@@ -162,7 +198,10 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
       ) : null}
 
       {deliveryPulse ? (
-        <article className="timeline-spotlight" aria-label="delivery pulse">
+        <article
+          className="timeline-spotlight export-summary-card"
+          aria-label="delivery pulse"
+        >
           <div className="timeline-spotlight-copy">
             <p className="eyebrow">Delivery pulse</p>
             <strong>{deliveryPulse.summary}</strong>
@@ -199,7 +238,10 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
       ) : null}
 
       {queueIntent ? (
-        <article className="timeline-spotlight" aria-label="queue intent">
+        <article
+          className="timeline-spotlight export-summary-card"
+          aria-label="queue intent"
+        >
           <div className="timeline-spotlight-copy">
             <p className="eyebrow">Queue intent</p>
             <strong>{queueIntent.label}</strong>
@@ -215,6 +257,150 @@ export function ExportLens({ jobs, onQueue, status }: ExportLensProps) {
             >
               Queue suggested lane
             </button>
+          </div>
+        </article>
+      ) : null}
+
+      {deliveryDigest ? (
+        <article
+          className="timeline-spotlight export-summary-card"
+          aria-label="delivery digest"
+        >
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Delivery digest</p>
+            <strong>{deliveryDigest.summary}</strong>
+            <span>{deliveryDigest.note}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">{deliveryDigest.receipt}</span>
+            <span className="command-chip">{deliveryDigest.pulse}</span>
+            <span className="command-chip">{deliveryDigest.intent}</span>
+          </div>
+        </article>
+      ) : null}
+
+      {deliveryBoard ? (
+        <article
+          className="timeline-spotlight export-summary-card"
+          aria-label="delivery board"
+        >
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Delivery board</p>
+            <strong>{deliveryBoard.summary}</strong>
+            <span>{deliveryBoard.note}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">{deliveryBoard.lanes}</span>
+            <span className="command-chip">{deliveryBoard.latest}</span>
+            <span className="command-chip">{deliveryBoard.status}</span>
+          </div>
+        </article>
+      ) : null}
+
+      {publishingStrip ? (
+        <article
+          className="timeline-spotlight export-summary-card"
+          aria-label="publishing strip"
+        >
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Publishing strip</p>
+            <strong>{publishingStrip.summary}</strong>
+            <span>{publishingStrip.note}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">{publishingStrip.root}</span>
+            <span className="command-chip">{publishingStrip.artifacts}</span>
+            <span className="command-chip">{publishingStrip.queue}</span>
+          </div>
+        </article>
+      ) : null}
+
+      {artifactLedger ? (
+        <article
+          className="timeline-spotlight export-summary-card"
+          aria-label="artifact ledger"
+        >
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Artifact ledger</p>
+            <strong>{artifactLedger.summary}</strong>
+            <span>{artifactLedger.note}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">{artifactLedger.root}</span>
+            <span className="command-chip">{artifactLedger.artifacts}</span>
+            <span className="command-chip">{artifactLedger.pdf}</span>
+          </div>
+        </article>
+      ) : null}
+
+      {releaseCadence ? (
+        <article
+          className="timeline-spotlight export-summary-card"
+          aria-label="release cadence"
+        >
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Release cadence</p>
+            <strong>{releaseCadence.summary}</strong>
+            <span>{releaseCadence.note}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">{releaseCadence.done}</span>
+            <span className="command-chip">{releaseCadence.queued}</span>
+            <span className="command-chip">{releaseCadence.roots}</span>
+          </div>
+        </article>
+      ) : null}
+
+      {releaseDigest ? (
+        <article
+          className="timeline-spotlight export-summary-card"
+          aria-label="release digest"
+        >
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Release digest</p>
+            <strong>{releaseDigest.summary}</strong>
+            <span>{releaseDigest.note}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">{releaseDigest.queue}</span>
+            <span className="command-chip">{releaseDigest.artifacts}</span>
+            <span className="command-chip">{releaseDigest.roots}</span>
+          </div>
+        </article>
+      ) : null}
+
+      {releaseDesk ? (
+        <article
+          className="timeline-spotlight export-summary-card"
+          aria-label="release desk"
+        >
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Release desk</p>
+            <strong>{releaseDesk.summary}</strong>
+            <span>{releaseDesk.note}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">{releaseDesk.intent}</span>
+            <span className="command-chip">{releaseDesk.queue}</span>
+            <span className="command-chip">{releaseDesk.root}</span>
+          </div>
+        </article>
+      ) : null}
+
+      {shipmentNote ? (
+        <article
+          className="timeline-spotlight export-summary-card"
+          aria-label="shipment note"
+        >
+          <div className="timeline-spotlight-copy">
+            <p className="eyebrow">Shipment note</p>
+            <strong>{shipmentNote.summary}</strong>
+            <span>{shipmentNote.note}</span>
+          </div>
+          <div className="timeline-summary">
+            <span className="command-chip">{shipmentNote.file}</span>
+            <span className="command-chip">{shipmentNote.intent}</span>
+            <span className="command-chip">{shipmentNote.artifacts}</span>
           </div>
         </article>
       ) : null}
@@ -850,7 +1036,12 @@ function buildQueueIntent(
   kindFilter: ExportKind | 'all',
   filteredJobs: ExportJob[],
   jobs: ExportJob[]
-) {
+): {
+  label: string;
+  note: string;
+  kind: ExportKind;
+  state: ExportJob['status'] | 'idle';
+} {
   const source = filteredJobs.length ? filteredJobs : jobs;
   const latest = source[0] ?? null;
 
@@ -888,6 +1079,156 @@ function buildQueueIntent(
     note: `latest ${kindFilter} is ${latest.status}`,
     kind: kindFilter,
     state: latest.status
+  };
+}
+
+function buildDeliveryDigest(
+  deliveryReceipt: ReturnType<typeof buildDeliveryReceipt>,
+  deliveryPulse: ReturnType<typeof buildDeliveryPulse>,
+  queueIntent: ReturnType<typeof buildQueueIntent>
+) {
+  if (!deliveryReceipt || !deliveryPulse || !queueIntent) {
+    return null;
+  }
+
+  return {
+    summary: `${deliveryReceipt.fileName} / ${deliveryPulse.summary}`,
+    note: `${queueIntent.label.toLowerCase()} while ${deliveryPulse.note}`,
+    receipt: `${deliveryReceipt.kind} ${deliveryReceipt.status}`,
+    pulse: `Queued ${deliveryPulse.queued} Failed ${deliveryPulse.failed}`,
+    intent: queueIntent.kind
+  };
+}
+
+function buildDeliveryBoard(
+  deliveryLanes: ReturnType<typeof buildDeliveryLanes>,
+  recentActivity: ReturnType<typeof buildRecentActivity>
+) {
+  if (!deliveryLanes.length || !recentActivity.length) {
+    return null;
+  }
+
+  const latest = recentActivity[0];
+
+  return {
+    summary: `${deliveryLanes.length} lanes / ${recentActivity.length} events`,
+    note: `${latest.fileName} is the latest visible movement`,
+    lanes: `${deliveryLanes[0].label}`,
+    latest: latest.fileName,
+    status: latest.status
+  };
+}
+
+function buildPublishingStrip(
+  deliveryReceipt: ReturnType<typeof buildDeliveryReceipt>,
+  totalArtifacts: number,
+  filteredJobs: ExportJob[]
+) {
+  if (!deliveryReceipt) {
+    return null;
+  }
+
+  return {
+    summary: `${deliveryReceipt.fileName} publishing`,
+    note: `${filteredJobs.length} visible jobs staged for delivery`,
+    root: deliveryReceipt.root,
+    artifacts: `${totalArtifacts} artifacts`,
+    queue: `${filteredJobs.filter((job) => job.status === 'queued').length} queued`
+  };
+}
+
+function buildArtifactLedger(
+  manifestDigest: ReturnType<typeof buildManifestDigest>,
+  targetRoots: ReturnType<typeof buildTargetRoots>
+) {
+  if (!manifestDigest || !targetRoots.length) {
+    return null;
+  }
+
+  return {
+    summary: `${targetRoots.length} roots / ${manifestDigest.summary}`,
+    note: manifestDigest.groups
+      .map((group) => `${group.label} ${group.count}`)
+      .join(' / '),
+    root: manifestDigest.rootLabel,
+    artifacts: `${targetRoots[0].artifacts} artifacts`,
+    pdf: `${manifestDigest.groups[0].label} ${manifestDigest.groups[0].count}`
+  };
+}
+
+function buildReleaseCadence(
+  deliveryPulse: ReturnType<typeof buildDeliveryPulse>,
+  targetRoots: ReturnType<typeof buildTargetRoots>,
+  filteredJobs: ExportJob[]
+) {
+  if (!deliveryPulse) {
+    return null;
+  }
+
+  return {
+    summary: `${filteredJobs.length} visible jobs / ${targetRoots.length} roots`,
+    note:
+      deliveryPulse.done === filteredJobs.length
+        ? 'visible release cadence settled'
+        : 'visible release cadence still in motion',
+    done: `Done ${deliveryPulse.done}`,
+    queued: `Queued ${deliveryPulse.queued}`,
+    roots: `Roots ${targetRoots.length}`
+  };
+}
+
+function buildReleaseDigest(
+  deliveryDigest: ReturnType<typeof buildDeliveryDigest>,
+  publishingStrip: ReturnType<typeof buildPublishingStrip>,
+  artifactLedger: ReturnType<typeof buildArtifactLedger>,
+  releaseCadence: ReturnType<typeof buildReleaseCadence>
+) {
+  if (!deliveryDigest || !publishingStrip || !artifactLedger || !releaseCadence) {
+    return null;
+  }
+
+  return {
+    summary: `${publishingStrip.summary} / ${releaseCadence.summary}`,
+    note: `${deliveryDigest.intent} with ${artifactLedger.summary}`,
+    queue: publishingStrip.queue,
+    artifacts: artifactLedger.artifacts,
+    roots: releaseCadence.roots
+  };
+}
+
+function buildReleaseDesk(
+  queueIntent: ReturnType<typeof buildQueueIntent>,
+  publishingStrip: ReturnType<typeof buildPublishingStrip>,
+  artifactLedger: ReturnType<typeof buildArtifactLedger>
+) {
+  if (!queueIntent || !publishingStrip || !artifactLedger) {
+    return null;
+  }
+
+  return {
+    summary: `${queueIntent.label} / ${publishingStrip.summary}`,
+    note: `${artifactLedger.summary} ready for focused review`,
+    intent: queueIntent.kind,
+    queue: publishingStrip.queue,
+    root: artifactLedger.root
+  };
+}
+
+function buildShipmentNote(
+  deliveryReceipt: ReturnType<typeof buildDeliveryReceipt>,
+  queueIntent: ReturnType<typeof buildQueueIntent>,
+  artifactLedger: ReturnType<typeof buildArtifactLedger>
+) {
+  if (!deliveryReceipt || !queueIntent || !artifactLedger) {
+    return null;
+  }
+
+  return {
+    summary: `${deliveryReceipt.fileName} ready for shipment`,
+    note: `${queueIntent.label.toLowerCase()} against ${artifactLedger.summary}`,
+    file: deliveryReceipt.fileName,
+    intent: queueIntent.kind,
+    artifacts: artifactLedger.artifacts
   };
 }
 

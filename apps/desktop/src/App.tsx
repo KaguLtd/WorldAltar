@@ -490,6 +490,91 @@ export function App() {
       ? `Deferred ${enabledDeferredLabels.length}`
       : 'Deferred core only'
   ];
+  const workspaceFolio = [
+    `Project ${project?.slug ?? 'none'}`,
+    `Visible ${filteredRecords.length}`,
+    `Type ${selectedEntity ? TYPE_LABELS[selectedEntity.type] : 'None'}`,
+    `Year ${year}`,
+    `Theme ${currentTheme.label}`
+  ];
+  const workspaceCollector = [
+    `Characters ${filteredRecords.filter((record) => record.type === 'character').length}`,
+    `Regions ${filteredRecords.filter((record) => record.type === 'region').length}`,
+    `Events ${filteredRecords.filter((record) => record.type === 'event').length}`,
+    `Places ${filteredRecords.filter((record) => record.type === 'location').length}`,
+    `Focus ${selectedEntity ? 'tracked' : 'open'}`
+  ];
+  const workspaceProvenance = [
+    `Slug ${project?.slug ?? 'none'}`,
+    `DB ${project ? 'ready' : 'missing'}`,
+    `Selected ${selectedEntity ? TYPE_LABELS[selectedEntity.type] : 'None'}`,
+    `Autosave ${dirty ? 'dirty' : 'steady'}`
+  ];
+  const workspaceSpotlight = [
+    `Lens ${activeLens}`,
+    selectedEntity?.common.title ?? 'No focus selected',
+    `${filteredRecords.length} visible records`,
+    getLensCopy(activeLens)
+  ];
+  const workspaceMood = [
+    `Mode ${activeLens}`,
+    activeLens === 'Wiki'
+      ? 'Curate canon'
+      : activeLens === 'Map'
+        ? 'Trace geography'
+        : activeLens === 'Timeline'
+          ? 'Read chronology'
+          : activeLens === 'Search'
+            ? 'Scan recall'
+            : activeLens === 'Manuscript'
+              ? 'Shape scenes'
+              : activeLens === 'Canvas'
+                ? 'Arrange relations'
+                : activeLens === 'Export'
+                  ? 'Package delivery'
+                  : 'Group references',
+    selectedEntity ? `Focus ${TYPE_LABELS[selectedEntity.type]}` : 'Focus open'
+  ];
+  const workspaceEditorial = [
+    `Focus ${selectedEntity?.common.title ?? 'Open desk'}`,
+    selectedEntity
+      ? `${TYPE_LABELS[selectedEntity.type]} ${selectedEntity.common.startYear ?? year}`
+      : `Year ${year}`,
+    selectedVisual?.coverMode === 'entity' ? 'Cover linked' : 'Cover fallback',
+    enabledDeferredLabels.length
+      ? `Deferred ${enabledDeferredLabels.join(' / ')}`
+      : 'Deferred core'
+  ];
+  const workspaceCurationRail = [
+    `Lens ${activeLens}`,
+    selectedEntity ? `Anchor ${TYPE_LABELS[selectedEntity.type]}` : 'Anchor open',
+    filteredRecords.length > 0 ? `Shelf ${filteredRecords.length}` : 'Shelf empty',
+    query.trim() ? `Query ${query.trim()}` : 'Query clear'
+  ];
+  const workspaceStateBoard = [
+    isBootstrappingProject ? 'Startup sync' : 'Startup ready',
+    dirty ? 'Draft dirty' : 'Draft steady',
+    typeFilter === 'all' ? 'Filter all' : `Filter ${typeFilter}`,
+    query.trim() ? 'Search active' : 'Search idle'
+  ];
+  const workspaceShellDigest = [
+    `Shell ${activeLens}`,
+    project ? 'World mounted' : 'World idle',
+    selectedEntity ? 'Focus locked' : 'Focus roaming',
+    enabledDeferredLabels.length ? 'Deferred live' : 'Deferred core'
+  ];
+  const workspaceSessionStrip = [
+    `Session ${currentTheme.label}`,
+    `Year ${year}`,
+    `${filteredRecords.length} records`,
+    dirty ? 'Autosave pending' : 'Autosave ready'
+  ];
+  const workspaceDeskAtlas = [
+    `Atlas ${activeLens}`,
+    selectedEntity ? `Focus ${selectedEntity.common.title}` : 'Focus open',
+    typeFilter === 'all' ? 'All shelves' : `${typeFilter} shelf`,
+    dirty ? 'Draft in motion' : 'Draft settled'
+  ];
   const timelineRecords = [...filteredRecords].sort(
     (left, right) =>
       (left.common.startYear ?? year) - (right.common.startYear ?? year)
@@ -1073,7 +1158,7 @@ export function App() {
         </header>
         <div className="shell-folio-strip" aria-label="shell summary strip">
           {shellFolio.map((entry) => (
-            <span key={entry} className="command-chip">
+            <span key={entry} className="command-chip shell-ribbon-chip">
               {entry}
             </span>
           ))}
@@ -1126,6 +1211,94 @@ export function App() {
                 </div>
               )}
             </div>
+            <div
+              className="workspace-curation-strip"
+              aria-label="workspace curation strip"
+            >
+              {workspaceFolio.map((entry) => (
+                <span key={entry} className="command-chip shell-ribbon-chip">
+                  {entry}
+                </span>
+              ))}
+            </div>
+            <div
+              className="workspace-spotlight-strip"
+              aria-label="workspace spotlight strip"
+            >
+              <span className="command-chip">{workspaceSpotlight[0]}</span>
+              <strong>{workspaceSpotlight[1]}</strong>
+              <span>{workspaceSpotlight[2]}</span>
+              <span className="scene-card-meta">
+                <span>{workspaceSpotlight[3]}</span>
+              </span>
+            </div>
+            <div
+              className="workspace-curation-rail"
+              aria-label="workspace curation rail"
+            >
+              {workspaceCurationRail.map((entry) => (
+                <span key={entry} className="command-chip shell-ribbon-chip">
+                  {entry}
+                </span>
+              ))}
+            </div>
+            <div className="workspace-mood-strip" aria-label="workspace mood strip">
+              {workspaceMood.map((entry) => (
+                <span key={entry} className="command-chip shell-ribbon-chip">
+                  {entry}
+                </span>
+              ))}
+            </div>
+            <div
+              className="workspace-editorial-strip"
+              aria-label="workspace editorial strip"
+            >
+              {workspaceEditorial.map((entry) => (
+                <span key={entry} className="command-chip shell-ribbon-chip">
+                  {entry}
+                </span>
+              ))}
+            </div>
+            <div
+              className="workspace-state-board"
+              aria-label="workspace state board"
+            >
+              {workspaceStateBoard.map((entry) => (
+                <span key={entry} className="command-chip shell-ribbon-chip">
+                  {entry}
+                </span>
+              ))}
+            </div>
+            <div
+              className="workspace-shell-digest"
+              aria-label="workspace shell digest"
+            >
+              {workspaceShellDigest.map((entry) => (
+                <span key={entry} className="command-chip shell-ribbon-chip">
+                  {entry}
+                </span>
+              ))}
+            </div>
+            <div
+              className="workspace-session-strip"
+              aria-label="workspace session strip"
+            >
+              {workspaceSessionStrip.map((entry) => (
+                <span key={entry} className="command-chip shell-ribbon-chip">
+                  {entry}
+                </span>
+              ))}
+            </div>
+            <div
+              className="workspace-desk-atlas"
+              aria-label="workspace desk atlas"
+            >
+              {workspaceDeskAtlas.map((entry) => (
+                <span key={entry} className="command-chip shell-ribbon-chip">
+                  {entry}
+                </span>
+              ))}
+            </div>
 
             {project ? (
               <>
@@ -1143,6 +1316,26 @@ export function App() {
                     <dd>{filteredRecords.length}</dd>
                   </div>
                 </dl>
+                <div
+                  className="workspace-collector-strip"
+                  aria-label="workspace collector strip"
+                >
+                  {workspaceCollector.map((entry) => (
+                    <span key={entry} className="command-chip shell-ribbon-chip">
+                      {entry}
+                    </span>
+                  ))}
+                </div>
+                <div
+                  className="workspace-provenance-strip"
+                  aria-label="workspace provenance strip"
+                >
+                  {workspaceProvenance.map((entry) => (
+                    <span key={entry} className="command-chip shell-ribbon-chip">
+                      {entry}
+                    </span>
+                  ))}
+                </div>
 
                 <section className="workspace-stage" data-lens={activeLens}>
                   {activeLens === 'Map' ? (

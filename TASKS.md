@@ -135,6 +135,14 @@
 - [x] Faz 6 recent activity pass
 - [x] Faz 6 queue intent pass
 - [x] Faz 6 queue intent action pass
+- [x] Faz 6 delivery digest pass
+- [x] Faz 6 delivery board pass
+- [x] Faz 6 publishing strip pass
+- [x] Faz 6 artifact ledger pass
+- [x] Faz 6 release cadence pass
+- [x] Faz 6 release digest pass
+- [x] Faz 6 release desk pass
+- [x] Faz 6 shipment note pass
 - [x] Faz 6 format readiness pass
 - [x] Faz 6 target roots pass
 - [x] Faz 6 bundle contents pass
@@ -142,3 +150,25 @@
 - [x] Faz 5 detail luxury strip pass
 - [x] Faz 5 hover preview strip pass
 - [x] Faz 5 shell folio strip pass
+- [x] Faz 5 workspace curation strip pass
+- [x] Faz 5 workspace collector strip pass
+- [x] Faz 5 workspace provenance strip pass
+- [x] Faz 5 workspace spotlight strip pass
+- [x] Faz 5 workspace curation rail pass
+- [x] Faz 5 workspace mood strip pass
+- [x] Faz 5 workspace editorial strip pass
+- [x] Faz 5 workspace state board pass
+- [x] Faz 5 workspace shell digest pass
+- [x] Faz 5 workspace session strip pass
+- [x] Faz 5 workspace desk atlas pass
+- [x] Faz 3 closure gate pass
+- [x] Faz 4 closure gate pass
+- [x] Faz 5 closure gate pass
+- [x] Faz 6 closure gate pass
+- [x] Faz 3-6 typecheck gate recheck pass
+- [x] Faz 3-6 frontend test gate recheck pass
+- [x] Faz 3-6 frontend build gate recheck pass
+- [x] Faz 3-6 Rust test gate recheck pass
+- [x] Faz 3-6 Rust build gate recheck pass
+- [x] Faz 5 shell ribbon polish pass
+- [x] Faz 6 export summary polish pass

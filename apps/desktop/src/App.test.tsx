@@ -695,6 +695,39 @@ describe('App', () => {
     expect(screen.getByLabelText(/shell summary strip/i)).toHaveTextContent(
       'World demo-worldLens WikiFocus Alp Er TungaTheme DuskDeferred core only'
     );
+    expect(screen.getByLabelText(/workspace curation strip/i)).toHaveTextContent(
+      'Project demo-worldVisible 2Type CharacterYear 1204Theme Dusk'
+    );
+    expect(screen.getByLabelText(/workspace spotlight strip/i)).toHaveTextContent(
+      'Lens WikiAlp Er Tunga2 visible recordsKart-first liste. Detail ve map ile bagli.'
+    );
+    expect(screen.getByLabelText(/workspace curation rail/i)).toHaveTextContent(
+      'Lens WikiAnchor CharacterShelf 2Query clear'
+    );
+    expect(screen.getByLabelText(/workspace mood strip/i)).toHaveTextContent(
+      'Mode WikiCurate canonFocus Character'
+    );
+    expect(screen.getByLabelText(/workspace editorial strip/i)).toHaveTextContent(
+      'Focus Alp Er TungaCharacter 1200Cover fallbackDeferred core'
+    );
+    expect(screen.getByLabelText(/workspace state board/i)).toHaveTextContent(
+      'Startup readyDraft steadyFilter allSearch idle'
+    );
+    expect(screen.getByLabelText(/workspace shell digest/i)).toHaveTextContent(
+      'Shell WikiWorld mountedFocus lockedDeferred core'
+    );
+    expect(screen.getByLabelText(/workspace session strip/i)).toHaveTextContent(
+      'Session DuskYear 12042 recordsAutosave ready'
+    );
+    expect(screen.getByLabelText(/workspace desk atlas/i)).toHaveTextContent(
+      'Atlas WikiFocus Alp Er TungaAll shelvesDraft settled'
+    );
+    expect(screen.getByLabelText(/workspace collector strip/i)).toHaveTextContent(
+      'Characters 1Regions 0Events 1Places 0Focus tracked'
+    );
+    expect(screen.getByLabelText(/workspace provenance strip/i)).toHaveTextContent(
+      'Slug demo-worldDB readySelected CharacterAutosave steady'
+    );
     expect(createWorld).not.toHaveBeenCalled();
     expect(createDemoWorld).toHaveBeenCalledWith('Demo World');
     expect(screen.getByLabelText(/wiki spotlight/i)).toHaveTextContent(
@@ -2104,6 +2137,30 @@ describe('App', () => {
     expect(screen.getByLabelText(/queue intent/i)).toHaveTextContent(
       'Queue intentQueue manuscript companionlatest visible lane is pdf_dossiermanuscript_pdfdoneQueue suggested lane'
     );
+    expect(screen.getByLabelText(/delivery digest/i)).toHaveTextContent(
+      'Delivery digestdossier.pdf / 2 tracked jobsqueue manuscript companion while visible deliveries still movingpdf_dossier doneQueued 1 Failed 0manuscript_pdf'
+    );
+    expect(screen.getByLabelText(/delivery board/i)).toHaveTextContent(
+      'Delivery board2 lanes / 2 eventsdossier.pdf is the latest visible movementDossier lanedossier.pdfdone'
+    );
+    expect(screen.getByLabelText(/publishing strip/i)).toHaveTextContent(
+      'Publishing stripdossier.pdf publishing2 visible jobs staged for deliveryC:/Users/Test/Documents/WorldAltar/export2 artifacts1 queued'
+    );
+    expect(screen.getByLabelText(/artifact ledger/i)).toHaveTextContent(
+      'Artifact ledger1 roots / 2 artifact filesPDF 1 / Other 1C:/Users/Test/Documents/WorldAltar/export2 artifactsPDF 1'
+    );
+    expect(screen.getByLabelText(/release cadence/i)).toHaveTextContent(
+      'Release cadence2 visible jobs / 1 rootsvisible release cadence still in motionDone 1Queued 1Roots 1'
+    );
+    expect(screen.getByLabelText(/release digest/i)).toHaveTextContent(
+      'Release digestdossier.pdf publishing / 2 visible jobs / 1 rootsmanuscript_pdf with 1 roots / 2 artifact files1 queued2 artifactsRoots 1'
+    );
+    expect(screen.getByLabelText(/release desk/i)).toHaveTextContent(
+      'Release deskQueue manuscript companion / dossier.pdf publishing1 roots / 2 artifact files ready for focused reviewmanuscript_pdf1 queuedC:/Users/Test/Documents/WorldAltar/export'
+    );
+    expect(screen.getByLabelText(/shipment note/i)).toHaveTextContent(
+      'Shipment notedossier.pdf ready for shipmentqueue manuscript companion against 1 roots / 2 artifact filesdossier.pdfmanuscript_pdf2 artifacts'
+    );
     expect(screen.getByLabelText(/curated outputs/i)).toHaveTextContent(
       'Curated outputs2 lanesDossier sheetdossier.pdfdone2 filesManuscript PDFmanuscript.pdfqueued0 files'
     );
@@ -2178,6 +2235,30 @@ describe('App', () => {
     );
     expect(screen.getByLabelText(/queue intent/i)).toHaveTextContent(
       'Queue intentRefresh manuscript lanelatest manuscript_pdf is queuedmanuscript_pdfqueuedQueue suggested lane'
+    );
+    expect(screen.getByLabelText(/delivery digest/i)).toHaveTextContent(
+      'Delivery digestmanuscript.pdf / 1 tracked jobsrefresh manuscript lane while visible deliveries still movingmanuscript_pdf queuedQueued 1 Failed 0manuscript_pdf'
+    );
+    expect(screen.getByLabelText(/delivery board/i)).toHaveTextContent(
+      'Delivery board1 lanes / 1 eventsmanuscript.pdf is the latest visible movementManuscript lanemanuscript.pdfqueued'
+    );
+    expect(screen.getByLabelText(/publishing strip/i)).toHaveTextContent(
+      'Publishing stripmanuscript.pdf publishing1 visible jobs staged for deliveryC:/Users/Test/Documents/WorldAltar/export0 artifacts1 queued'
+    );
+    expect(screen.getByLabelText(/artifact ledger/i)).toHaveTextContent(
+      'Artifact ledger1 roots / No artifact files yetPDF 0 / Other 0C:/Users/Test/Documents/WorldAltar/export0 artifactsPDF 0'
+    );
+    expect(screen.getByLabelText(/release cadence/i)).toHaveTextContent(
+      'Release cadence1 visible jobs / 1 rootsvisible release cadence still in motionDone 0Queued 1Roots 1'
+    );
+    expect(screen.getByLabelText(/release digest/i)).toHaveTextContent(
+      'Release digestmanuscript.pdf publishing / 1 visible jobs / 1 rootsmanuscript_pdf with 1 roots / No artifact files yet1 queued0 artifactsRoots 1'
+    );
+    expect(screen.getByLabelText(/release desk/i)).toHaveTextContent(
+      'Release deskRefresh manuscript lane / manuscript.pdf publishing1 roots / No artifact files yet ready for focused reviewmanuscript_pdf1 queuedC:/Users/Test/Documents/WorldAltar/export'
+    );
+    expect(screen.getByLabelText(/shipment note/i)).toHaveTextContent(
+      'Shipment notemanuscript.pdf ready for shipmentrefresh manuscript lane against 1 roots / No artifact files yetmanuscript.pdfmanuscript_pdf0 artifacts'
     );
     fireEvent.click(
       within(screen.getByLabelText(/queue intent/i)).getByRole('button', {

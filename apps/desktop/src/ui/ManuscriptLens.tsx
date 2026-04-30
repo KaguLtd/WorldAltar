@@ -82,6 +82,10 @@ export function ManuscriptLens({
     const counts = new Map<string, number>();
 
     sceneContextBacklinks.forEach((backlink) => {
+      if (!backlink.chapterId) {
+        return;
+      }
+
       counts.set(
         backlink.chapterId,
         (counts.get(backlink.chapterId) ?? 0) + 1
@@ -93,7 +97,14 @@ export function ManuscriptLens({
   const continuityChapters = useMemo(() => {
     const seen = new Set<string>();
 
-    return sceneContextBacklinks.filter((backlink) => {
+    return sceneContextBacklinks.filter((backlink): backlink is EntityBacklink & {
+      chapterId: string;
+      chapterTitle: string;
+    } => {
+      if (!backlink.chapterId || !backlink.chapterTitle) {
+        return false;
+      }
+
       if (seen.has(backlink.chapterId)) {
         return false;
       }
@@ -157,6 +168,8 @@ export function ManuscriptLens({
   const createScaffold = selectedEntity
     ? buildSceneScaffold(selectedEntity, latestBacklinkTitle)
     : null;
+  const selectedEntityTitle = selectedEntity?.common.title ?? 'Scene';
+  const fallbackChapterId = activeChapter?.node.id ?? tree[0]?.node.id ?? '';
   const compositionGuide = buildCompositionGuide(
     compositionMode,
     selectedEntity,
@@ -164,13 +177,12 @@ export function ManuscriptLens({
   );
   const compositionBeats = buildCompositionBeats(
     compositionMode,
-    selectedEntity?.common.title ?? 'Scene',
+    selectedEntityTitle,
     selectedCreateChapter?.node.title ?? 'Loose scene',
     latestBacklinkTitle
   );
   const compositionBlocks = buildCompositionBlocks(
     compositionMode,
-    selectedEntity?.common.title ?? 'Scene',
     selectedCreateChapter?.node.title ?? 'Loose scene',
     latestBacklinkTitle
   );
@@ -370,7 +382,7 @@ export function ManuscriptLens({
 
     const currentSceneTitle = scene.node.title;
     const followUpAnchor = selectedEntity?.common.title ?? currentSceneTitle;
-    const followUpChapterId = activeChapter?.node.id ?? scene.chapterId;
+    const followUpChapterId = activeChapter?.node.id ?? scene.node.parentId ?? fallbackChapterId;
     const followUpChapterTitle =
       activeChapter?.node.title ?? 'Loose scene';
 
@@ -389,7 +401,7 @@ export function ManuscriptLens({
     }
 
     const currentSceneTitle = scene.node.title;
-    const nextSlotChapterId = activeChapter?.node.id ?? scene.chapterId;
+    const nextSlotChapterId = activeChapter?.node.id ?? scene.node.parentId ?? fallbackChapterId;
     const nextSlotChapterTitle = activeChapter?.node.title ?? 'Loose scene';
     const nextSlotNumber = activeSceneIndex > 0 ? activeSceneIndex + 1 : 1;
     const nextSlotAnchor = selectedEntity?.common.title ?? currentSceneTitle;
@@ -411,7 +423,7 @@ export function ManuscriptLens({
     }
 
     const currentSceneTitle = scene.node.title;
-    const closingChapterId = activeChapter?.node.id ?? scene.chapterId;
+    const closingChapterId = activeChapter?.node.id ?? scene.node.parentId ?? fallbackChapterId;
     const closingChapterTitle = activeChapter?.node.title ?? 'Loose scene';
     const closingSlotNumber = activeSceneIndex > 0 ? activeSceneIndex + 1 : 1;
     const closingAnchor = selectedEntity?.common.title ?? currentSceneTitle;
@@ -433,7 +445,7 @@ export function ManuscriptLens({
     }
 
     const currentSceneTitle = scene.node.title;
-    const openingChapterId = activeChapter?.node.id ?? scene.chapterId;
+    const openingChapterId = activeChapter?.node.id ?? scene.node.parentId ?? fallbackChapterId;
     const openingChapterTitle = activeChapter?.node.title ?? 'Loose scene';
     const openingAnchor = selectedEntity?.common.title ?? currentSceneTitle;
 
@@ -596,7 +608,7 @@ export function ManuscriptLens({
                 className="button ghost-button"
                 onClick={() => {
                   setCompositionMode('free');
-                  setSceneTitle(`${selectedEntity.common.title} scene`);
+                  setSceneTitle(`${selectedEntityTitle} scene`);
                   setSceneSummary(createScaffold.summary);
                   setSceneBody(createScaffold.body);
                 }}
@@ -608,10 +620,16 @@ export function ManuscriptLens({
                 <button
                   className="button ghost-button"
                   onClick={() => {
+                    const continuation = createScaffold.continuation;
+
+                    if (!continuation) {
+                      return;
+                    }
+
                     setCompositionMode('continuation');
-                    setSceneTitle(`${selectedEntity.common.title} aftermath`);
-                    setSceneSummary(createScaffold.continuation.summary);
-                    setSceneBody(createScaffold.continuation.body);
+                    setSceneTitle(`${selectedEntityTitle} aftermath`);
+                    setSceneSummary(continuation.summary);
+                    setSceneBody(continuation.body);
                   }}
                   type="button"
                 >
@@ -634,13 +652,13 @@ export function ManuscriptLens({
                     onClick={() => {
                       setCompositionMode('continuation');
                       setSceneTitle(
-                        `${selectedEntity.common.title} after ${backlink.sceneTitle}`
+                        `${selectedEntityTitle} after ${backlink.sceneTitle}`
                       );
                       setSceneSummary(
                         `Continue the thread after ${backlink.sceneTitle}.`
                       );
                       setSceneBody(
-                        `${selectedEntity.common.title}\n\nPrevious scene: ${backlink.sceneTitle}\nChapter anchor: ${backlink.chapterTitle}\nCarry-over tension:\nWhat changes now:\nNext irreversible beat:`
+                        `${selectedEntityTitle}\n\nPrevious scene: ${backlink.sceneTitle}\nChapter anchor: ${backlink.chapterTitle ?? 'Loose scene'}\nCarry-over tension:\nWhat changes now:\nNext irreversible beat:`
                       );
                     }}
                     type="button"
@@ -1985,7 +2003,6 @@ function buildCompositionBeats(
 
 function buildCompositionBlocks(
   mode: 'free' | 'opening' | 'continuation',
-  entityTitle: string,
   chapterTitle: string,
   latestBacklinkTitle: string | null
 ) {

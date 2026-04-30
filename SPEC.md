@@ -192,3 +192,23 @@ Deferred lensler repoda calisabilir ama:
 
 Premium shell notu:
 - app shell, world/lens/focus/theme/deferred state icin kompakt bir folio strip gosterebilir
+- workspace head, project/visible/type/year/theme icin curated bir strip de gosterebilir
+- workspace body, type dagilimi ve focus durumunu collector strip olarak da gosterebilir
+- workspace body, slug/db/selected/autosave durumunu provenance strip olarak da gosterebilir
+- workspace head, aktif lens ve secili fokus icin spotlight strip de gosterebilir
+- workspace head, lens/anchor/shelf/query durumunu compact bir curation rail olarak da gosterebilir
+- workspace head, aktif lens tonunu anlatan bir mood strip de gosterebilir
+- workspace head, secili fokus/start year/cover/deferred durumunu editorial strip olarak da gosterebilir
+- workspace head, startup/draft/filter/search durumunu compact bir state board olarak da gosterebilir
+- workspace head, shell mount/focus/deferred durumunu compact bir shell digest olarak da gosterebilir
+- workspace head, session theme/year/record/autosave durumunu compact bir session strip olarak da gosterebilir
+- workspace head, lens/focus/filter/draft durumunu compact bir desk atlas olarak da gosterebilir
+- export head, receipt/pulse/intent durumunu compact bir delivery digest olarak da gosterebilir
+- export head, lane/activity durumunu compact bir delivery board olarak da gosterebilir
+- export head, root/artifact/queue durumunu compact bir publishing strip olarak da gosterebilir
+- export head, manifest/root/pdf durumunu compact bir artifact ledger olarak da gosterebilir
+- export head, queue/done/root ritmini compact bir release cadence olarak da gosterebilir
+- export head, digest/publishing/artifact/cadence durumunu compact bir release digest olarak da gosterebilir
+- export head, intent/publishing/root durumunu compact bir release desk olarak da gosterebilir
+- export head, latest lane/intention/artifact durumunu compact bir shipment note olarak da gosterebilir
+- shell ribbon ailesi ve export summary kartlari, yeni veri modeli acmadan daha bitmis bir polish katmaniyla sunulabilir

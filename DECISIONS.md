@@ -862,3 +862,79 @@ Reason: Faz 6 export ekraninda onerilen sonraki adim daha dogrudan uygulanabilsi
 ### D-197 Shell folio strip stays app-state derived
 App shell, world slug, aktif lens, secili fokus, tema ve deferred durumunu kompakt bir folio strip olarak da gosterebilir; bu strip yalnizca mevcut app state'ten turetilir.
 Reason: Faz 5 premium shell hissi daha erken gelsin ama ayri shell-presentation persistence'i, yeni layout store'u ya da ikinci command seam'i acilmasin.
+
+### D-198 Workspace curation strip stays app-state derived
+Workspace head, project slug, visible count, secili type, year ve tema bilgisini kompakt bir curation strip olarak da gosterebilir; bu strip yalnizca mevcut app state'ten turetilir.
+Reason: Faz 5 lens alani daha curated bir desk gibi hissedilsin ama ayri workspace-presentation persistence'i, yeni header store'u ya da ikinci lens seam'i acilmasin.
+
+### D-199 Workspace collector strip stays app-state derived
+Workspace body, visible type dagilimi ve focus durumunu kompakt bir collector strip olarak da gosterebilir; bu strip yalnizca mevcut filtered record set'i ve secili entity state'inden turetilir.
+Reason: Faz 5 workspace daha collector desk gibi hissedilsin ama ayri analytics persistence'i, yeni workspace store'u ya da ikinci spotlight seam'i acilmasin.
+
+### D-200 Workspace provenance strip stays app-state derived
+Workspace body, slug/db/selected/autosave durumunu kompakt bir provenance strip olarak da gosterebilir; bu strip yalnizca mevcut project, selected entity ve dirty state'inden turetilir.
+Reason: Faz 5 workspace daha curated bir production desk gibi hissedilsin ama ayri provenance persistence'i, yeni audit store'u ya da ikinci shell seam'i acilmasin.
+
+### D-201 Workspace spotlight strip stays app-state derived
+Workspace head, aktif lens, secili fokus, visible count ve lens copy bilgisini kompakt bir spotlight strip olarak da gosterebilir; bu strip yalnizca mevcut app state ve lens copy helper'indan turetilir.
+Reason: Faz 5 lens alani daha belirgin bir curatorial shell hissi versin ama ayri spotlight persistence'i, yeni workspace hero modeli ya da ikinci header seam'i acilmasin.
+
+### D-202 Workspace curation rail stays app-state derived
+Workspace head, lens, anchor, shelf ve query durumunu kompakt bir curation rail olarak da gosterebilir; bu rail yalnizca mevcut active lens, selected entity, filtered record set'i ve query state'inden turetilir.
+Reason: Faz 5 workspace daha operasyonel bir curatorial rail hissi versin ama ayri rail persistence'i, yeni workspace control store'u ya da ikinci filter seam'i acilmasin.
+
+### D-203 Workspace mood strip stays app-state derived
+Workspace head, aktif lensin tonunu ve secili focus type'ini kompakt bir mood strip olarak da gosterebilir; bu strip yalnizca mevcut active lens ve selected entity state'inden turetilir.
+Reason: Faz 5 shell daha karakterli hissetsin ama ayri mood persistence'i, yeni theming store'u ya da ikinci workspace narration seam'i acilmasin.
+
+### D-204 Workspace editorial strip stays app-state derived
+Workspace head, secili fokus, focus start year, cover fallback/link durumu ve deferred state'i kompakt bir editorial strip olarak da gosterebilir; bu strip yalnizca mevcut selected entity, visual resolution ve deferred lens state'inden turetilir.
+Reason: Faz 5 workspace daha editoryal bir desk gibi hissedilsin ama ayri editorial persistence'i, yeni workspace curation store'u ya da ikinci shell seam'i acilmasin.
+
+### D-205 Workspace state board stays app-state derived
+Workspace head, startup, draft, filter ve search durumunu kompakt bir state board olarak da gosterebilir; bu board yalnizca mevcut boot, dirty, type filter ve query state'inden turetilir.
+Reason: Faz 5 shell daha toplu ve operasyonel bir production desk gibi hissedilsin ama ayri state-board persistence'i, yeni workspace runtime store'u ya da ikinci command seam'i acilmasin.
+
+### D-206 Workspace shell digest stays app-state derived
+Workspace head, shell lens, world mount, focus lock ve deferred durumunu kompakt bir shell digest olarak da gosterebilir; bu digest yalnizca mevcut active lens, project, selected entity ve deferred lens state'inden turetilir.
+Reason: Faz 5 shell katmanlari kapanisa daha yakin, tek bakista okunur bir desk hissi versin ama ayri digest persistence'i, yeni shell summary store'u ya da ikinci shell seam'i acilmasin.
+
+### D-207 Workspace session strip stays app-state derived
+Workspace head, session theme, year, visible record sayisi ve autosave durumunu kompakt bir session strip olarak da gosterebilir; bu strip yalnizca mevcut theme, year, filtered record set'i ve dirty state'inden turetilir.
+Reason: Faz 5 shell kapanisa daha yakin, tek bakista oturum hissi versin ama ayri session persistence'i, yeni shell runtime store'u ya da ikinci shell seam'i acilmasin.
+
+### D-208 Workspace desk atlas stays app-state derived
+Workspace head, lens, focus, filter ve draft durumunu kompakt bir desk atlas olarak da gosterebilir; bu atlas yalnizca mevcut active lens, selected entity, type filter ve dirty state'inden turetilir.
+Reason: Faz 5 shell kapanista farkli strip'leri daha tek bakista hissettirsin ama ayri atlas persistence'i, yeni desk summary store'u ya da ikinci shell seam'i acilmasin.
+
+### D-209 Export delivery digest stays derived
+Export lens, delivery receipt, delivery pulse ve queue intent bilgisini kompakt bir delivery digest olarak da gosterebilir; bu digest yalnizca mevcut derived receipt/pulse/intent yuzeylerinden turetilir.
+Reason: Faz 6 teslimat hatti kapanisa daha yakin, tek bakista okunur bir operasyon ozeti versin ama ayri digest persistence'i, yeni export summary store'u ya da ikinci queue seam'i acilmasin.
+
+### D-210 Export delivery board stays derived
+Export lens, delivery lanes ve recent activity bilgisini kompakt bir delivery board olarak da gosterebilir; bu board yalnizca mevcut derived lane/activity yuzeylerinden turetilir.
+Reason: Faz 6 teslimat hatti lane ve hareket akisini daha tek bakista gosterebilsin ama ayri board persistence'i, yeni activity store'u ya da ikinci export seam'i acilmasin.
+
+### D-211 Export publishing strip stays derived
+Export lens, hedef root, artifact toplami ve queue durumunu kompakt bir publishing strip olarak da gosterebilir; bu strip yalnizca mevcut derived delivery receipt ve gorunen export job set'inden turetilir.
+Reason: Faz 6 publishing hatti daha tek satirlik bir teslimat ozetine sahip olsun ama ayri publishing persistence'i, yeni release store'u ya da ikinci export seam'i acilmasin.
+
+### D-212 Export artifact ledger stays derived
+Export lens, manifest digest, target roots ve PDF sayisini kompakt bir artifact ledger olarak da gosterebilir; bu ledger yalnizca mevcut derived manifest ve target-root yuzeylerinden turetilir.
+Reason: Faz 6 artifact hatti daha tek bakista okunur olsun ama ayri ledger persistence'i, yeni artifact store'u ya da ikinci export seam'i acilmasin.
+
+### D-213 Export release cadence stays derived
+Export lens, gorunen queue/done dagilimi ve target root ritmini kompakt bir release cadence olarak da gosterebilir; bu cadence yalnizca mevcut derived delivery pulse ve target-root yuzeylerinden turetilir.
+Reason: Faz 6 publishing hatti hareket ve cikis ritmini daha tek bakista gosterebilsin ama ayri cadence persistence'i, yeni release timing store'u ya da ikinci export seam'i acilmasin.
+
+### D-214 Export release digest stays derived
+Export lens, delivery digest, publishing strip, artifact ledger ve release cadence bilgisini kompakt bir release digest olarak da gosterebilir; bu digest yalnizca mevcut derived export summary yuzeylerinden turetilir.
+Reason: Faz 6 publishing hatti kapanista tek bakista daha toplu gorunsun ama ayri digest persistence'i, yeni release overview store'u ya da ikinci export seam'i acilmasin.
+
+### D-215 Export release desk stays derived
+Export lens, queue intent, publishing strip ve artifact ledger bilgisini kompakt bir release desk olarak da gosterebilir; bu desk yalnizca mevcut derived export summary yuzeylerinden turetilir.
+Reason: Faz 6 publishing hatti kapanista daha operasyonel ve fokuslu hissedilsin ama ayri desk persistence'i, yeni publishing workspace store'u ya da ikinci export seam'i acilmasin.
+
+### D-216 Export shipment note stays derived
+Export lens, latest delivery receipt, queue intent ve artifact ledger bilgisini kompakt bir shipment note olarak da gosterebilir; bu note yalnizca mevcut derived export summary yuzeylerinden turetilir.
+Reason: Faz 6 teslimat hatti son cikis notunu daha kisa ve okunur gosterebilsin ama ayri shipment persistence'i, yeni delivery note store'u ya da ikinci export seam'i acilmasin.
