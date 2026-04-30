@@ -1,214 +1,127 @@
 # SPEC
 
-## Active Product
+## Product Truth
 
-`main` branch resmi urun: daraltilmis MVP.
+WorldAltar hedefi:
+- local-first desktop worldbuilding workstation
+- tek canonical veri omurgasi
+- map + time + canon + writing koprusu
+- finishable Final Core v1
 
-Aktif kapsam:
-- local-first Tauri desktop app
+Resmi primary user loop:
+
+`scan world -> select entity -> inspect in canon/time/map -> edit or create linked entity -> draft scene -> jump back to canon`
+
+Bu loop shell, lens sirasi ve sonraki refactor kararlarini yonetir.
+
+## Final Core v1 Boundary
+
+V1 icine girenler:
 - world create/open
-- `Documents/WorldAltar/worlds` klasor yapisi
-- SQLite migration + project metadata
+- blank production world create
+- optional demo world create
 - typed entities
 - stable ids
-- merkezi `is_visible_at_year()` kurali
-- minimal wiki list/detail
-- minimal search
-- minimal offline map
-- year slider
+- merkezi year visibility
+- wiki
+- search
+- offline map
+- manuscript drafting with entity bridge
 - autosave + recovery
+- deterministic local persistence
 
-Aktif olmayan ama repoda izi bulunabilen alanlar:
-- manuscript studio
-- book preview
-- canvas
-- export pipeline
-- premium visual polish
+V1 disindakiler:
+- yeni major lensler
+- AI-first yan sistemler
+- ornamental feature expansion
+- broad export expansion
 
-Bu alanlar MVP contract degildir.
+## Non-Negotiable Invariants
 
-UI reality on `main`:
-- wiki lens: create entity studio, type-first quick authoring
-- wiki lens: selected card can seed create studio presets
-- wiki lens: type template fill can seed summary/body scaffolds without leaving studio
-- wiki lens: spotlight + grouped cards + quick jump hover
-- detail panel: quick linked create for region/location seeds
-- detail panel: local asset path attach for cover/thumbnail
-- detail panel: quick relation link save for typed links
-- detail panel: local draft assists can fill empty summary, append type structure, and append scene cues
-- detail panel: asset path preset button for canonical local layout
-- detail panel: source path import can copy asset into world package
-- detail panel: editor/facts split
-- timeline lens: spotlight summary
-- manuscript lens: facts + mentions rhythm
-- manuscript lens: local chapter + scene create flow under same deferred seam
-- manuscript lens: new scene create can seed selected world context as first mention
-- manuscript lens: selected entity can also prefill a new scene draft shell before create
-- manuscript lens: selected entity can also offer reusable scene scaffold and linked-thread continuation cues before create
-- manuscript lens: linked scene continuity buttons may prefill follow-up drafts from explicit backlink context
-- manuscript lens: selected world context may also expose chapter affinity picks for scene create
-- manuscript lens: selected chapter may expose next-scene rhythm cues and a chapter-beat scaffold for scene create
-- manuscript lens: scene create may expose composition mode state for free, opening, and continuation drafting
-- manuscript lens: composition mode may also expose short writing guides without creating a second planning model
-- manuscript lens: composition guide may also expose applyable authoring deck actions for free/opening/continuation drafts
-- manuscript lens: composition deck may also expose a compact ledger for active mode, chapter, anchor, and entity
-- manuscript lens: composition mode may also expose applyable beat buttons that append scene-specific prompts into the draft body
-- manuscript lens: composition mode may also expose scaffold block cards that show ready/pending structure and append missing draft sections
-- manuscript lens: composition queue may expose chapter opener and follow-up routing cues that prefill the same local draft form
-- manuscript lens: composition queue may also expose queue lanes and a reserve slot so chapter rhythm can hold flexible scene space without new persistence
-- manuscript lens: chapter ordering cards and closing-beat queueing may stay local and prefill the same draft form
-- manuscript lens: scene lane cards may mirror queue decisions and trigger the same local draft prefills
-- manuscript lens: scene sequence cards may expose next, closing, and aftermath slots while still driving the same local draft prefills
-- manuscript lens: scene outline cards may anchor previous, next, and aftermath positions without opening a second outline model
-- manuscript lens: scene storyboard cards may compress outline/sequence into previous-current-aftermath frames while reusing the same local prefills
-- manuscript lens: scene planning strip may compress the same chapter plan into a compact previous/current/aftermath command row
-- manuscript lens: scene planning desk may restate that plan as compact lane cards without opening a second planning model
-- manuscript lens: scene planning HUD may compress the same chapter plan into a tiny previous/current/after command row
-- manuscript lens: scene planning commands may restate opener/reserve/close/after actions as the most compact command row
-- manuscript lens: scene launch bar may reflect chapter/title/body readiness and current composition mode next to create
-- manuscript lens: scene launch receipt may keep the last submitted scene title/chapter/mode/seed visible after create
-- manuscript lens: last launch metadata may also surface in chapter headers and world-link bridge without a second submit model
-- manuscript tree: last launch metadata may also mark the matching scene card inline
-- manuscript detail: last launch metadata may also surface when the matching scene is selected
-- manuscript detail: matching launch receipt may also re-seed the create form through a reuse action
-- manuscript launch receipt: matching created scene may also be focused back into selected scene detail
-- manuscript detail: selected scene may also hand off a continuation draft into the same create form
-- manuscript detail: selected scene handoff may also queue the next chapter slot into the same create form
-- manuscript detail: selected scene handoff may also queue a chapter closing slot into the same create form
-- manuscript detail: selected scene handoff may also queue a chapter opening slot into the same create form
-- manuscript detail: selected scene handoff may also expose a compact handoff queue for opening, next-slot, closing, and follow-up planning
-- manuscript create: launch bar may also restate selected scene handoff rhythm near submit
-- manuscript detail: selected scene handoff may also restate opening/next/closing/follow-up intent as compact command chips near scene detail actions
-- manuscript detail: selected scene handoff may also append compact handoff cues into the active scene editor body without a second edit model
-- manuscript detail: selected scene handoff may also append a compact handoff cue into the active scene summary for faster edit continuity
-- manuscript detail: selected scene handoff may also append a compact handoff cue into the active scene title for faster retitling continuity
-- manuscript detail: selected scene handoff may also group title/summary/body cues inside a compact edit-assist surface with one-click apply-all
-- manuscript launch receipt: may also expose compact launch edit cues and replay them into title/summary/body
-- map lens: territory desk may also collapse focus/rail/chain/pulse/route into a single region-first focus deck
-- manuscript tree: chapter and scene cards may expose backlink-derived continuity chips for the selected world context
-- manuscript studio: chapter count + scene meta + word/read stats
-- manuscript preview: local Draft / Split / Book switch with two-page preview shell
-- canvas lens: local Relations / Family / Chain board switch with derived links
-- export lens: filterable queue + artifact list from same export jobs payload
-- deferred shells: canvas/export/relations spotlight summary
-- deeper polish: restrained hover/sheen motion + reduced-motion fallback
-- side rails: theme palette swatches + asset manifest chips
-- bunlar UX ritim iyilestirmesidir, core contract degisikligi degildir
-- map lens: geocoded summary rail + quick focus rows
-- map lens: visible/geocoded/type summary strip
-- map lens: scope strip can locally spotlight all layers or one visible entity type
-- map lens: year resonance card keeps dominant layer and ongoing count visible for current scope
-- map lens: year shift strip keeps opening/closing/anchored span visible for current year
-- map lens: spatial ledger keeps region/event/place/geocoded pressure readable without leaving map
-- map lens: territory bands summarize region-centered pressure using existing typed world links
-- map lens: selected strip may also expose territory focus chips for host place/region context
-- map lens: overlay stack may compress selected territory context into short horizon chips
-- map lens: selected strip may also narrate the territory path for location/event context
-- map lens: selected strip may expose territory route buttons for host region/place jumps
-- map lens: region selection may expose territory chain chips for core, child, and spread context
-- map lens: selected strip may expose territory pulse metrics for region/location/event context
-- map lens: selected strip may expose a compact region focus summary through territory host chains
-- map lens: selected strip may expose a region-first focus rail that compresses route and pulse context
-- map lens: territory desk may combine region focus rail and territory chain into one region-first reading panel
-- map lens: relation ledger reads typed spatial ties for selected entity without opening second data model
-- map lens: hover popover can jump direct to wiki or timeline
-- map lens: hover popover can pin selected marker into detail panel without leaving map
-- map lens: selected marker strip keeps title, summary, coords, and lens jumps visible
-- map lens: type strip shows visible-set counts and can jump to first record of that type
-- map lens: marker legend keeps per-type color/count reading visible
-- map lens: overlay chips expose short type/count semantic tags
-- map lens: year context stays visible in overlay and selected strip copy
-- wiki spotlight: selected card can fire linked create without leaving card surface
-- manuscript bridge: selected entity may stage mention insert and jump to wiki/timeline from same scene surface
-- manuscript mention picker: current visible set may seed quick scene mentions
-- manuscript timeline context: scene mentions may reopen same entities in timeline lens
-- manuscript mention insert is caret-aware inside current scene draft body
-- wiki detail shows scene-context summary from same backlink seam
-- wiki detail can draft a new scene from selected entity into manuscript seam
-- wiki detail can also draft explicit follow-up scenes from backlink continuity into same manuscript seam
-- relations lens groups backlink scenes by chapter from same payload
-- export lens groups jobs by artifact kind and spotlights latest artifact from same queue payload
-- export jobs carry explicit primary artifact path alongside companion artifacts
-- export lens derives artifact counts and bundle rows from primary + companion paths together
-- export lens also exposes manuscript artifact metadata from same queue payload
-- export lens also exposes package root/job/file summary from same queue payload paths
-- export lens also exposes curated output lanes from same queue payload
-- export lens also exposes reusable bundle readiness from same queue payload
-- export lens also exposes reference sheets from same queue payload
-- export lens also exposes asset manifest digest from same queue payload
-- export lens also exposes lane history from same queue payload
-- export lens also exposes delivery checklist from same queue payload
-- export lens also exposes format readiness from same queue payload
-- export lens also exposes target roots from same queue payload
-- export lens also exposes bundle contents from same queue payload
-- manuscript preview also exposes folio strip and page ribbon as presentation-only premium layer
-- detail panel also exposes luxury strip chips as presentation-only premium layer
-- hover preview also exposes premium strip chips as presentation-only premium layer
-- map selected strip may also surface a compact region-first focus deck for the active territory chain
-- export lens may also surface a compact delivery receipt for the latest visible lane
-- export lens may also surface lane-oriented latest/prior delivery summaries
-- export lens may also surface a compact delivery pulse for visible lane status
-- export lens may also surface recent export activity in reverse chronological order
-- export lens may also surface a compact queue-intent hint based on visible lanes
-- export lens may also let the user queue the suggested lane directly from queue intent
+- stable id gercek kimliktir
+- title ve slug degisebilir, identity degismez
+- wiki/search/map/timeline/manuscript ayni canonical kaynakta kalir
+- time visibility merkezi kalir
+- newest draft silent kaybolmaz
+- optional lens fail etse de core boot kirilmaz
+- demo ve production akisları karismaz
+- UI domain kurallarini bypass etmez
 
-Frontend contract export kural:
-- aktif lens contractlari `src/modules/mvp-lenses.ts`
-- deferred lens contractlari `src/modules/deferred-lenses.ts`
-- deferred lens acma kapisi `src/modules/features.ts`, default `off`
-- kontrollu geri acilan lensler:
-  - `manuscript`: edit + autosave + mention/backlink
-  - `canvas`: local derived board
-  - `export`: lazy queue
-  - `relations`: stable-id reference seam
-- bunlar explicit toggle ister, core boot sahibi degildir
+## Current Execution Order
 
-## MVP Acceptance
+1. Gate 0: Trust boundary
+2. Gate 1: Product definition
+3. Phase 1: Shell extraction
+4. Phase 2: Wiki lens rebuild
+5. Phase 3: Map lens rebuild
+6. Phase 4: Manuscript lens rebuild
+7. Phase 5: Visual language
+8. Phase 6: Technical hardening
 
-- yeni world localde acilir
-- db ve klasorler olusur
-- entity create/list/search calisir
-- rename teknik id bozmaz
-- wiki/search/map ayni visible set mantigi ile calisir
-- year degisince wiki/search/map birlikte guncellenir
-- autosave crash sonrasi pending draft silent kaybolmaz
+## Gate 0 Status
 
-## Explicit Non-Scope
+Repo gercegine gore aktif contract:
+- entity autosave + recovery var
+- manuscript autosave + recovery var
+- optional lens boot isolation var
+- offline map contract `MapLibre + bundled local raster tiles`
+- deferred lensler explicit toggle ile aciliyor
 
-- active manuscript workflow
-- active canvas workflow
-- active export workflow
-- premium encyclopedia/manuscript hissi
-- deep asset pipeline
-- post-MVP relation genislemesi
+Gate 0 tamam sayilabilmesi icin korunacak cikis kriterleri:
+- pending draft silent discard yok
+- recovery deterministic ve idempotent
+- manuscript/export failure core wiki/search/map boot'unu bloklamaz
+- offline map package contract acik ve testli kalir
 
-## Deferred Lens Rule
+## Gate 1 Rules
 
-Deferred lensler repoda calisabilir ama:
-- MVP contract sayilmaz
-- startup boot path bloklayamaz
+Shell ve lens butceleri:
+- 1 hero area
+- ayni anda en fazla 1-2 support panel
+- kalan her sey drawer, tab, sheet, accordion veya deferred surface
+
+Aktif lensler:
+- `Wiki`
+- `Map`
+- `Timeline`
+- `Search`
+
+Deferred ama stratejik lensler:
+- `Manuscript`
+- `Canvas`
+- `Export`
+- `Relations`
+
+Deferred lens kuralı:
+- default `off`
 - explicit local flag ister
+- core boot sahibi olamaz
 - canonical DB, stable id ve time engine disina cikamaz
 
-Premium shell notu:
-- app shell, world/lens/focus/theme/deferred state icin kompakt bir folio strip gosterebilir
-- workspace head, project/visible/type/year/theme icin curated bir strip de gosterebilir
-- workspace body, type dagilimi ve focus durumunu collector strip olarak da gosterebilir
-- workspace body, slug/db/selected/autosave durumunu provenance strip olarak da gosterebilir
-- workspace head, aktif lens ve secili fokus icin spotlight strip de gosterebilir
-- workspace head, lens/anchor/shelf/query durumunu compact bir curation rail olarak da gosterebilir
-- workspace head, aktif lens tonunu anlatan bir mood strip de gosterebilir
-- workspace head, secili fokus/start year/cover/deferred durumunu editorial strip olarak da gosterebilir
-- workspace head, startup/draft/filter/search durumunu compact bir state board olarak da gosterebilir
-- workspace head, shell mount/focus/deferred durumunu compact bir shell digest olarak da gosterebilir
-- workspace head, session theme/year/record/autosave durumunu compact bir session strip olarak da gosterebilir
-- workspace head, lens/focus/filter/draft durumunu compact bir desk atlas olarak da gosterebilir
-- export head, receipt/pulse/intent durumunu compact bir delivery digest olarak da gosterebilir
-- export head, lane/activity durumunu compact bir delivery board olarak da gosterebilir
-- export head, root/artifact/queue durumunu compact bir publishing strip olarak da gosterebilir
-- export head, manifest/root/pdf durumunu compact bir artifact ledger olarak da gosterebilir
-- export head, queue/done/root ritmini compact bir release cadence olarak da gosterebilir
-- export head, digest/publishing/artifact/cadence durumunu compact bir release digest olarak da gosterebilir
-- export head, intent/publishing/root durumunu compact bir release desk olarak da gosterebilir
-- export head, latest lane/intention/artifact durumunu compact bir shipment note olarak da gosterebilir
-- shell ribbon ailesi ve export summary kartlari, yeni veri modeli acmadan daha bitmis bir polish katmaniyla sunulabilir
+## Shell Direction
+
+Phase 1 hedefi:
+- `App.tsx` orkestrasyon katmani olsun
+- shell anlasilir bloklara bolunsun
+- navigation, topbar, workspace ve detail rail ayrissin
+
+Beklenen shell parcasi adlari:
+- `AppShell`
+- `AppSidebar`
+- `AppTopbar`
+- `MainWorkspace`
+- `DetailRail`
+- `DeferredFeaturePanel`
+
+## Release Candidate Ritual
+
+Near-final kabul edilmeden once:
+- blank world create
+- character/place/region/event create
+- map uzerine yerlesim
+- year parity kontrolu
+- rename sonra reference saglamligi
+- entity'den scene draft baslatma
+- mention/link bridge kontrolu
+- app'i edit sirasinda kapatip recovery kontrolu
+- reopen sonra silent loss olmadigini dogrulama

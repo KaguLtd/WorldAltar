@@ -1,174 +1,68 @@
 # TASKS
 
-## Done
+## Gate 0
 
-- [x] Faz 0 repo + shell + tooling
-- [x] Faz 1 world bootstrap + SQLite
-- [x] Faz A core module sinirlari
-- [x] Faz 2 typed entities + repository
-- [x] Faz 3 time engine parity
-- [x] Faz 4 minimal wiki + minimal offline map + year slider
-- [x] Faz 5 autosave base
-- [x] Hotfix Faz 0 recovery draft preserve
-- [x] Hotfix Faz 1 optional lens boot isolation
-- [x] Faz 4 stabilizasyon + gate pass
-- [x] Faz 5 deferred lensleri kontrollu geri ac
-- [x] deferred lensler explicit toggle + lazy mount
-- [x] manuscript mention/backlink bridge
-- [x] Phase 7 first UX pass
-- [x] wiki spotlight + grouped cards
-- [x] detail editor/facts rhythm
-- [x] timeline spotlight
-- [x] manuscript facts/mentions rhythm
-- [x] deferred shell spotlight pass
+- [x] Entity autosave recovery deterministic
+- [x] Manuscript autosave recovery deterministic
+- [x] Optional lens boot isolation
+- [x] Offline map MVP contract closed as bundled raster
+- [ ] Re-run trust boundary verification after each shell milestone
 
-## Active Next
+## Gate 1
 
-- [x] warning temizligi
-- [x] import/katman sadeleme
-- [x] plan v2 tamamlama
-- [x] full recheck gate
+- [x] Master plan adopted from council verdict v2
+- [x] Primary user loop documented
+- [x] Final Core v1 boundary documented
+- [x] Lens budget and shell rules documented
+- [ ] Keep / merge / defer / remove panel inventory
+- [ ] Kill list for noisy helper surfaces
 
-## Deferred
+## Phase 1: Shell Extraction
 
-- [x] manuscript studio depth
-- [x] two-page manuscript productization
-- [x] advanced canvas
-- [x] export depth
-- [x] premium asset/polish layers
-- [x] deeper phase 7 premium motion/theme pass
+- [x] Introduce `AppShell`
+- [x] Introduce `AppTopbar`
+- [x] Introduce `AppSidebar`
+- [x] Introduce `MainWorkspace`
+- [x] Introduce `DetailRail`
+- [ ] Introduce `DeferredFeaturePanel`
+- [ ] Move global search into dedicated topbar/home for final shell
+- [ ] Move year control into topbar or timeline header
+- [ ] Reduce workspace chrome to hero + max 1-2 support panels
+- [ ] Make `App.tsx` orchestration-only
 
-## Remainder
+## Phase 2: Wiki Lens Rebuild
 
-- [x] Faz 2 quick relation entry pass
-- [x] Faz 2 studio preset pass
-- [x] Faz 2 asset preset pass
-- [x] Faz 2 asset import pass
-- [x] Faz 3 geocoded focus rail pass
-- [x] Faz 3 map summary strip pass
-- [x] Faz 3 map popover jump pass
-- [x] Faz 3 map detail shortcut pass
-- [x] Faz 3 map selected strip pass
-- [x] Faz 3 map type strip pass
-- [x] Faz 3 map legend pass
-- [x] Faz 3 map overlay semantic count pass
-- [x] Faz 3 map year micro-copy pass
-- [x] Faz 3 map year shift pass
-- [x] Faz 3 map spatial ledger pass
-- [x] Faz 3 map relation ledger pass
-- [x] Faz 3 map territory bands pass
-- [x] Faz 3 map territory focus pass
-- [x] Faz 3 map territory horizon pass
-- [x] Faz 3 map territory status pass
-- [x] Faz 3 map territory route pass
-- [x] Faz 3 map territory chain pass
-- [x] Faz 3 map territory pulse pass
-- [x] Faz 3 map region focus pass
-- [x] Faz 3 map region focus rail pass
-- [x] Faz 3 map territory desk pass
-- [x] Faz 2 spotlight authoring pass
-- [x] Faz 2 detail draft assist pass
-- [x] Faz 4 manuscript bridge pass
-- [x] Faz 4 manuscript mention picker pass
-- [x] Faz 4 manuscript timeline context pass
-- [x] Faz 4 caret-aware mention insert pass
-- [x] Faz 4 wiki scene-context pass
-- [x] Faz 4 detail-to-manuscript scene draft pass
-- [x] Faz 4 manuscript scene prefill pass
-- [x] Faz 4 manuscript scene scaffold pass
-- [x] Faz 4 manuscript scene continuity pass
-- [x] Faz 4 detail follow-up draft pass
-- [x] Faz 4 manuscript tree continuity pass
-- [x] Faz 4 manuscript chapter affinity pass
-- [x] Faz 4 manuscript chapter rhythm pass
-- [x] Faz 4 manuscript composition mode pass
-- [x] Faz 4 manuscript composition guide pass
-- [x] Faz 4 manuscript composition deck pass
-- [x] Faz 4 manuscript composition ledger pass
-- [x] Faz 4 manuscript composition beats pass
-- [x] Faz 4 manuscript composition blocks pass
-- [x] Faz 4 manuscript composition queue pass
-- [x] Faz 4 manuscript reserve slot pass
-- [x] Faz 4 manuscript chapter ordering pass
-- [x] Faz 4 manuscript scene lanes pass
-- [x] Faz 4 manuscript scene sequence pass
-- [x] Faz 4 manuscript scene outline pass
-- [x] Faz 4 manuscript scene storyboard pass
-- [x] Faz 4 manuscript scene planning strip pass
-- [x] Faz 4 manuscript scene planning desk pass
-- [x] Faz 4 manuscript scene planning HUD pass
-- [x] Faz 4 manuscript scene planning commands pass
-- [x] Faz 4 manuscript scene launch bar pass
-- [x] Faz 4 manuscript scene launch receipt pass
-- [x] Faz 4 manuscript launch followthrough pass
-- [x] Faz 4 manuscript launch badge pass
-- [x] Faz 4 manuscript selected launch pass
-- [x] Faz 4 manuscript launch reuse pass
-- [x] Faz 4 manuscript launch focus pass
-- [x] Faz 4 manuscript scene handoff pass
-- [x] Faz 4 manuscript next-slot handoff pass
-- [x] Faz 4 manuscript closing-slot handoff pass
-- [x] Faz 4 manuscript opening-slot handoff pass
-- [x] Faz 4 manuscript handoff queue pass
-- [x] Faz 4 manuscript launch rhythm pass
-- [x] Faz 4 manuscript handoff commands pass
-- [x] Faz 4 manuscript handoff edit cues pass
-- [x] Faz 4 manuscript handoff summary cue pass
-- [x] Faz 4 manuscript handoff title cue pass
-- [x] Faz 4 manuscript handoff edit assist pass
-- [x] Faz 4 manuscript selected launch assist pass
-- [x] Faz 3 region focus deck pass
-- [x] Faz 3 selected strip region focus pass
-- [x] Faz 4 relations chapter grouping pass
-- [x] Faz 6 export artifact grouping pass
-- [x] Faz 6 manuscript export metadata pass
-- [x] Faz 6 export package summary pass
-- [x] Faz 6 curated outputs pass
-- [x] Faz 6 bundle readiness pass
-- [x] Faz 6 reference sheets pass
-- [x] Faz 6 export manifest digest pass
-- [x] Faz 6 export history pass
-- [x] Faz 6 delivery checklist pass
-- [x] Faz 6 delivery receipt pass
-- [x] Faz 6 delivery lanes pass
-- [x] Faz 6 delivery pulse pass
-- [x] Faz 6 recent activity pass
-- [x] Faz 6 queue intent pass
-- [x] Faz 6 queue intent action pass
-- [x] Faz 6 delivery digest pass
-- [x] Faz 6 delivery board pass
-- [x] Faz 6 publishing strip pass
-- [x] Faz 6 artifact ledger pass
-- [x] Faz 6 release cadence pass
-- [x] Faz 6 release digest pass
-- [x] Faz 6 release desk pass
-- [x] Faz 6 shipment note pass
-- [x] Faz 6 format readiness pass
-- [x] Faz 6 target roots pass
-- [x] Faz 6 bundle contents pass
-- [x] Faz 5 manuscript folio strip pass
-- [x] Faz 5 detail luxury strip pass
-- [x] Faz 5 hover preview strip pass
-- [x] Faz 5 shell folio strip pass
-- [x] Faz 5 workspace curation strip pass
-- [x] Faz 5 workspace collector strip pass
-- [x] Faz 5 workspace provenance strip pass
-- [x] Faz 5 workspace spotlight strip pass
-- [x] Faz 5 workspace curation rail pass
-- [x] Faz 5 workspace mood strip pass
-- [x] Faz 5 workspace editorial strip pass
-- [x] Faz 5 workspace state board pass
-- [x] Faz 5 workspace shell digest pass
-- [x] Faz 5 workspace session strip pass
-- [x] Faz 5 workspace desk atlas pass
-- [x] Faz 3 closure gate pass
-- [x] Faz 4 closure gate pass
-- [x] Faz 5 closure gate pass
-- [x] Faz 6 closure gate pass
-- [x] Faz 3-6 typecheck gate recheck pass
-- [x] Faz 3-6 frontend test gate recheck pass
-- [x] Faz 3-6 frontend build gate recheck pass
-- [x] Faz 3-6 Rust test gate recheck pass
-- [x] Faz 3-6 Rust build gate recheck pass
-- [x] Faz 5 shell ribbon polish pass
-- [x] Faz 6 export summary polish pass
+- [ ] Unify entity cards
+- [ ] Unify search/filter/year toolbar
+- [ ] Simplify detail panel into stable sections
+- [ ] Keep create flow visible without chaos
+- [ ] Rebuild hover preview with stricter information density
+
+## Phase 3: Map Lens Rebuild
+
+- [ ] Keep map canvas dominant
+- [ ] Move secondary spatial controls into secondary surfaces
+- [ ] Remove overlay clutter and duplicate helper rails
+- [ ] Document future map packaging strategy next to current contract
+
+## Phase 4: Manuscript Lens Rebuild
+
+- [ ] Default to draft/editor mode
+- [ ] Keep scene tree + editor + context rail
+- [ ] Push planning overload into secondary surfaces
+- [ ] Preserve entity mention/backlink bridge
+
+## Phase 5: Visual Language
+
+- [ ] Establish visual token system
+- [ ] Define border/motif/icon/frame rules
+- [ ] Create placeholder families by entity type
+- [ ] Keep motion restrained and optional
+
+## Phase 6: Technical Hardening
+
+- [ ] Split lens logic into workspace hooks/controllers
+- [ ] Separate UI state from domain state
+- [ ] CI gates: lint, typecheck, tests, build
+- [ ] Regression coverage for visibility parity, recovery, references, scene creation, media paths
+- [ ] RC ritual script/checklist execution
